@@ -21,11 +21,10 @@ class CipherSuiteSpec extends FlatSpec with Matchers {
 
   "A CipherSuite" should "encrypt and decrypt data." in {
     val key: Key = Key(Random.nextBytes(32))
-    val suite: CipherSuite = new AES256HmacSHA256(key)
 
     val test1: Array[Byte] = "abcdefghijk".getBytes
-    val cipher1: Seq[Byte] = suite.encrypt(test1)
-    val decipher1: Seq[Byte] = suite.decrypt(cipher1) match {
+    val cipher1: Seq[Byte] = AES256HmacSHA256.encrypt(test1, key)
+    val decipher1: Seq[Byte] = AES256HmacSHA256.decrypt(cipher1, key) match {
       case Success(t) ⇒
       t
 
@@ -37,12 +36,11 @@ class CipherSuiteSpec extends FlatSpec with Matchers {
 
   it should "reject invalid signatures." in {
     val key: Key = Key(Random.nextBytes(32))
-    val suite: CipherSuite = new AES256HmacSHA256(key)
 
     val test1: Array[Byte] = "abcdefghijk".getBytes
-    val cipher1: Array[Byte] = suite.encrypt(test1).toArray
+    val cipher1: Array[Byte] = AES256HmacSHA256.encrypt(test1, key).toArray
     cipher1(5) = (cipher1(5).toInt + 1).toByte
-    suite.decrypt(cipher1) match {
+    AES256HmacSHA256.decrypt(cipher1, key) match {
       case Success(t) ⇒
       fail("False signature did not get rejected.")
 

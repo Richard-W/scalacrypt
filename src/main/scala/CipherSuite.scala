@@ -19,10 +19,10 @@ import scala.util.{ Try, Success, Failure }
 /** Provides authenticated encryption using an encryption
   * algorithm and a MAC as delegates.
   */
-class CipherSuite(encryption: Encryption, mac: Mac, key: Key) {
+class CipherSuite(encryption: Encryption, mac: Mac) {
 
   /** Encrypts and signs data. */
-  def encrypt(data: Seq[Byte]): Seq[Byte] = {
+  def encrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
     val ctext: Seq[Byte] = encryption.encrypt(data, key)
     val signature: Seq[Byte] = mac(ctext, key)
 
@@ -30,7 +30,7 @@ class CipherSuite(encryption: Encryption, mac: Mac, key: Key) {
   }
 
   /** Checks the signature and decrypts data. */
-  def decrypt(data: Seq[Byte]): Try[Seq[Byte]] = {
+  def decrypt(data: Seq[Byte], key: Key): Try[Seq[Byte]] = {
     if(data.length < mac.length + 1) {
       return Failure(new Exception("Invalid length"))
     }
@@ -50,4 +50,4 @@ class CipherSuite(encryption: Encryption, mac: Mac, key: Key) {
 /** Cipher suite using AES with a key length of 256 bit and HMAC SHA256 as
   * authentication.
   */
-class AES256HmacSHA256(key: Key) extends CipherSuite(AES256, HmacSHA256, key)
+object AES256HmacSHA256 extends CipherSuite(AES256, HmacSHA256)
