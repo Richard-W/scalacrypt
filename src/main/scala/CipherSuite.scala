@@ -47,6 +47,21 @@ class CipherSuite(encryption: Encryption, mac: Mac) {
   }
 }
 
+/** Cipher suite using AES with a key length of 128 bit and HMAC SHA1 as
+  * authentication.
+  */
+object AES128HmacSHA1 extends CipherSuite(AES128, HmacSHA1)
+
+/** Cipher suite using AES with a key length of 128 bit and HMAC SHA256 as
+  * authentication.
+  */
+object AES128HmacSHA256 extends CipherSuite(AES128, HmacSHA256)
+
+/** Cipher suite using AES with a key length of 256 bit and HMAC SHA1 as
+  * authentication.
+  */
+object AES256HmacSHA1 extends CipherSuite(AES256, HmacSHA1)
+
 /** Cipher suite using AES with a key length of 256 bit and HMAC SHA256 as
   * authentication.
   */
