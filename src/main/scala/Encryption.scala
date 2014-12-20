@@ -32,11 +32,10 @@ trait Encryption {
 /** Exception that gets thrown when encryption fails somehow. */
 class EncryptionException(message: String) extends Exception(message)
 
-/** AES with a key length of 256 bits. */
-object AES256 extends Encryption {
+/** Base class for AES encryptions. */
+sealed class AESEncryption(keyLength: Int) extends Encryption {
   def encrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
-    if(key.length != (256 / 8)) {
-      // Only 256 bit keys are valid.
+    if(key.length != keyLength) {
       throw new EncryptionException("Illegal key length")
     }
 
@@ -52,8 +51,7 @@ object AES256 extends Encryption {
   }
 
   def decrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
-    if(key.length != (256 / 8)) {
-      // Only 256 bit keys are valid.
+    if(key.length != keyLength) {
       throw new EncryptionException("Illegal key length")
     }
 
@@ -73,3 +71,9 @@ object AES256 extends Encryption {
     c.doFinal(ctext.toArray)
   }
 }
+
+/** AES/CBC with a key length of 128 bits. */
+object AES128 extends AESEncryption(128 / 8)
+
+/** AES/CBC with a key length of 256 bits. */
+object AES256 extends AESEncryption(256 / 8)
