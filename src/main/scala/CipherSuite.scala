@@ -18,8 +18,14 @@ import scala.util.{ Try, Success, Failure }
 
 /** Provides authenticated encryption using an encryption
   * algorithm and a MAC as delegates.
+  *
+  * A cipher suite encrypts data using the supplied encryption
+  * mechanism and signs the result using the supplied MAC and
+  * the encryption key.
+  *
+  * The MAC is prepended to the output of the encryption.
   */
-class CipherSuite(encryption: Encryption, mac: Mac) {
+class CipherSuite(val encryption: Encryption, val mac: Mac) {
 
   /** Encrypts and signs data. */
   def encrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
@@ -29,21 +35,23 @@ class CipherSuite(encryption: Encryption, mac: Mac) {
     signature ++ ctext
   }
 
-  /** Checks the signature and decrypts data. */
+  /** Checks the signature and decrypts data. Only returns a
+    * Success if the signature is valid.
+    */
   def decrypt(data: Seq[Byte], key: Key): Try[Seq[Byte]] = {
-    if(data.length < mac.length + 1) {
+    if(data.length < mac.length) {
       return Failure(new Exception("Invalid length"))
     }
 
     val signature: Seq[Byte] = data.slice(0, mac.length)
     val ctext: Seq[Byte] = data.slice(mac.length, data.length)
 
-    val myMac: Seq[Byte] = mac(ctext, key)
+    val myMac: Seq[Byte] = try { mac(ctext, key) } catch { case t: Throwable ⇒ return Failure(t) }
     if(myMac != signature) {
       return Failure(new Exception("Invalid MAC"))
     }
 
-    Success(encryption.decrypt(ctext, key))
+    Success(try { encryption.decrypt(ctext, key) } catch { case t: Throwable ⇒ return Failure(t) })
   }
 }
 
