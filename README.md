@@ -25,7 +25,7 @@ KeyType is a specific child of SymmetricKey. For AES256 it is SymmetricKey256 fo
 You get the idea.
 
 For secure encryption a pure SymmetricEncryption should never be used as an attacker would
-be able to flip any byte he wishes. For this purpose there is the CipherSuite class which
+be able to flip any byte he wishes. For this purpose there is the SymmetricCipherSuite class which
 signs the output of an encryption algorithm using a MAC. It extends SymmetricEncryption too,
 so usage is the same.
 
@@ -35,5 +35,5 @@ Binary format
 The AES implementations use cipher block chaining mode (CBC) which randomizes the output
 independent of the plaintext. The IV is prepended to the encrypted data (the first 16 bytes).
 
-The CipherSuite class signs the encrypted data and prepends it. The offset depends on the
+The SymmetricCipherSuite class signs the encrypted data and prepends it. The offset depends on the
 length of the specific Mac.
