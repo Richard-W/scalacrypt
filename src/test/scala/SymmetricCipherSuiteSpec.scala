@@ -17,14 +17,16 @@ package xyz.wiedenhoeft.scalacrypt
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 
-class CipherSuiteSpec extends FlatSpec with Matchers {
+abstract class SymmetricCipherSuiteSpec[KeyType <: SymmetricKey](suite: SymmetricCipherSuite[KeyType], keyGen: () ⇒ KeyType) extends FlatSpec with Matchers {
 
-  "A CipherSuite" should "encrypt and decrypt data." in {
-    val key: SymmetricKey256 = SymmetricKey256.generate
+  val name: String = suite.getClass.getName.split("\\.").last.split("\\$").last
+
+  name should "encrypt and decrypt data." in {
+    val key: KeyType = keyGen()
 
     val test1: Array[Byte] = "abcdefghijk".getBytes
-    val cipher1: Seq[Byte] = AES256HmacSHA256.encrypt(test1, key)
-    val decipher1: Seq[Byte] = AES256HmacSHA256.decrypt(cipher1, key) match {
+    val cipher1: Seq[Byte] = suite.encrypt(test1, key)
+    val decipher1: Seq[Byte] = suite.decrypt(cipher1, key) match {
       case Success(t) ⇒
       t
 
@@ -35,12 +37,12 @@ class CipherSuiteSpec extends FlatSpec with Matchers {
   }
 
   it should "reject invalid signatures." in {
-    val key: SymmetricKey256 = SymmetricKey256.generate
+    val key: KeyType = keyGen()
 
     val test1: Array[Byte] = "abcdefghijk".getBytes
-    val cipher1: Array[Byte] = AES256HmacSHA256.encrypt(test1, key).toArray
+    val cipher1: Array[Byte] = suite.encrypt(test1, key).toArray
     cipher1(5) = (cipher1(5).toInt + 1).toByte
-    AES256HmacSHA256.decrypt(cipher1, key) match {
+    suite.decrypt(cipher1, key) match {
       case Success(t) ⇒
       fail("False signature did not get rejected.")
 
@@ -48,3 +50,10 @@ class CipherSuiteSpec extends FlatSpec with Matchers {
     }
   }
 }
+
+class AES128HmacSHA1Spec extends SymmetricCipherSuiteSpec(AES128HmacSHA1, () ⇒ { SymmetricKey128.generate })
+class AES128HmacSHA256Spec extends SymmetricCipherSuiteSpec(AES128HmacSHA256, () ⇒ { SymmetricKey128.generate })
+class AES192HmacSHA1Spec extends SymmetricCipherSuiteSpec(AES192HmacSHA1, () ⇒ { SymmetricKey192.generate })
+class AES192HmacSHA256Spec extends SymmetricCipherSuiteSpec(AES192HmacSHA256, () ⇒ { SymmetricKey192.generate })
+class AES256HmacSHA1Spec extends SymmetricCipherSuiteSpec(AES256HmacSHA1, () ⇒ { SymmetricKey256.generate })
+class AES256HmacSHA256Spec extends SymmetricCipherSuiteSpec(AES256HmacSHA256, () ⇒ { SymmetricKey256.generate })
