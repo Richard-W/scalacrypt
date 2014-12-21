@@ -75,5 +75,8 @@ sealed class AESEncryption(keyLength: Int) extends SymmetricEncryption {
 /** AES/CBC with a key length of 128 bits. */
 object AES128 extends AESEncryption(128 / 8)
 
+/** AES/CBC with a key length of 192 bits. */
+object AES192 extends AESEncryption(192 / 8)
+
 /** AES/CBC with a key length of 256 bits. */
 object AES256 extends AESEncryption(256 / 8)
