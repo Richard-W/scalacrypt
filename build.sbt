@@ -1,5 +1,7 @@
 name := "scalacrypt"
 
+organization := "xyz.wiedenhoeft"
+
 version := "0.1-SNAPSHOT"
 
 licenses := Seq("Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
