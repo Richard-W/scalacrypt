@@ -14,6 +14,8 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
+import scala.util.{ Try, Success, Failure }
+
 /** A wrapper for a sequence of bytes used
   * as a key for encryption.
   */
@@ -26,12 +28,16 @@ sealed trait SymmetricKey {
   def bytes: Seq[Byte]
 }
 
-/** Singleton used to construct Key-objects. */
+/** Singleton used to construct key objects of arbitrary length. */
 object SymmetricKey {
 
   /** Wraps a key into a Key-object. */
-  def apply(key: Seq[Byte]): SymmetricKey = {
-    new SymmetricKeyImpl(key)
+  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey] = {
+    if(keyBytes.length != 0) {
+      Success(new SymmetricKeyImpl(keyBytes))
+    } else {
+      Failure(new SymmetricKeyException("Key is empty"))
+    }
   }
 
   /** Implementation of the Key trait. */
@@ -44,5 +50,94 @@ object SymmetricKey {
     def bytes: Seq[Byte] = {
       key
     }
+  }
+}
+
+sealed abstract class SymmetricKey128 extends SymmetricKey {
+
+  def length: Int
+
+  def bytes: Seq[Byte]
+}
+
+sealed abstract class SymmetricKey192 extends SymmetricKey {
+
+  def length: Int
+
+  def bytes: Seq[Byte]
+}
+
+sealed abstract class SymmetricKey256 extends SymmetricKey {
+
+  def length: Int
+
+  def bytes: Seq[Byte]
+}
+
+class SymmetricKeyException(message: String) extends Exception(message)
+
+object SymmetricKey128 {
+
+  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
+    if(keyBytes.length == 128 / 8) {
+      Success(new SymmetricKey128Impl(keyBytes))
+    } else {
+      Failure(new SymmetricKeyException("Illegal key size."))
+    }
+  }
+
+  def generate: SymmetricKey128 = {
+    new SymmetricKey128Impl(Random.nextBytes(128 / 8))
+  }
+
+  private class SymmetricKey128Impl(keyBytes: Seq[Byte]) extends SymmetricKey128 {
+
+    def length: Int = 128 / 8
+
+    def bytes: Seq[Byte] = keyBytes
+  }
+}
+
+object SymmetricKey192 {
+
+  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey192] = {
+    if(keyBytes.length == 192 / 8) {
+      Success(new SymmetricKey192Impl(keyBytes))
+    } else {
+      Failure(new SymmetricKeyException("Illegal key size."))
+    }
+  }
+
+  def generate: SymmetricKey192 = {
+    new SymmetricKey192Impl(Random.nextBytes(192 / 8))
+  }
+
+  private class SymmetricKey192Impl(keyBytes: Seq[Byte]) extends SymmetricKey192 {
+
+    def length: Int = 192 / 8
+
+    def bytes: Seq[Byte] = keyBytes
+  }
+}
+
+object SymmetricKey256 {
+
+  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey256] = {
+    if(keyBytes.length == 256 / 8) {
+      Success(new SymmetricKey256Impl(keyBytes))
+    } else {
+      Failure(new SymmetricKeyException("Illegal key size."))
+    }
+  }
+
+  def generate: SymmetricKey256 = {
+    new SymmetricKey256Impl(Random.nextBytes(256 / 8))
+  }
+
+  private class SymmetricKey256Impl(keyBytes: Seq[Byte]) extends SymmetricKey256 {
+
+    def length: Int = 256 / 8
+
+    def bytes: Seq[Byte] = keyBytes
   }
 }

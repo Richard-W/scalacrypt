@@ -18,17 +18,16 @@ import scala.util.{ Try, Success, Failure }
 
 /** Implementation of the password based key derivation function 2. */
 class PBKDF2(algorithm: Mac) {
-  def apply(password: Seq[Byte], salt: Seq[Byte], iterations: Int, length: Int): Seq[Byte] = {
+  def apply(password: SymmetricKey, salt: Seq[Byte], iterations: Int, length: Int): Seq[Byte] = {
     val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
     var output = Seq[Byte]()
-    val key = SymmetricKey(password)
 
     for(block <- 1 until numBlocks + 1) {
-      var buffer: Array[Byte] = algorithm(salt ++ java.nio.ByteBuffer.allocate(4).putInt(block).array, key).toArray
+      var buffer: Array[Byte] = algorithm(salt ++ java.nio.ByteBuffer.allocate(4).putInt(block).array, password).toArray
       var u: Array[Byte] = buffer
 
       for(i <- 2 until (iterations + 1)) {
-        u = algorithm(u, key).toArray
+        u = algorithm(u, password).toArray
         for(j <- 0 until u.length) {
           buffer(j) = (buffer(j) ^ u(j)).toByte
         }

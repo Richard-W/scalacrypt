@@ -25,10 +25,10 @@ import scala.util.{ Try, Success, Failure }
   *
   * The MAC is prepended to the output of the encryption.
   */
-class SymmetricCipherSuite(val encryption: SymmetricEncryption, val mac: Mac) {
+class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEncryption[KeyType], val mac: Mac) {
 
   /** Encrypts and signs data. */
-  def encrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
+  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = {
     val ctext: Seq[Byte] = encryption.encrypt(data, key)
     val signature: Seq[Byte] = mac(ctext, key)
 
@@ -38,22 +38,27 @@ class SymmetricCipherSuite(val encryption: SymmetricEncryption, val mac: Mac) {
   /** Checks the signature and decrypts data. Only returns a
     * Success if the signature is valid.
     */
-  def decrypt(data: Seq[Byte], key: SymmetricKey): Try[Seq[Byte]] = {
+  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
     if(data.length < mac.length) {
-      return Failure(new Exception("Invalid length"))
+      return Failure(new SymmetricCipherSuiteException("Invalid length"))
     }
 
     val signature: Seq[Byte] = data.slice(0, mac.length)
     val ctext: Seq[Byte] = data.slice(mac.length, data.length)
 
-    val myMac: Seq[Byte] = try { mac(ctext, key) } catch { case t: Throwable ⇒ return Failure(t) }
+    val myMac: Seq[Byte] = mac(ctext, key)
     if(myMac != signature) {
-      return Failure(new Exception("Invalid MAC"))
+      return Failure(new SymmetricCipherSuiteException("Invalid MAC"))
     }
 
-    Success(try { encryption.decrypt(ctext, key) } catch { case t: Throwable ⇒ return Failure(t) })
+    encryption.decrypt(ctext, key)
   }
 }
+
+/** Exception that is returned inside a Failure when something went wrong in
+  * a CipherSuite
+  */
+class SymmetricCipherSuiteException(message: String) extends Exception
 
 /** Cipher suite using AES with a key length of 128 bit and HMAC SHA1 as
   * authentication.

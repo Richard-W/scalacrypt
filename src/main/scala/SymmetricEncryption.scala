@@ -20,25 +20,21 @@ import javax.crypto.spec.IvParameterSpec
 import scala.util.{ Try, Success, Failure }
 
 /** Base trait for symmetric ciphers. */
-trait SymmetricEncryption {
+trait SymmetricEncryption[KeyType <: SymmetricKey] {
 
   /** Encrypts data with a given key. */
-  def encrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte]
+  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte]
 
   /** Decrypts data using a given key. */
-  def decrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte]
+  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]]
 }
 
 /** Exception that gets thrown when encryption fails somehow. */
 class SymmetricEncryptionException(message: String) extends Exception(message)
 
 /** Base class for AES encryptions. */
-sealed class AESEncryption(keyLength: Int) extends SymmetricEncryption {
-  def encrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
-    if(key.length != keyLength) {
-      throw new SymmetricEncryptionException("Illegal key length")
-    }
-
+sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends SymmetricEncryption[KeyType] {
+  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = {
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
     val k: java.security.Key = new SecretKeySpec(key.bytes.toArray, "AES")
 
@@ -50,14 +46,10 @@ sealed class AESEncryption(keyLength: Int) extends SymmetricEncryption {
     iv ++ ctext
   }
 
-  def decrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
-    if(key.length != keyLength) {
-      throw new SymmetricEncryptionException("Illegal key length")
-    }
-
+  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
     if(data.length < 32 || (data.length % 16) != 0) {
       // Data should be 128 bit IV and n 128 bit blocks.
-      throw new SymmetricEncryptionException("Illegal data length")
+      return Failure(new SymmetricEncryptionException("Illegal data length"))
     }
 
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -68,15 +60,15 @@ sealed class AESEncryption(keyLength: Int) extends SymmetricEncryption {
     val ivspec: IvParameterSpec = new IvParameterSpec(iv.toArray)
 
     c.init(Cipher.DECRYPT_MODE, k, ivspec)
-    c.doFinal(ctext.toArray)
+    Success(c.doFinal(ctext.toArray))
   }
 }
 
 /** AES/CBC with a key length of 128 bits. */
-object AES128 extends AESEncryption(128 / 8)
+object AES128 extends AESEncryption[SymmetricKey128](128 / 8)
 
 /** AES/CBC with a key length of 192 bits. */
-object AES192 extends AESEncryption(192 / 8)
+object AES192 extends AESEncryption[SymmetricKey192](192 / 8)
 
 /** AES/CBC with a key length of 256 bits. */
-object AES256 extends AESEncryption(256 / 8)
+object AES256 extends AESEncryption[SymmetricKey256](256 / 8)

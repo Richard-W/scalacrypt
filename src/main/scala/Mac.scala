@@ -27,17 +27,10 @@ trait Mac {
   def length: Int
 }
 
-/** Exception that is thrown when a Mac fails somehow. */
-class MacException(message: String) extends Exception(message)
-
 /** Base class for MACs implemented in javax.crypto.Mac. */
 class JavaMac(algorithm: String) extends Mac {
 
   def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
-    if(key.length == 0) {
-      throw new MacException("Illegal key length.")
-    }
-
     val k = new SecretKeySpec(key.bytes.toArray, algorithm)
     val mac = javax.crypto.Mac.getInstance(algorithm)
 
