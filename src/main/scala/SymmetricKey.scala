@@ -17,7 +17,7 @@ package xyz.wiedenhoeft.scalacrypt
 /** A wrapper for a sequence of bytes used
   * as a key for encryption.
   */
-sealed trait Key {
+sealed trait SymmetricKey {
 
   /** Length of the key in bytes. */
   def length: Int
@@ -27,15 +27,15 @@ sealed trait Key {
 }
 
 /** Singleton used to construct Key-objects. */
-object Key {
+object SymmetricKey {
 
   /** Wraps a key into a Key-object. */
-  def apply(key: Seq[Byte]): Key = {
-    new KeyImpl(key)
+  def apply(key: Seq[Byte]): SymmetricKey = {
+    new SymmetricKeyImpl(key)
   }
 
   /** Implementation of the Key trait. */
-  private class KeyImpl(key: Seq[Byte]) extends Key {
+  private class SymmetricKeyImpl(key: Seq[Byte]) extends SymmetricKey {
     
     def length: Int = {
       key.length

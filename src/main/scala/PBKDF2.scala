@@ -21,7 +21,7 @@ class PBKDF2(algorithm: Mac) {
   def apply(password: Seq[Byte], salt: Seq[Byte], iterations: Int, length: Int): Seq[Byte] = {
     val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
     var output = Seq[Byte]()
-    val key = Key(password)
+    val key = SymmetricKey(password)
 
     for(block <- 1 until numBlocks + 1) {
       var buffer: Array[Byte] = algorithm(salt ++ java.nio.ByteBuffer.allocate(4).putInt(block).array, key).toArray

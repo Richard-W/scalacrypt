@@ -20,23 +20,23 @@ import javax.crypto.spec.IvParameterSpec
 import scala.util.{ Try, Success, Failure }
 
 /** Base trait for symmetric ciphers. */
-trait Encryption {
+trait SymmetricEncryption {
 
   /** Encrypts data with a given key. */
-  def encrypt(data: Seq[Byte], key: Key): Seq[Byte]
+  def encrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte]
 
   /** Decrypts data using a given key. */
-  def decrypt(data: Seq[Byte], key: Key): Seq[Byte]
+  def decrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte]
 }
 
 /** Exception that gets thrown when encryption fails somehow. */
-class EncryptionException(message: String) extends Exception(message)
+class SymmetricEncryptionException(message: String) extends Exception(message)
 
 /** Base class for AES encryptions. */
-sealed class AESEncryption(keyLength: Int) extends Encryption {
-  def encrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
+sealed class AESEncryption(keyLength: Int) extends SymmetricEncryption {
+  def encrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
     if(key.length != keyLength) {
-      throw new EncryptionException("Illegal key length")
+      throw new SymmetricEncryptionException("Illegal key length")
     }
 
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -50,14 +50,14 @@ sealed class AESEncryption(keyLength: Int) extends Encryption {
     iv ++ ctext
   }
 
-  def decrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
+  def decrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
     if(key.length != keyLength) {
-      throw new EncryptionException("Illegal key length")
+      throw new SymmetricEncryptionException("Illegal key length")
     }
 
     if(data.length < 32 || (data.length % 16) != 0) {
       // Data should be 128 bit IV and n 128 bit blocks.
-      throw new EncryptionException("Illegal data length")
+      throw new SymmetricEncryptionException("Illegal data length")
     }
 
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")

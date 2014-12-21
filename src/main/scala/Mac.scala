@@ -21,7 +21,7 @@ import scala.util.{ Try, Success, Failure }
 trait Mac {
 
   /** Calculates the MAC. */
-  def apply(data: Seq[Byte], key: Key): Seq[Byte]
+  def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte]
 
   /** The length in bytes of the MAC. */
   def length: Int
@@ -33,7 +33,7 @@ class MacException(message: String) extends Exception(message)
 /** Base class for MACs implemented in javax.crypto.Mac. */
 class JavaMac(algorithm: String) extends Mac {
 
-  def apply(data: Seq[Byte], key: Key): Seq[Byte] = {
+  def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
     if(key.length == 0) {
       throw new MacException("Illegal key length.")
     }

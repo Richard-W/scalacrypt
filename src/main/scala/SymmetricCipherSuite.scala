@@ -25,10 +25,10 @@ import scala.util.{ Try, Success, Failure }
   *
   * The MAC is prepended to the output of the encryption.
   */
-class CipherSuite(val encryption: Encryption, val mac: Mac) {
+class SymmetricCipherSuite(val encryption: SymmetricEncryption, val mac: Mac) {
 
   /** Encrypts and signs data. */
-  def encrypt(data: Seq[Byte], key: Key): Seq[Byte] = {
+  def encrypt(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
     val ctext: Seq[Byte] = encryption.encrypt(data, key)
     val signature: Seq[Byte] = mac(ctext, key)
 
@@ -38,7 +38,7 @@ class CipherSuite(val encryption: Encryption, val mac: Mac) {
   /** Checks the signature and decrypts data. Only returns a
     * Success if the signature is valid.
     */
-  def decrypt(data: Seq[Byte], key: Key): Try[Seq[Byte]] = {
+  def decrypt(data: Seq[Byte], key: SymmetricKey): Try[Seq[Byte]] = {
     if(data.length < mac.length) {
       return Failure(new Exception("Invalid length"))
     }
@@ -58,19 +58,19 @@ class CipherSuite(val encryption: Encryption, val mac: Mac) {
 /** Cipher suite using AES with a key length of 128 bit and HMAC SHA1 as
   * authentication.
   */
-object AES128HmacSHA1 extends CipherSuite(AES128, HmacSHA1)
+object AES128HmacSHA1 extends SymmetricCipherSuite(AES128, HmacSHA1)
 
 /** Cipher suite using AES with a key length of 128 bit and HMAC SHA256 as
   * authentication.
   */
-object AES128HmacSHA256 extends CipherSuite(AES128, HmacSHA256)
+object AES128HmacSHA256 extends SymmetricCipherSuite(AES128, HmacSHA256)
 
 /** Cipher suite using AES with a key length of 256 bit and HMAC SHA1 as
   * authentication.
   */
-object AES256HmacSHA1 extends CipherSuite(AES256, HmacSHA1)
+object AES256HmacSHA1 extends SymmetricCipherSuite(AES256, HmacSHA1)
 
 /** Cipher suite using AES with a key length of 256 bit and HMAC SHA256 as
   * authentication.
   */
-object AES256HmacSHA256 extends CipherSuite(AES256, HmacSHA256)
+object AES256HmacSHA256 extends SymmetricCipherSuite(AES256, HmacSHA256)

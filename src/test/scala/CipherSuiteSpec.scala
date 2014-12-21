@@ -20,7 +20,7 @@ import scala.util.{ Try, Success, Failure }
 class CipherSuiteSpec extends FlatSpec with Matchers {
 
   "A CipherSuite" should "encrypt and decrypt data." in {
-    val key: Key = Key(Random.nextBytes(32))
+    val key: SymmetricKey = SymmetricKey(Random.nextBytes(32))
 
     val test1: Array[Byte] = "abcdefghijk".getBytes
     val cipher1: Seq[Byte] = AES256HmacSHA256.encrypt(test1, key)
@@ -35,7 +35,7 @@ class CipherSuiteSpec extends FlatSpec with Matchers {
   }
 
   it should "reject invalid signatures." in {
-    val key: Key = Key(Random.nextBytes(32))
+    val key: SymmetricKey = SymmetricKey(Random.nextBytes(32))
 
     val test1: Array[Byte] = "abcdefghijk".getBytes
     val cipher1: Array[Byte] = AES256HmacSHA256.encrypt(test1, key).toArray
