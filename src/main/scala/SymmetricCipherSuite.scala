@@ -70,6 +70,16 @@ object AES128HmacSHA1 extends SymmetricCipherSuite(AES128, HmacSHA1)
   */
 object AES128HmacSHA256 extends SymmetricCipherSuite(AES128, HmacSHA256)
 
+/** Cipher suite using AES with a key length of 192 bit and HMAC SHA1 as
+  * authentication.
+  */
+object AES192HmacSHA1 extends SymmetricCipherSuite(AES192, HmacSHA1)
+
+/** Cipher suite using AES with a key length of 192 bit and HMAC SHA256 as
+  * authentication.
+  */
+object AES192HmacSHA256 extends SymmetricCipherSuite(AES192, HmacSHA256)
+
 /** Cipher suite using AES with a key length of 256 bit and HMAC SHA1 as
   * authentication.
   */
