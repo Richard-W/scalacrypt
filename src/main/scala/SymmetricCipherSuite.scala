@@ -25,7 +25,7 @@ import scala.util.{ Try, Success, Failure }
   *
   * The MAC is prepended to the output of the encryption.
   */
-class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEncryption[KeyType], val mac: Mac) {
+class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEncryption[KeyType], val mac: Mac) extends SymmetricEncryption[KeyType] {
 
   /** Encrypts and signs data. */
   def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = {
