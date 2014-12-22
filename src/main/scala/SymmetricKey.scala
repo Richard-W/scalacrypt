@@ -53,26 +53,9 @@ object SymmetricKey {
   }
 }
 
-sealed abstract class SymmetricKey128 extends SymmetricKey {
-
-  def length: Int
-
-  def bytes: Seq[Byte]
-}
-
-sealed abstract class SymmetricKey192 extends SymmetricKey {
-
-  def length: Int
-
-  def bytes: Seq[Byte]
-}
-
-sealed abstract class SymmetricKey256 extends SymmetricKey {
-
-  def length: Int
-
-  def bytes: Seq[Byte]
-}
+sealed abstract class SymmetricKey128 extends SymmetricKey
+sealed abstract class SymmetricKey192 extends SymmetricKey
+sealed abstract class SymmetricKey256 extends SymmetricKey
 
 class SymmetricKeyException(message: String) extends Exception(message)
 
