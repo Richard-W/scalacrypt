@@ -33,3 +33,17 @@ publishArtifact in Test := false
 useGpg := true
 
 usePgpKeyHex("CB8F8B69")
+
+pomExtra := (
+  <developers>
+    <developer>
+      <id>richard-w</id>
+      <name>Richard Wiedenhöft</name>
+      <url>https://github.com/Richard-W</url>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/richard-w/scalacrypt</url>
+    <connection>scm:https://github.com/richard-w/scalacrypt.git</connection>
+  </scm>
+)
