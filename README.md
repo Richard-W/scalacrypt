@@ -7,6 +7,12 @@ this project only provides symmetric encryption. This may change in the future.
 
 This project is under heavy development and not suited for production!!!
 
+To add this scalacrypt to your sbt project just add the following line to your build.sbt:
+
+```scala
+libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.1.1"
+```
+
 Symmetric encryption
 --------------------
 
