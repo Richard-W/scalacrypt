@@ -23,7 +23,7 @@ import scala.util.{ Try, Success, Failure }
   * mechanism and signs the result using the supplied MAC and
   * the encryption key.
   *
-  * The MAC is prepended to the output of the encryption.
+  * The MAC is appended to the output of the encryption.
   */
 class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEncryption[KeyType], val mac: Mac) extends SymmetricEncryption[KeyType] {
 
@@ -32,7 +32,7 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
     val ctext: Seq[Byte] = encryption.encrypt(data, key)
     val signature: Seq[Byte] = mac(ctext, key)
 
-    signature ++ ctext
+    ctext ++ signature
   }
 
   /** Checks the signature and decrypts data. Only returns a
@@ -43,8 +43,8 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
       return Failure(new SymmetricCipherSuiteException("Invalid length"))
     }
 
-    val signature: Seq[Byte] = data.slice(0, mac.length)
-    val ctext: Seq[Byte] = data.slice(mac.length, data.length)
+    val ctext: Seq[Byte] = data.slice(0, data.length - mac.length)
+    val signature: Seq[Byte] = data.slice(data.length - mac.length, data.length)
 
     val myMac: Seq[Byte] = mac(ctext, key)
     if(myMac != signature) {

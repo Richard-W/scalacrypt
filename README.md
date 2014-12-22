@@ -35,5 +35,5 @@ Binary format
 The AES implementations use cipher block chaining mode (CBC) which randomizes the output
 independent of the plaintext. The IV is prepended to the encrypted data (the first 16 bytes).
 
-The SymmetricCipherSuite class signs the encrypted data and prepends it. The offset depends on the
+The SymmetricCipherSuite class signs the encrypted data and appends it. The offset depends on the
 length of the specific Mac.
