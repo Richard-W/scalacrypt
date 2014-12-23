@@ -53,13 +53,36 @@ abstract class SymmetricEncryptionSpec[KeyType <: SymmetricKey](enc: SymmetricEn
       case Failure(f) ⇒
     }
 
-    enc.decrypt(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16) map { _.toByte }, key) match {
+    enc.decrypt(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) map { _.toByte }, key) match {
       case Success(s) ⇒ fail("Did return success.")
       case Failure(f) ⇒
     }
+  }
+
+  it should "encrypt and decrypt iterators." in {
+    val key: KeyType = keyGen()
+
+    val plain: Seq[Seq[Byte]] = Seq("abcdefghijkl".getBytes, "xvlcwkhgfq".getBytes, "uiaeosnrtd".getBytes, "üöäpzbm,.".getBytes)
+    val crypt: Iterator[Seq[Byte]] = enc.encrypt(plain.toIterator, key)
+    val decrypt: Iterator[Try[Seq[Byte]]] = enc.decrypt(crypt, key)
+
+    val v1: Seq[Byte] = plain.fold(Seq()) { (a, b) ⇒ a ++ b }
+    val v2: Seq[Byte] = decrypt.fold(Success(Seq[Byte]())) { (a, b) ⇒
+      if(a.isSuccess && b.isSuccess)
+        Success(a.get ++ b.get)
+      else
+        Failure(new Exception())
+    }.get
+    v1 should be (v2)
   }
 }
 
 class AES128Spec extends SymmetricEncryptionSpec(AES128, () ⇒ { SymmetricKey128.generate })
 class AES192Spec extends SymmetricEncryptionSpec(AES192, () ⇒ { SymmetricKey192.generate })
 class AES256Spec extends SymmetricEncryptionSpec(AES256, () ⇒ { SymmetricKey256.generate })
+class AES128HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES128HmacSHA1, () ⇒ { SymmetricKey128.generate })
+class AES192HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES192HmacSHA1, () ⇒ { SymmetricKey192.generate })
+class AES256HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES256HmacSHA1, () ⇒ { SymmetricKey256.generate })
+class AES128HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES128HmacSHA256, () ⇒ { SymmetricKey128.generate })
+class AES192HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES192HmacSHA256, () ⇒ { SymmetricKey192.generate })
+class AES256HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES256HmacSHA256, () ⇒ { SymmetricKey256.generate })

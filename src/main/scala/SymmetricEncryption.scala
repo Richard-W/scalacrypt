@@ -22,11 +22,28 @@ import scala.util.{ Try, Success, Failure }
 /** Base trait for symmetric ciphers. */
 trait SymmetricEncryption[KeyType <: SymmetricKey] {
 
+  /** Encrypts an iterator with a given key. */
+  def encrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Seq[Byte]]
+
   /** Encrypts data with a given key. */
-  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte]
+  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = encrypt(Iterator(data), key).fold(Seq[Byte]()) { (a, b) ⇒
+    a ++ b
+  }
+
+  /** Decrypts an iterator with a given key. */
+  def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]]
 
   /** Decrypts data using a given key. */
-  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]]
+  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = decrypt(Iterator(data), key).fold(Success(Seq[Byte]()))
+  { (a, b) ⇒
+    if(a.isFailure) {
+      a
+    } else if(b.isFailure) {
+      b
+    } else {
+      Success(a.get ++ b.get)
+    }
+  }
 }
 
 /** Exception that gets thrown when encryption fails somehow. */
@@ -34,33 +51,88 @@ class SymmetricEncryptionException(message: String) extends Exception(message)
 
 /** Base class for AES encryptions. */
 sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends SymmetricEncryption[KeyType] {
-  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = {
+  def encrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Seq[Byte]] = {
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
     val k: java.security.Key = new SecretKeySpec(key.bytes.toArray, "AES")
 
     c.init(Cipher.ENCRYPT_MODE, k)
-
-    val ctext: Seq[Byte] = c.doFinal(data.toArray)
     val iv: Seq[Byte] = c.getIV
 
-    iv ++ ctext
+    Iterator(iv) ++ new Iterator[Seq[Byte]] {
+      def hasNext: Boolean = data.hasNext
+
+      def next: Seq[Byte] = {
+        if(data.hasNext) {
+          val chunk = data.next
+          if(data.hasNext) {
+            c.update(chunk.toArray)
+          } else {
+            c.doFinal(chunk.toArray)
+          }
+        } else {
+          Seq()
+        }
+      }
+    }
   }
 
-  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
-    if(data.length < 32 || (data.length % 16) != 0) {
-      // Data should be 128 bit IV and n 128 bit blocks.
-      return Failure(new SymmetricEncryptionException("Illegal data length"))
-    }
-
+  def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]] = {
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
     val k: java.security.Key = new SecretKeySpec(key.bytes.toArray, "AES")
 
-    val iv: Seq[Byte] = data.slice(0, 16)
-    val ctext: Seq[Byte] = data.slice(16, data.length)
+    var ivseq: Seq[Byte] = Seq()
+    while(ivseq.length < 16) {
+      if(data.hasNext) {
+        ivseq = ivseq ++ data.next
+      } else {
+        return Iterator(Failure(new SymmetricEncryptionException("Illegal data length.")))
+      }
+    }
+
+    val iv: Seq[Byte] = ivseq.slice(0, 16)
+    val ctext: Iterator[Seq[Byte]] = Iterator[Seq[Byte]](ivseq.slice(16, ivseq.length)) ++ data
     val ivspec: IvParameterSpec = new IvParameterSpec(iv.toArray)
 
     c.init(Cipher.DECRYPT_MODE, k, ivspec)
-    Success(c.doFinal(ctext.toArray))
+    
+    new Iterator[Try[Seq[Byte]]] {
+      def hasNext: Boolean = ctext.hasNext
+
+      def next: Try[Seq[Byte]] = {
+        if(ctext.hasNext) {
+          val chunk = ctext.next
+          if(ctext.hasNext) {
+            val decryptedChunk = c.update(chunk.toArray)
+            if(decryptedChunk != null) {
+              Success(decryptedChunk)
+            } else {
+              Success(Seq())
+            }
+          } else {
+            try {
+              val decryptedChunk = c.doFinal(chunk.toArray)
+              if(decryptedChunk != null) {
+                Success(decryptedChunk)
+              } else {
+                Success(Seq())
+              }
+            } catch {
+              case _: IllegalBlockSizeException ⇒
+              Failure(new SymmetricEncryptionException("Illegal data length."))
+
+              case _: BadPaddingException ⇒
+              Failure(new SymmetricEncryptionException("Bad padding."))
+
+              case t: Throwable ⇒
+              // Should never happen.
+              throw t
+            }
+          }
+        } else {
+          Success(Seq())
+        }
+      }
+    }
   }
 }
 

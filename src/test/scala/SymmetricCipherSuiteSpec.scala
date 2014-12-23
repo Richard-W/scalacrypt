@@ -21,21 +21,6 @@ abstract class SymmetricCipherSuiteSpec[KeyType <: SymmetricKey](suite: Symmetri
 
   val name: String = suite.getClass.getName.split("\\.").last.split("\\$").last
 
-  name should "encrypt and decrypt data." in {
-    val key: KeyType = keyGen()
-
-    val test1: Array[Byte] = "abcdefghijk".getBytes
-    val cipher1: Seq[Byte] = suite.encrypt(test1, key)
-    val decipher1: Seq[Byte] = suite.decrypt(cipher1, key) match {
-      case Success(t) ⇒
-      t
-
-      case Failure(f) ⇒
-      fail(f.getMessage)
-    }
-    test1 should be (decipher1)
-  }
-
   it should "reject invalid signatures." in {
     val key: KeyType = keyGen()
 
@@ -51,9 +36,9 @@ abstract class SymmetricCipherSuiteSpec[KeyType <: SymmetricKey](suite: Symmetri
   }
 }
 
-class AES128HmacSHA1Spec extends SymmetricCipherSuiteSpec(AES128HmacSHA1, () ⇒ { SymmetricKey128.generate })
-class AES128HmacSHA256Spec extends SymmetricCipherSuiteSpec(AES128HmacSHA256, () ⇒ { SymmetricKey128.generate })
-class AES192HmacSHA1Spec extends SymmetricCipherSuiteSpec(AES192HmacSHA1, () ⇒ { SymmetricKey192.generate })
-class AES192HmacSHA256Spec extends SymmetricCipherSuiteSpec(AES192HmacSHA256, () ⇒ { SymmetricKey192.generate })
-class AES256HmacSHA1Spec extends SymmetricCipherSuiteSpec(AES256HmacSHA1, () ⇒ { SymmetricKey256.generate })
-class AES256HmacSHA256Spec extends SymmetricCipherSuiteSpec(AES256HmacSHA256, () ⇒ { SymmetricKey256.generate })
+class AES128HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES128HmacSHA1, () ⇒ { SymmetricKey128.generate })
+class AES128HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES128HmacSHA256, () ⇒ { SymmetricKey128.generate })
+class AES192HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES192HmacSHA1, () ⇒ { SymmetricKey192.generate })
+class AES192HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES192HmacSHA256, () ⇒ { SymmetricKey192.generate })
+class AES256HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES256HmacSHA1, () ⇒ { SymmetricKey256.generate })
+class AES256HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES256HmacSHA256, () ⇒ { SymmetricKey256.generate })

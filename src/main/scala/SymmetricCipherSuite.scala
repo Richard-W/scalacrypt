@@ -28,7 +28,7 @@ import scala.util.{ Try, Success, Failure }
 class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEncryption[KeyType], val mac: Mac) extends SymmetricEncryption[KeyType] {
 
   /** Encrypts and signs data. */
-  def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = {
+  override def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte] = {
     val ctext: Seq[Byte] = encryption.encrypt(data, key)
     val signature: Seq[Byte] = mac(ctext, key)
 
@@ -38,7 +38,7 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
   /** Checks the signature and decrypts data. Only returns a
     * Success if the signature is valid.
     */
-  def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
+  override def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
     if(data.length < mac.length) {
       return Failure(new SymmetricCipherSuiteException("Invalid length"))
     }
@@ -53,6 +53,11 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
 
     encryption.decrypt(ctext, key)
   }
+
+  //TODO: Actually use iterators as soon as macs are working.
+  def encrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Seq[Byte]] = Iterator(encrypt(data.fold(Seq[Byte]()) { (a, b) ⇒ a ++ b }, key))
+
+  def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]] = Iterator(decrypt(data.fold(Seq[Byte]()) { (a, b) ⇒ a ++ b }, key))
 }
 
 /** Exception that is returned inside a Failure when something went wrong in
