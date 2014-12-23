@@ -14,6 +14,7 @@ crossScalaVersions := Seq("2.11.4", "2.10.4")
 
 libraryDependencies ++= {
   Seq(
+    "com.typesafe.play" %% "play-iteratees" % "2.4.0-M2",
     "org.scalatest" %% "scalatest" % "2.2.1" % "test"
   )
 }
