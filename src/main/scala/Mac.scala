@@ -27,11 +27,18 @@ trait Mac {
   def length: Int
 }
 
-/** Base class for MACs implemented in javax.crypto.Mac. */
+/** Base class for MACs implemented in javax.crypto.Mac.
+  *
+  * Attention: If the key is empty it is substituted by a single zero-byte.
+  */
 class JavaMac(algorithm: String) extends Mac {
 
   def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
-    val k = new SecretKeySpec(key.bytes.toArray, algorithm)
+    val k: SecretKeySpec = if(key.length != 0) {
+      new SecretKeySpec(key.bytes.toArray, algorithm)
+    } else {
+      new SecretKeySpec(Array(0.toByte), algorithm)
+    }
     val mac = javax.crypto.Mac.getInstance(algorithm)
 
     mac.init(k)

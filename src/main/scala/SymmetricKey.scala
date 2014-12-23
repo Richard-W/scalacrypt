@@ -19,7 +19,7 @@ import scala.util.{ Try, Success, Failure }
 /** A wrapper for a sequence of bytes used
   * as a key for encryption.
   */
-sealed trait SymmetricKey {
+trait SymmetricKey {
 
   /** Length of the key in bytes. */
   def length: Int
@@ -32,12 +32,8 @@ sealed trait SymmetricKey {
 object SymmetricKey {
 
   /** Wraps a key into a Key-object. */
-  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey] = {
-    if(keyBytes.length != 0) {
-      Success(new SymmetricKeyImpl(keyBytes))
-    } else {
-      Failure(new SymmetricKeyException("Key is empty"))
-    }
+  def apply(keyBytes: Seq[Byte]): SymmetricKey = {
+    new SymmetricKeyImpl(keyBytes)
   }
 
   /** Implementation of the Key trait. */

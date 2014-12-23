@@ -19,10 +19,6 @@ import scala.util.{ Try, Success, Failure }
 
 class SymmetricKeySpec extends FlatSpec with Matchers {
 
-  "A SymmetricKey" should "never have length 0." in {
-    SymmetricKey(Seq()) shouldBe a [Failure[_]]
-  }
-
   "A SymmetricKey128" should "always have length 16." in {
     SymmetricKey128(Seq(1,2,3) map { _.toByte }) shouldBe a [Failure[_]]
     SymmetricKey128(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16) map { _.toByte }) shouldBe a [Success[_]]
