@@ -62,7 +62,7 @@ abstract class SymmetricEncryptionSpec[KeyType <: SymmetricKey](enc: SymmetricEn
   it should "encrypt and decrypt iterators." in {
     val key: KeyType = keyGen()
 
-    val plain: Seq[Seq[Byte]] = Seq("abcdefghijkl".getBytes, "xvlcwkhgfq".getBytes, "uiaeosnrtd".getBytes, "üöäpzbm,.".getBytes)
+    val plain: Seq[Seq[Byte]] = Seq("abcdefghijkl".getBytes, Seq(), "xvlcwkhgfq".getBytes, "uiaeosnrtd".getBytes, Seq(), "üöäpzbm,.".getBytes)
     val crypt: Iterator[Seq[Byte]] = enc.encrypt(plain.toIterator, key)
     val decrypt: Iterator[Try[Seq[Byte]]] = enc.decrypt(crypt, key)
 

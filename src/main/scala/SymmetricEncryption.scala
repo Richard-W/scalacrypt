@@ -64,10 +64,15 @@ sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends Symm
       def next: Seq[Byte] = {
         if(data.hasNext) {
           val chunk = data.next
-          if(data.hasNext) {
+          val decryptedChunk = if(data.hasNext) {
             c.update(chunk.toArray)
           } else {
             c.doFinal(chunk.toArray)
+          }
+          if(decryptedChunk != null) {
+            decryptedChunk
+          } else {
+            Seq()
           }
         } else {
           Seq()
