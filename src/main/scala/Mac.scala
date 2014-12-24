@@ -56,7 +56,7 @@ class JavaMac(algorithm: String) extends Mac {
     Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
       mac.update(data.toArray)
       mac
-    } map[Seq[Byte]] {
+    } map {
       mac ⇒ mac.doFinal
     }
   }
