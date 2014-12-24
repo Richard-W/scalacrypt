@@ -59,33 +59,73 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
     }
   }
 
-  /** Checks the signature and decrypts data. Only returns a
-    * Success if the signature is valid.
-    */
-  override def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
-    if(data.length < mac.length) {
-      return Failure(new SymmetricCipherSuiteException("Invalid length"))
+  /** Checks the signature and decrypts data. */
+  def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]] = {
+    var buffer: Seq[Byte] = Seq()
+    while(buffer.length < mac.length) {
+      if(data.hasNext) {
+        buffer = buffer ++ data.next
+      } else {
+        return Iterator(Failure(new SymmetricCipherSuiteException("Suite: Illegal data length.")))
+      }
     }
 
-    val ctext: Seq[Byte] = data.slice(0, data.length - mac.length)
-    val signature: Seq[Byte] = data.slice(data.length - mac.length, data.length)
+    var macIteratee = mac(key)
 
-    val myMac: Seq[Byte] = mac(ctext, key)
-    if(myMac != signature) {
-      return Failure(new SymmetricCipherSuiteException("Invalid MAC"))
+    val dataIterator = new Iterator[Seq[Byte]] {
+
+      var finished = false
+
+      def hasNext: Boolean = !finished
+
+      def next: Seq[Byte] = {
+        if(hasNext) {
+          if(data.hasNext) {
+            buffer = buffer ++ data.next
+          } else {
+            finished = true
+          }
+          val rv = buffer.slice(0, buffer.length - mac.length)
+          buffer = buffer.slice(buffer.length - mac.length, buffer.length)
+          macIteratee = Await.result(macIteratee.feed(Input.El(rv)), Duration.Inf)
+          rv
+        } else {
+          Seq()
+        }
+      }
     }
 
-    encryption.decrypt(ctext, key)
+    val decryptIterator = encryption.decrypt(dataIterator, key)
+
+    new Iterator[Try[Seq[Byte]]] {
+
+      def hasNext: Boolean = decryptIterator.hasNext
+
+      def next: Try[Seq[Byte]] = {
+        if(hasNext) {
+          val chunk = decryptIterator.next
+          if(hasNext) {
+            chunk
+          } else {
+            val mac: Seq[Byte] = Await.result(macIteratee.run, Duration.Inf)
+            if(mac == buffer) {
+              chunk
+            } else {
+              Failure(new SymmetricCipherSuiteException("Invalid MAC."))
+            }
+          }
+        } else {
+          Success(Seq())
+        }
+      }
+    }
   }
-
-  //TODO: Actually use iterators as soon as macs are working.
-  def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]] = Iterator(decrypt(data.fold(Seq[Byte]()) { (a, b) ⇒ a ++ b }, key))
 }
 
 /** Exception that is returned inside a Failure when something went wrong in
   * a CipherSuite
   */
-class SymmetricCipherSuiteException(message: String) extends Exception
+class SymmetricCipherSuiteException(message: String) extends Exception(message)
 
 /** Cipher suite using AES with a key length of 128 bit and HMAC SHA1 as
   * authentication.
