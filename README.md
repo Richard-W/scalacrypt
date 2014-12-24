@@ -62,3 +62,11 @@ independent of the plaintext. The IV is prepended to the encrypted data (the fir
 
 The SymmetricCipherSuite class signs the encrypted data and appends the signature. The offset depends on the
 length of the specific Mac.
+
+Contributing
+------------
+
+* Bug reports are appreciated as much as actual code contributions. Do not hesitate to report if you encounter a problem.
+* All parts of this library MUST never throw exceptions. Functions should return a Try if they might fail. Also if you encounter an exception i consider it a bug and would appreciate if you reported it here.
+* The library should be kept extensible. It MUST not be necessary to contribute to this library to implement new algorithms. However if you think an algorithm might be of use for others do not hesitate to merge it.
+* This project was born out of necessity. There seems to be no other project in scala providing this functionality and i needed it. I am no cryptography expert but i read a few articles about best practices for encryption. You are welcome to tell me where i am wrong. In fact i will not consider this project stable until a few people who **really** know what they are doing reviewed it.
