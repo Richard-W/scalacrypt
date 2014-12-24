@@ -25,7 +25,18 @@ Symmetric encryption
 --------------------
 
 Every algorithm that encrypts symmetrically extends the SymmetricEncryption trait. This
-trait contains the following abstract methods:
+trait contains the following abstract methods (prior to 0.2 these methods do not exist):
+
+```scala
+/** Encrypts an iterator with a given key. */
+def encrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Seq[Byte]]
+
+/** Decrypts an iterator with a given key. */
+def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]]
+```
+
+Also the trait contains the following methods wrapping the abstract methods (prior
+to 0.2 they were abstract):
 
 ```scala
 /** Encrypts data with a given key. */
@@ -49,5 +60,5 @@ Binary format
 The AES implementations use cipher block chaining mode (CBC) which randomizes the output
 independent of the plaintext. The IV is prepended to the encrypted data (the first 16 bytes).
 
-The SymmetricCipherSuite class signs the encrypted data and appends it. The offset depends on the
+The SymmetricCipherSuite class signs the encrypted data and appends the signature. The offset depends on the
 length of the specific Mac.
