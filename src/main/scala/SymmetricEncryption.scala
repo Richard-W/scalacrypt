@@ -90,7 +90,7 @@ sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends Symm
       if(data.hasNext) {
         ivseq = ivseq ++ data.next
       } else {
-        return Iterator(Failure(new SymmetricEncryptionException("Illegal data length.")))
+        return Iterator(Failure(new SymmetricEncryptionException("Illegal data length. Could not get get IV.")))
       }
     }
 
@@ -123,7 +123,7 @@ sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends Symm
               }
             } catch {
               case _: IllegalBlockSizeException ⇒
-              Failure(new SymmetricEncryptionException("Illegal data length."))
+              Failure(new SymmetricEncryptionException("Illegal data length. Block size invalid."))
 
               case _: BadPaddingException ⇒
               Failure(new SymmetricEncryptionException("Bad padding."))
