@@ -10,7 +10,7 @@ This project is under heavy development and not suited for production!!!
 To add this scalacrypt to your sbt project just add the following line to your build.sbt:
 
 ```scala
-libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.1.1"
+libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.2.0"
 ```
 
 You can use the current snapshot by putting the following lines in your build.sbt:
@@ -18,7 +18,7 @@ You can use the current snapshot by putting the following lines in your build.sb
 ```scala
 resolvers += Resolver.sonatypeRepo("snapshots")
 
-libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.2-SNAPSHOT"
+libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.3-SNAPSHOT"
 ```
 
 Symmetric encryption
