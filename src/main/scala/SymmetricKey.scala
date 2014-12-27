@@ -53,15 +53,13 @@ sealed abstract class SymmetricKey128 extends SymmetricKey
 sealed abstract class SymmetricKey192 extends SymmetricKey
 sealed abstract class SymmetricKey256 extends SymmetricKey
 
-class SymmetricKeyException(message: String) extends Exception(message)
-
 object SymmetricKey128 {
 
   def apply(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
     if(keyBytes.length == 128 / 8) {
       Success(new SymmetricKey128Impl(keyBytes))
     } else {
-      Failure(new SymmetricKeyException("Illegal key size."))
+      Failure(new KeyException("Illegal key size. Key should be exactly 128 bit/16 byte long."))
     }
   }
 
@@ -83,7 +81,7 @@ object SymmetricKey192 {
     if(keyBytes.length == 192 / 8) {
       Success(new SymmetricKey192Impl(keyBytes))
     } else {
-      Failure(new SymmetricKeyException("Illegal key size."))
+      Failure(new KeyException("Illegal key size. Key should be exactly 192 bit/24 byte long."))
     }
   }
 
@@ -105,7 +103,7 @@ object SymmetricKey256 {
     if(keyBytes.length == 256 / 8) {
       Success(new SymmetricKey256Impl(keyBytes))
     } else {
-      Failure(new SymmetricKeyException("Illegal key size."))
+      Failure(new KeyException("Illegal key size. Key should be exactly 256 bit/32 byte long."))
     }
   }
 

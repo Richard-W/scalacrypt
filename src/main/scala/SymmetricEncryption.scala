@@ -46,10 +46,6 @@ trait SymmetricEncryption[KeyType <: SymmetricKey] {
   }
 }
 
-/** Exception that gets thrown when encryption fails somehow. */
-class SymmetricEncryptionException(message: String) extends Exception(message)
-
-/** Base class for AES encryptions. */
 sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends SymmetricEncryption[KeyType] {
   def encrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Seq[Byte]] = {
     val c: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
@@ -90,7 +86,7 @@ sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends Symm
       if(data.hasNext) {
         ivseq = ivseq ++ data.next
       } else {
-        return Iterator(Failure(new SymmetricEncryptionException("Illegal data length. Could not get get IV.")))
+        return Iterator(Failure(new InvalidCiphertextException("Data was shorter than 16 bytes. Could not get IV.")))
       }
     }
 
@@ -123,10 +119,10 @@ sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends Symm
               }
             } catch {
               case _: IllegalBlockSizeException ⇒
-              Failure(new SymmetricEncryptionException("Illegal data length. Block size invalid."))
+              Failure(new InvalidCiphertextException("Illegal data length. Data length must be divisible by 16."))
 
               case _: BadPaddingException ⇒
-              Failure(new SymmetricEncryptionException("Bad padding."))
+              Failure(new DecryptionException("Bad padding. After decryption no PKCS5 padding was found. This could indicate a wrong key."))
 
               case t: Throwable ⇒
               // Should never happen.

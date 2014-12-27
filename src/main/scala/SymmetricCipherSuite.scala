@@ -66,7 +66,7 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
       if(data.hasNext) {
         buffer = buffer ++ data.next
       } else {
-        return Iterator(Failure(new SymmetricCipherSuiteException("Suite: Illegal data length.")))
+        return Iterator(Failure(new InvalidCiphertextException("Data is shorter than the expected signature.")))
       }
     }
 
@@ -111,7 +111,7 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
             if(mac == buffer) {
               chunk
             } else {
-              Failure(new SymmetricCipherSuiteException("Invalid MAC."))
+              Failure(new DecryptionException("MAC check failed. Data is not authenticated. This could indicate a wrong key."))
             }
           }
         } else {
@@ -121,11 +121,6 @@ class SymmetricCipherSuite[KeyType <: SymmetricKey](val encryption: SymmetricEnc
     }
   }
 }
-
-/** Exception that is returned inside a Failure when something went wrong in
-  * a CipherSuite
-  */
-class SymmetricCipherSuiteException(message: String) extends Exception(message)
 
 /** Cipher suite using AES with a key length of 128 bit and HMAC SHA1 as
   * authentication.
@@ -141,7 +136,6 @@ object AES128HmacSHA256 extends SymmetricCipherSuite(AES128, HmacSHA256)
   * authentication.
   */
 object AES192HmacSHA1 extends SymmetricCipherSuite(AES192, HmacSHA1)
-
 /** Cipher suite using AES with a key length of 192 bit and HMAC SHA256 as
   * authentication.
   */
