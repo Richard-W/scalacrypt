@@ -16,12 +16,21 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
+/** A 128 bit symmetric key. */
 sealed abstract class SymmetricKey128 extends SymmetricKey
+
+/** A 192 bit symmetric key. */
 sealed abstract class SymmetricKey192 extends SymmetricKey
+
+/** A 256 bit symmetric key. */
 sealed abstract class SymmetricKey256 extends SymmetricKey
+
+/** A symmetric key of arbitrary length. */
 sealed abstract class SymmetricKeyArbitrary extends SymmetricKey
 
 object `package` {
+
+  /** Builder for 128 bit symmetric keys. */
   implicit object CanBuildSymmetricKey128FromByteSequence extends CanBuildSymmetricKeyFromByteSequence[SymmetricKey128] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
@@ -42,6 +51,7 @@ object `package` {
     }
   }
 
+  /** Builder for 192 bit symmetric keys. */
   implicit object CanBuildSymmetricKey192FromByteSequence extends CanBuildSymmetricKeyFromByteSequence[SymmetricKey192] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey192] = {
@@ -62,6 +72,7 @@ object `package` {
     }
   }
 
+  /** Builder for 256 bit symmetric keys. */
   implicit object CanBuildSymmetricKey256FromByteSequence extends CanBuildSymmetricKeyFromByteSequence[SymmetricKey256] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey256] = {
@@ -82,6 +93,7 @@ object `package` {
     }
   }
 
+  /** Builder for symmetric keys of arbitrary length. */
   implicit object CanBuildSymmetricKeyArbitraryFromByteSequence extends CanBuildSymmetricKeyFromByteSequence[SymmetricKeyArbitrary] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKeyArbitrary] = {

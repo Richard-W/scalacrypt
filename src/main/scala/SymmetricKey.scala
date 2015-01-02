@@ -28,11 +28,17 @@ trait SymmetricKey {
   def bytes: Seq[Byte]
 }
 
+/** Base trait for symmetric key builders. */
 trait CanBuildSymmetricKeyFrom[FromType,KeyType <: SymmetricKey] {
+
+  /** Tries to build the key from the given object. */
   def tryBuild(from: FromType): Try[KeyType]
 }
 
+/** Specialized trait for building symmetric keys from byte sequences. */
 trait CanBuildSymmetricKeyFromByteSequence[KeyType <: SymmetricKey] extends CanBuildSymmetricKeyFrom[Seq[Byte],KeyType]{
+
+  /** A sequence length that guarantees that tryBuild succeeds. */
   def defaultLength: Int
 }
 
@@ -44,6 +50,7 @@ object SymmetricKey {
     builder.tryBuild(keyBytes)
   }
 
+  /** Randomly generate a symmetric key. */
   def generate[KeyType <: SymmetricKey]()(implicit builder: CanBuildSymmetricKeyFromByteSequence[KeyType]): KeyType = {
     builder.tryBuild(Random.nextBytes(builder.defaultLength)).get
   }
