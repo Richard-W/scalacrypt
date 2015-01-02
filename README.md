@@ -47,7 +47,16 @@ def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]]
 ```
 
 KeyType is a specific child of SymmetricKey. For AES256 it is SymmetricKey256 for example.
-You get the idea.
+You get the idea. The predefined key classes can be instantiated using the following
+methods:
+
+```scala
+// SymmetricKey.apply[KeyType <: SymmetricKey](keyBytes: Seq[Byte])(implicit CanBuildSymmetricKeyFromByteSequence[KeyType]): Try[KeyType]
+val specificKey = SymmetricKey[SymmetricKey128](0 until 16 map { _.toByte }) match { case Success(s) ⇒ s case Failure(f) ⇒ throw f }
+
+// SymmetricKey.generate[KeyType <: SymmetricKey]()(implicit CanBuildSymmetricKeyFromByteSequence[KeyType]): KeyType
+val randomKey = SymmetricKey.generate[SymmetricKey128]
+```
 
 For secure encryption a pure SymmetricEncryption should never be used as an attacker would
 be able to flip any byte he wishes. For this purpose there is the SymmetricCipherSuite class which
