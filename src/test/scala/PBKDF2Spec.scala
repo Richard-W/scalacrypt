@@ -20,7 +20,7 @@ import scala.util.{ Try, Success, Failure }
 class PBKDF2Spec extends FlatSpec with Matchers {
   
   "PBKDF2" should "be consistent with the test vectors." in {
-    val p1 = SymmetricKey("password".getBytes)
+    val p1 = SymmetricKey[SymmetricKeyArbitrary]("password".getBytes).get
     val s1 = "salt"
     val l1 = 20
     val i1 = 1
@@ -28,7 +28,7 @@ class PBKDF2Spec extends FlatSpec with Matchers {
     val res12 = PBKDF2HmacSHA1(p1, s1.getBytes, i1, l1)
     res11 should be (res12)
 
-    val p2 = SymmetricKey("password".getBytes)
+    val p2 = SymmetricKey[SymmetricKeyArbitrary]("password".getBytes).get
     val s2 = "salt"
     val l2 = 20
     val i2 = 2
@@ -36,7 +36,7 @@ class PBKDF2Spec extends FlatSpec with Matchers {
     val res22 = PBKDF2HmacSHA1(p2, s2.getBytes, i2, l2)
     res21 should be (res22)
 
-    val p3 = SymmetricKey("password".getBytes)
+    val p3 = SymmetricKey[SymmetricKeyArbitrary]("password".getBytes).get
     val s3 = "salt"
     val l3 = 20
     val i3 = 4096
@@ -44,7 +44,7 @@ class PBKDF2Spec extends FlatSpec with Matchers {
     val res32 = PBKDF2HmacSHA1(p3, s3.getBytes, i3, l3)
     res31 should be (res32)
     
-    val p4 = SymmetricKey("passwordPASSWORDpassword".getBytes)
+    val p4 = SymmetricKey[SymmetricKeyArbitrary]("passwordPASSWORDpassword".getBytes).get
     val s4 = "saltSALTsaltSALTsaltSALTsaltSALTsalt"
     val l4 = 25
     val i4 = 4096

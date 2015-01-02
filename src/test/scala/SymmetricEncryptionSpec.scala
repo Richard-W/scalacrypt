@@ -77,12 +77,12 @@ abstract class SymmetricEncryptionSpec[KeyType <: SymmetricKey](enc: SymmetricEn
   }
 }
 
-class AES128Spec extends SymmetricEncryptionSpec(AES128, () ⇒ { SymmetricKey128.generate })
-class AES192Spec extends SymmetricEncryptionSpec(AES192, () ⇒ { SymmetricKey192.generate })
-class AES256Spec extends SymmetricEncryptionSpec(AES256, () ⇒ { SymmetricKey256.generate })
-class AES128HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES128HmacSHA1, () ⇒ { SymmetricKey128.generate })
-class AES192HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES192HmacSHA1, () ⇒ { SymmetricKey192.generate })
-class AES256HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES256HmacSHA1, () ⇒ { SymmetricKey256.generate })
-class AES128HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES128HmacSHA256, () ⇒ { SymmetricKey128.generate })
-class AES192HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES192HmacSHA256, () ⇒ { SymmetricKey192.generate })
-class AES256HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES256HmacSHA256, () ⇒ { SymmetricKey256.generate })
+class AES128Spec extends SymmetricEncryptionSpec(AES128, () ⇒ { SymmetricKey.generate[SymmetricKey128]() })
+class AES192Spec extends SymmetricEncryptionSpec(AES192, () ⇒ { SymmetricKey.generate[SymmetricKey192]() })
+class AES256Spec extends SymmetricEncryptionSpec(AES256, () ⇒ { SymmetricKey.generate[SymmetricKey256]() })
+class AES128HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES128HmacSHA1, () ⇒ { SymmetricKey.generate[SymmetricKey128]() })
+class AES192HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES192HmacSHA1, () ⇒ { SymmetricKey.generate[SymmetricKey192]() })
+class AES256HmacSHA1EncSpec extends SymmetricEncryptionSpec(AES256HmacSHA1, () ⇒ { SymmetricKey.generate[SymmetricKey256]() })
+class AES128HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES128HmacSHA256, () ⇒ { SymmetricKey.generate[SymmetricKey128]() })
+class AES192HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES192HmacSHA256, () ⇒ { SymmetricKey.generate[SymmetricKey192]() })
+class AES256HmacSHA256EncSpec extends SymmetricEncryptionSpec(AES256HmacSHA256, () ⇒ { SymmetricKey.generate[SymmetricKey256]() })

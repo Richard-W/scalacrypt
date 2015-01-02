@@ -28,93 +28,23 @@ trait SymmetricKey {
   def bytes: Seq[Byte]
 }
 
+trait CanBuildSymmetricKeyFrom[FromType,KeyType <: SymmetricKey] {
+  def tryBuild(from: FromType): Try[KeyType]
+}
+
+trait CanBuildSymmetricKeyFromByteSequence[KeyType <: SymmetricKey] extends CanBuildSymmetricKeyFrom[Seq[Byte],KeyType]{
+  def defaultLength: Int
+}
+
 /** Singleton used to construct key objects of arbitrary length. */
 object SymmetricKey {
 
   /** Wraps a key into a Key-object. */
-  def apply(keyBytes: Seq[Byte]): SymmetricKey = {
-    new SymmetricKeyImpl(keyBytes)
+  def apply[KeyType <: SymmetricKey](keyBytes: Seq[Byte])(implicit builder: CanBuildSymmetricKeyFromByteSequence[KeyType]): Try[KeyType] = {
+    builder.tryBuild(keyBytes)
   }
 
-  /** Implementation of the Key trait. */
-  private class SymmetricKeyImpl(key: Seq[Byte]) extends SymmetricKey {
-    
-    def length: Int = {
-      key.length
-    }
-
-    def bytes: Seq[Byte] = {
-      key
-    }
-  }
-}
-
-sealed abstract class SymmetricKey128 extends SymmetricKey
-sealed abstract class SymmetricKey192 extends SymmetricKey
-sealed abstract class SymmetricKey256 extends SymmetricKey
-
-object SymmetricKey128 {
-
-  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
-    if(keyBytes.length == 128 / 8) {
-      Success(new SymmetricKey128Impl(keyBytes))
-    } else {
-      Failure(new KeyException("Illegal key size. Key should be exactly 128 bit/16 byte long."))
-    }
-  }
-
-  def generate: SymmetricKey128 = {
-    new SymmetricKey128Impl(Random.nextBytes(128 / 8))
-  }
-
-  private class SymmetricKey128Impl(keyBytes: Seq[Byte]) extends SymmetricKey128 {
-
-    def length: Int = 128 / 8
-
-    def bytes: Seq[Byte] = keyBytes
-  }
-}
-
-object SymmetricKey192 {
-
-  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey192] = {
-    if(keyBytes.length == 192 / 8) {
-      Success(new SymmetricKey192Impl(keyBytes))
-    } else {
-      Failure(new KeyException("Illegal key size. Key should be exactly 192 bit/24 byte long."))
-    }
-  }
-
-  def generate: SymmetricKey192 = {
-    new SymmetricKey192Impl(Random.nextBytes(192 / 8))
-  }
-
-  private class SymmetricKey192Impl(keyBytes: Seq[Byte]) extends SymmetricKey192 {
-
-    def length: Int = 192 / 8
-
-    def bytes: Seq[Byte] = keyBytes
-  }
-}
-
-object SymmetricKey256 {
-
-  def apply(keyBytes: Seq[Byte]): Try[SymmetricKey256] = {
-    if(keyBytes.length == 256 / 8) {
-      Success(new SymmetricKey256Impl(keyBytes))
-    } else {
-      Failure(new KeyException("Illegal key size. Key should be exactly 256 bit/32 byte long."))
-    }
-  }
-
-  def generate: SymmetricKey256 = {
-    new SymmetricKey256Impl(Random.nextBytes(256 / 8))
-  }
-
-  private class SymmetricKey256Impl(keyBytes: Seq[Byte]) extends SymmetricKey256 {
-
-    def length: Int = 256 / 8
-
-    def bytes: Seq[Byte] = keyBytes
+  def generate[KeyType <: SymmetricKey]()(implicit builder: CanBuildSymmetricKeyFromByteSequence[KeyType]): KeyType = {
+    builder.tryBuild(Random.nextBytes(builder.defaultLength)).get
   }
 }

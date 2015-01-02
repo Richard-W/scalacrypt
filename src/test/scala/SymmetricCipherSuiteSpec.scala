@@ -36,9 +36,9 @@ abstract class SymmetricCipherSuiteSpec[KeyType <: SymmetricKey](suite: Symmetri
   }
 }
 
-class AES128HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES128HmacSHA1, () ⇒ { SymmetricKey128.generate })
-class AES128HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES128HmacSHA256, () ⇒ { SymmetricKey128.generate })
-class AES192HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES192HmacSHA1, () ⇒ { SymmetricKey192.generate })
-class AES192HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES192HmacSHA256, () ⇒ { SymmetricKey192.generate })
-class AES256HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES256HmacSHA1, () ⇒ { SymmetricKey256.generate })
-class AES256HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES256HmacSHA256, () ⇒ { SymmetricKey256.generate })
+class AES128HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES128HmacSHA1, () ⇒ { SymmetricKey.generate[SymmetricKey128]() })
+class AES128HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES128HmacSHA256, () ⇒ { SymmetricKey.generate[SymmetricKey128]() })
+class AES192HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES192HmacSHA1, () ⇒ { SymmetricKey.generate[SymmetricKey192]() })
+class AES192HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES192HmacSHA256, () ⇒ { SymmetricKey.generate[SymmetricKey192]() })
+class AES256HmacSHA1AuthSpec extends SymmetricCipherSuiteSpec(AES256HmacSHA1, () ⇒ { SymmetricKey.generate[SymmetricKey256]() })
+class AES256HmacSHA256AuthSpec extends SymmetricCipherSuiteSpec(AES256HmacSHA256, () ⇒ { SymmetricKey.generate[SymmetricKey256]() })
