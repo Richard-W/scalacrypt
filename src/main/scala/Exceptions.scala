@@ -18,6 +18,9 @@ package xyz.wiedenhoeft.scalacrypt
  * returned inside a failure.
  */
 
+/** Occurs when invalid padding is encountered. */
+class BadPaddingException(message: String) extends Exception("Bad padding: " + message)
+
 /** Occurs when ciphertexts are invalid. */
 class InvalidCiphertextException(message: String) extends Exception("Invalid ciphertext: " + message)
 

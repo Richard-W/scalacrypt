@@ -121,7 +121,7 @@ sealed class AESEncryption[KeyType <: SymmetricKey](keyLength: Int) extends Symm
               case _: IllegalBlockSizeException ⇒
               Failure(new InvalidCiphertextException("Illegal data length. Data length must be divisible by 16."))
 
-              case _: BadPaddingException ⇒
+              case _: javax.crypto.BadPaddingException ⇒
               Failure(new DecryptionException("Bad padding. After decryption no PKCS5 padding was found. This could indicate a wrong key."))
 
               case t: Throwable ⇒
