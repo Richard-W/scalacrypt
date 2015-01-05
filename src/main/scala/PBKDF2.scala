@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.wiedenhoeft.scalacrypt
+package xyz.wiedenhoeft.scalacrypt.misc
 
 import scala.util.{ Try, Success, Failure }
+import xyz.wiedenhoeft.scalacrypt._
 import mac._
 
 /** Implementation of the password based key derivation function 2. */
