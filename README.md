@@ -24,26 +24,21 @@ libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.3-SNAPSHOT"
 Symmetric encryption
 --------------------
 
-Every algorithm that encrypts symmetrically extends the SymmetricEncryption trait. This
-trait contains the following abstract methods (prior to 0.2 these methods do not exist):
+This library contains the trait SymmetricBlockCipher:
 
 ```scala
-/** Encrypts an iterator with a given key. */
-def encrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Seq[Byte]]
+/** Base trait for symmetric block ciphers such as AES. */
+trait SymmetricBlockCipher[KeyType <: SymmetricKey] {
 
-/** Decrypts an iterator with a given key. */
-def decrypt(data: Iterator[Seq[Byte]], key: KeyType): Iterator[Try[Seq[Byte]]]
-```
+  /** Block size in bytes. */
+  val blockSize: Int
 
-Also the trait contains the following methods wrapping the abstract methods (prior
-to 0.2 they were abstract):
+  /** Returns a function that encrypts single blocks using the key. */
+  def encrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]]
 
-```scala
-/** Encrypts data with a given key. */
-def encrypt(data: Seq[Byte], key: KeyType): Seq[Byte]
-
-/** Decrypts data using a given key. */
-def decrypt(data: Seq[Byte], key: KeyType): Try[Seq[Byte]]
+  /** Returns a function that decrypts single blocks using the key. */
+  def decrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]]
+}
 ```
 
 KeyType is a specific child of SymmetricKey. For AES256 it is SymmetricKey256 for example.
@@ -58,19 +53,9 @@ val specificKey = SymmetricKey[SymmetricKey128](0 until 16 map { _.toByte }) mat
 val randomKey = SymmetricKey.generate[SymmetricKey128]
 ```
 
-For secure encryption a pure SymmetricEncryption should never be used as an attacker would
-be able to flip any byte he wishes. For this purpose there is the SymmetricCipherSuite class which
-signs the output of an encryption algorithm using a MAC. It extends SymmetricEncryption too,
-so usage is the same.
-
-Binary format
--------------
-
-The AES implementations use cipher block chaining mode (CBC) which randomizes the output
-independent of the plaintext. The IV is prepended to the encrypted data (the first 16 bytes).
-
-The SymmetricCipherSuite class signs the encrypted data and appends the signature. The offset depends on the
-length of the specific Mac.
+The function returned by encrypt and decrypt is able to encrypt a single block so in the case of AES exactly 16 bytes. If your input is not
+exactly divisible by the block size you need padding. The BlockPadding trait transforms an Iterator of byte sequences to an Iterator of
+properly padded blocks.
 
 Contributing
 ------------
