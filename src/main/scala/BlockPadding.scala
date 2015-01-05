@@ -25,7 +25,7 @@ trait BlockPadding {
   def unwrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]]
 }
 
-object PKCS5Padding extends BlockPadding {
+object PKCS7Padding extends BlockPadding {
 
   def wrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = {
     new Iterator[Seq[Byte]] {
