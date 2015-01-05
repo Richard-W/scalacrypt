@@ -24,23 +24,6 @@ libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.3-SNAPSHOT"
 Symmetric encryption
 --------------------
 
-This library contains the trait SymmetricBlockCipher:
-
-```scala
-/** Base trait for symmetric block ciphers such as AES. */
-trait SymmetricBlockCipher[KeyType <: SymmetricKey] {
-
-  /** Block size in bytes. */
-  val blockSize: Int
-
-  /** Returns a function that encrypts single blocks using the key. */
-  def encrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]]
-
-  /** Returns a function that decrypts single blocks using the key. */
-  def decrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]]
-}
-```
-
 KeyType is a specific child of SymmetricKey. For AES256 it is SymmetricKey256 for example.
 You get the idea. The predefined key classes can be instantiated using the following
 methods:

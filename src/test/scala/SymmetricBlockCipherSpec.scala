@@ -21,45 +21,56 @@ import blockcipher.{ AES128, AES192, AES256 }
 class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
 
   "AES128" should "conform to the test vectors." in {
-    val key: SymmetricKey128 = SymmetricKey[SymmetricKey128](Seq(0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c) map { _.toByte }).get
-    val encrypt = AES128.encrypt(key)
-    val decrypt = AES128.decrypt(key)
+    val cipher: AES128 = new AES128 {
+      def key = SymmetricKey[SymmetricKey128](Seq(
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
+      ) map { _.toByte }).get
+    }
+    def encrypt(block: Seq[Byte]): Seq[Byte] = cipher.encryptBlock(block).get
+    def decrypt(block: Seq[Byte]): Seq[Byte] = cipher.decryptBlock(block).get
 
     var p = Seq(0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a) map { _.toByte }
     var c = Seq(0x3a, 0xd7, 0x7b, 0xb4, 0x0d, 0x7a, 0x36, 0x60, 0xa8, 0x9e, 0xca, 0xf3, 0x24, 0x66, 0xef, 0x97) map { _.toByte }
-    encrypt(p).get should be (c)
-    decrypt(c).get should be (p)
+    encrypt(p) should be (c)
+    decrypt(c) should be (p)
 
     p = Seq(0xae, 0x2d, 0x8a, 0x57, 0x1e, 0x03, 0xac, 0x9c, 0x9e, 0xb7, 0x6f, 0xac, 0x45, 0xaf, 0x8e, 0x51) map { _.toByte }
     c = Seq(0xf5, 0xd3, 0xd5, 0x85, 0x03, 0xb9, 0x69, 0x9d, 0xe7, 0x85, 0x89, 0x5a, 0x96, 0xfd, 0xba, 0xaf) map { _.toByte }
-    encrypt(p).get should be (c)
-    decrypt(c).get should be (p)
+    encrypt(p) should be (c)
+    decrypt(c) should be (p)
 
     p = Seq(0x30, 0xc8, 0x1c, 0x46, 0xa3, 0x5c, 0xe4, 0x11, 0xe5, 0xfb, 0xc1, 0x19, 0x1a, 0x0a, 0x52, 0xef) map { _.toByte }
     c = Seq(0x43, 0xb1, 0xcd, 0x7f, 0x59, 0x8e, 0xce, 0x23, 0x88, 0x1b, 0x00, 0xe3, 0xed, 0x03, 0x06, 0x88) map { _.toByte }
-    encrypt(p).get should be (c)
-    decrypt(c).get should be (p)
+    encrypt(p) should be (c)
+    decrypt(c) should be (p)
 
     p = Seq(0xf6, 0x9f, 0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17, 0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10) map { _.toByte }
     c = Seq(0x7b, 0x0c, 0x78, 0x5e, 0x27, 0xe8, 0xad, 0x3f, 0x82, 0x23, 0x20, 0x71, 0x04, 0x72, 0x5d, 0xd4) map { _.toByte }
-    encrypt(p).get should be (c)
-    decrypt(c).get should be (p)
+    encrypt(p) should be (c)
+    decrypt(c) should be (p)
   }
 
   it should "return IllegalBlockSizeException on illegal block sizes." in {
-    val key = SymmetricKey.generate[SymmetricKey128]
-    val encrypt = AES128.encrypt(key)
-    val decrypt = AES128.decrypt(key)
+    val cipher: AES128 = new AES128 {
+      def key = SymmetricKey.generate[SymmetricKey128]
+    }
+    def encrypt(block: Seq[Byte]): Try[Seq[Byte]] = cipher.encryptBlock(block)
+    def decrypt(block: Seq[Byte]): Try[Seq[Byte]] = cipher.decryptBlock(block)
 
     encrypt(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16) map { _.toByte }) shouldBe a [Success[_]]
     encrypt(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) map { _.toByte }) shouldBe a [Failure[_]]
     encrypt(Seq(1) map { _.toByte }) shouldBe a [Failure[_]]
     encrypt(Seq[Byte]()) shouldBe a [Failure[_]]
+
+    decrypt(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16) map { _.toByte }) shouldBe a [Success[_]]
+    decrypt(Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) map { _.toByte }) shouldBe a [Failure[_]]
+    decrypt(Seq(1) map { _.toByte }) shouldBe a [Failure[_]]
+    decrypt(Seq[Byte]()) shouldBe a [Failure[_]]
   }
 
   "All AES objects" should "yield the correct block size." in {
-    AES128.blockSize should be (16)
-    AES192.blockSize should be (16)
-    AES256.blockSize should be (16)
+    new AES128 { def key = SymmetricKey.generate[SymmetricKey128] }.blockSize should be (16)
+    new AES128 { def key = SymmetricKey.generate[SymmetricKey128] }.blockSize should be (16)
+    new AES128 { def key = SymmetricKey.generate[SymmetricKey128] }.blockSize should be (16)
   }
 }

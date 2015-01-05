@@ -20,11 +20,14 @@ import scala.util.{ Try, Success, Failure }
 trait SymmetricBlockCipher[KeyType <: SymmetricKey] {
 
   /** Block size in bytes. */
-  val blockSize: Int
+  def blockSize: Int
+
+  /** The key used for en- and decryption. */
+  def key: KeyType
 
   /** Returns a function that encrypts single blocks using the key. */
-  def encrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]]
+  def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
 
   /** Returns a function that decrypts single blocks using the key. */
-  def decrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]]
+  def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
 }

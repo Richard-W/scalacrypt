@@ -21,36 +21,37 @@ import javax.crypto.spec.SecretKeySpec
 import java.security.Key
 
 /** Base class for symmetric block ciphers that are implemented in the java crypto API. */
-class SymmetricJavaBlockCipher[KeyType <: SymmetricKey](algo: String) extends SymmetricBlockCipher[KeyType] {
+trait SymmetricJavaBlockCipher[KeyType <: SymmetricKey] extends SymmetricBlockCipher[KeyType] {
 
-  val blockSize: Int = Cipher.getInstance(algo + "/ECB/NoPadding").getBlockSize
+  protected def algo: String
 
-  private def crypt(key: KeyType, encrypt: Boolean): Seq[Byte] ⇒ Try[Seq[Byte]] = {
-    val cipher: Cipher = Cipher.getInstance(algo + "/ECB/NoPadding")
-    val secretKey: Key = new SecretKeySpec(key.bytes.toArray, "AES")
-    if(encrypt) {
-      cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-    } else {
-      cipher.init(Cipher.DECRYPT_MODE, secretKey)
-    }
+  def blockSize: Int = Cipher.getInstance(algo + "/ECB/NoPadding").getBlockSize
 
-    (block: Seq[Byte]) ⇒ {
-      if(block.length != blockSize) {
-        Failure(
-          new IllegalBlockSizeException("Expected block of length " + blockSize + ", got " + block.length + " bytes.")
-        )
+  private val secretKey: Key = new SecretKeySpec(key.bytes.toArray, "AES")
+  private val encryptor: Cipher = Cipher.getInstance(algo + "/ECB/NoPadding")
+  encryptor.init(Cipher.ENCRYPT_MODE, secretKey)
+  private val decryptor: Cipher = Cipher.getInstance(algo + "/ECB/NoPadding")
+  decryptor.init(Cipher.DECRYPT_MODE, secretKey)
+
+  private def crypt(block: Seq[Byte], encrypt: Boolean): Try[Seq[Byte]] = {
+    if(block.length == blockSize) {
+      if(encrypt) {
+        Success(encryptor.doFinal(block.toArray))
       } else {
-        // Exceptions this method throws should never happen.
-        Success(cipher.doFinal(block.toArray))
+        Success(decryptor.doFinal(block.toArray))
       }
+    } else {
+      Failure(
+        new IllegalBlockSizeException("Expected block of length " + blockSize + ", got " + block.length + " bytes.")
+      )
     }
   }
 
-  def encrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]] = crypt(key, true)
+  def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = crypt(block, true)
 
-  def decrypt(key: KeyType): Seq[Byte] ⇒ Try[Seq[Byte]] = crypt(key, false)
+  def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = crypt(block, false)
 }
 
-object AES128 extends SymmetricJavaBlockCipher[SymmetricKey128]("AES")
-object AES192 extends SymmetricJavaBlockCipher[SymmetricKey192]("AES")
-object AES256 extends SymmetricJavaBlockCipher[SymmetricKey256]("AES")
+trait AES128 extends SymmetricJavaBlockCipher[SymmetricKey128] { def algo = "AES" }
+trait AES192 extends SymmetricJavaBlockCipher[SymmetricKey192] { def algo = "AES" }
+trait AES256 extends SymmetricJavaBlockCipher[SymmetricKey256] { def algo = "AES" }
