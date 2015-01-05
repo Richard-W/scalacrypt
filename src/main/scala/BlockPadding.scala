@@ -22,7 +22,7 @@ trait BlockPadding {
   def wrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]]
 
   /** Takes an iterator of blocks and removes the padding. */
-  def unwrap(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]]
+  def unwrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]]
 }
 
 object PKCS5Padding extends BlockPadding {
@@ -53,7 +53,7 @@ object PKCS5Padding extends BlockPadding {
     }
   }
 
-  def unwrap(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = {
+  def unwrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = {
     var error: Option[Throwable] = None
 
     val rv: Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
@@ -64,15 +64,25 @@ object PKCS5Padding extends BlockPadding {
         error = Some(new BadPaddingException("Input is empty."))
         Seq()
       }
+      if(buffer.length != blockSize) {
+        error = Some(new IllegalBlockSizeException("BlockPadding.unwrap only accepts an iterator of correct blocks."))
+        Seq()
+      }
 
       def hasNext = buffer.length != 0
 
-      def next = {
+      def next: Try[Seq[Byte]] = {
         //Peek the next block.
-        val nextBlock: Seq[Byte] = if(input.hasNext)
-          input.next
-        else
+        val nextBlock: Seq[Byte] = if(input.hasNext) {
+          val next = input.next
+          //Check the block size.
+          if(next.length != blockSize) {
+            return Failure(new IllegalBlockSizeException("BlockPadding.unwrap only accepts an iterator of correct blocks."))
+          }
+          next
+        } else {
           Seq()
+        }
 
         if(input.hasNext) {
           //After peeking there is still input left so neither

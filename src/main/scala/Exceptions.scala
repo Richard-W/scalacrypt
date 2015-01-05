@@ -21,6 +21,9 @@ package xyz.wiedenhoeft.scalacrypt
 /** Occurs when invalid padding is encountered. */
 class BadPaddingException(message: String) extends Exception("Bad padding: " + message)
 
+/** Occurs when a block of illegal size is given to a block cipher. */
+class IllegalBlockSizeException(message: String) extends Exception("Illegal block size: " + message)
+
 /** Occurs when ciphertexts are invalid. */
 class InvalidCiphertextException(message: String) extends Exception("Invalid ciphertext: " + message)
 
