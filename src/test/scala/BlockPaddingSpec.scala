@@ -16,6 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
+import padding._
 
 class BlockPaddingSpec extends FlatSpec with Matchers {
 
