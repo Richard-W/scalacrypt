@@ -19,8 +19,8 @@ import scala.util.{ Try, Success, Failure }
 trait BlockPadding {
 
   /** Takes an iterator of byte sequences and outputs an iterator of blocks for encryption. */
-  def wrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]]
+  def pad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]]
 
   /** Takes an iterator of blocks and removes the padding. */
-  def unwrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]]
+  def unpad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]]
 }

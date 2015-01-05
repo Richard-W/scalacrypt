@@ -20,7 +20,7 @@ import padding._
 
 class BlockPaddingSpec extends FlatSpec with Matchers {
 
-  "PKCS7Padding" should "wrap and unwrap data correctly" in {
+  "PKCS7Padding" should "pad and unpad data correctly" in {
     val testvectors = Seq[(Int,Seq[Seq[Byte]],Seq[Seq[Byte]])](
       (
         16,
@@ -53,9 +53,11 @@ class BlockPaddingSpec extends FlatSpec with Matchers {
       )
     )
 
+    val padding = new PKCS7Padding { }
+
     for(testvector <- testvectors) {
-      PKCS7Padding.wrap(testvector._2.toIterator, testvector._1).toSeq should be (testvector._3)
-      PKCS7Padding.unwrap(testvector._3.toIterator, testvector._1).toSeq.map({ _.get }).flatten should be (testvector._2.flatten)
+      padding.pad(testvector._2.toIterator, testvector._1).toSeq should be (testvector._3)
+      padding.unpad(testvector._3.toIterator, testvector._1).toSeq.map({ _.get }).flatten should be (testvector._2.flatten)
     }
   }
 
@@ -84,9 +86,11 @@ class BlockPaddingSpec extends FlatSpec with Matchers {
       )
     )
 
+    val padding = new PKCS7Padding { }
+
     for(test <- tests) {
       try {
-        PKCS7Padding.unwrap(test._2.toIterator, test._1).toSeq.filter({ _.isFailure }).headOption shouldBe a [Some[_]]
+        padding.unpad(test._2.toIterator, test._1).toSeq.filter({ _.isFailure }).headOption shouldBe a [Some[_]]
       } catch { 
         case t: Throwable ⇒
         fail(t.getMessage + " :: " + test.toString)

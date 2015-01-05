@@ -17,9 +17,9 @@ package xyz.wiedenhoeft.scalacrypt.padding
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 
-object PKCS7Padding extends BlockPadding {
+trait PKCS7Padding extends BlockPadding {
 
-  def wrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = {
+  def pad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = {
     new Iterator[Seq[Byte]] {
       
       var running = true
@@ -45,7 +45,7 @@ object PKCS7Padding extends BlockPadding {
     }
   }
 
-  def unwrap(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = {
+  def unpad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = {
     var error: Option[Throwable] = None
 
     val rv: Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
