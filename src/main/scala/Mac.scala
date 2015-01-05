@@ -14,7 +14,6 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
-import javax.crypto.spec.SecretKeySpec
 import scala.util.{ Try, Success, Failure }
 import play.api.libs.iteratee._
 import scala.concurrent.Await
@@ -37,37 +36,3 @@ trait Mac {
   /** The length in bytes of the MAC. */
   def length: Int
 }
-
-/** Base class for MACs implemented in javax.crypto.Mac.
-  *
-  * Attention: If the key is empty it is substituted by a single zero-byte.
-  */
-class JavaMac(algorithm: String) extends Mac {
-
-  def apply(key: SymmetricKey)(implicit ec: ExecutionContext): Iteratee[Seq[Byte],Seq[Byte]] = {
-    val k: SecretKeySpec = if(key.length != 0) {
-      new SecretKeySpec(key.bytes.toArray, algorithm)
-    } else {
-      new SecretKeySpec(Array(0.toByte), algorithm)
-    }
-    val mac = javax.crypto.Mac.getInstance(algorithm)
-
-    mac.init(k)
-    Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
-      mac.update(data.toArray)
-      mac
-    } map {
-      mac ⇒ mac.doFinal
-    }
-  }
-
-  def length: Int = {
-    javax.crypto.Mac.getInstance(algorithm).getMacLength
-  }
-}
-
-/** HMAC-SHA1 implementation of Mac. */
-object HmacSHA1 extends JavaMac("HmacSHA1")
-
-/** HMAC-SHA256 implementation of Mac. */
-object HmacSHA256 extends JavaMac("HmacSHA256")

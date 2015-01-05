@@ -16,6 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
+import mac._
 
 class MacSpec extends FlatSpec with Matchers {
   
