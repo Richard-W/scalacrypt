@@ -19,7 +19,7 @@ import scala.util.{ Try, Success, Failure }
 
 trait PKCS7Padding extends BlockPadding {
 
-  def pad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = {
+  def pad(input: Iterator[Seq[Byte]]): Iterator[Seq[Byte]] = {
     new Iterator[Seq[Byte]] {
       
       var running = true
@@ -45,7 +45,7 @@ trait PKCS7Padding extends BlockPadding {
     }
   }
 
-  def unpad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = {
+  def unpad(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = {
     var error: Option[Throwable] = None
 
     val rv: Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
