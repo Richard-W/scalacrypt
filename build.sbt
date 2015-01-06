@@ -12,6 +12,8 @@ scalaVersion := "2.11.4"
 
 crossScalaVersions := Seq("2.11.4", "2.10.4")
 
+scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation")
+
 libraryDependencies ++= {
   Seq(
     "com.typesafe.play" %% "play-iteratees" % "2.4.0-M2",
