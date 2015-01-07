@@ -16,7 +16,27 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
-abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] extends SymmetricBlockCipher[KeyType] with BlockPadding with BlockCipherMode {
+abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] {
+
+  def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
+
+  def postEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
+
+  def preDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
+
+  def postDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
+
+  def blockSize: Int
+
+  def pad(input: Iterator[Seq[Byte]]): Iterator[Seq[Byte]]
+
+  def unpad(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]]
+
+  def key: KeyType
+
+  def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
+
+  def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
 
   def encrypt(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
     // Pad the input and seperate it into blocks.
@@ -46,6 +66,87 @@ abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] extends Symmet
         // Save state and return.
         interState = postState
         Success(post)
+      }
+    }
+  }
+
+  def decrypt(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = {
+    val decryptIterator = new Iterator[Try[Seq[Byte]]] {
+
+      var fail = false
+      var buffer = Seq[Byte]()
+      var interState: Option[Any] = None
+
+      def hasNext = (input.hasNext || buffer.length > 0) && !fail
+
+      def next: Try[Seq[Byte]] = {
+        // Fill buffer and extract single block.
+        while(buffer.length < blockSize && input.hasNext) {
+          buffer = buffer ++ input.next
+        }
+        if(buffer.length < blockSize) {
+          fail = true
+          return Failure(new IllegalBlockSizeException("Illegal block size encountered."))
+        }
+        val block = buffer.slice(0, blockSize)
+        buffer = buffer.slice(blockSize, buffer.length)
+
+        // Preprocess block.
+        val (pre, preState) = preDecryptBlock(block, interState)
+        decryptBlock(pre) match {
+          case Failure(f) ⇒
+          fail = true
+          Failure(f)
+
+          case Success(dec) ⇒
+          val (post, postState) = postDecryptBlock(dec, preState)
+          interState = postState
+          Success(post)
+        }
+      }
+    }
+
+    // Since BlockPadding.unpad only accepts an Iterator[Seq[Byte]] and we have Iterator[Try[Seq[Byte]]]
+    // we catch the failures in prepad filter and have an Iterator[Seq[Byte]]. These errors are then
+    // given to the user by wrapping the iterator from the depad method in another iterator that
+    // monitors these failures.
+    var decryptionFailure: Option[Throwable] = None
+
+    val prepadFilter: Iterator[Seq[Byte]] = new Iterator[Seq[Byte]] {
+
+      def hasNext = decryptIterator.hasNext
+
+      def next: Seq[Byte] = {
+        decryptIterator.next match {
+          case Failure(f) ⇒
+          decryptionFailure = Some(f)
+          Seq()
+
+          case Success(s) ⇒
+          s
+        }
+      }
+    }
+
+    val depadIterator = unpad(prepadFilter)
+
+    new Iterator[Try[Seq[Byte]]] {
+
+      var fail = false
+
+      def hasNext = depadIterator.hasNext && !fail
+
+      def next: Try[Seq[Byte]] = {
+        val depadOutput = depadIterator.next
+
+        decryptionFailure match {
+          case Some(f) ⇒
+          fail = true
+          Failure(f)
+
+          case _ ⇒
+          depadOutput
+        }
       }
     }
   }
