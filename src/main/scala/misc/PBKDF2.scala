@@ -25,14 +25,12 @@ class PBKDF2(algorithm: Mac) {
     var output = Seq[Byte]()
 
     for(block <- 1 until numBlocks + 1) {
-      var buffer: Array[Byte] = algorithm(salt ++ java.nio.ByteBuffer.allocate(4).putInt(block).array, password).toArray
-      var u: Array[Byte] = buffer
+      var buffer: Seq[Byte] = algorithm(salt ++ java.nio.ByteBuffer.allocate(4).putInt(block).array, password)
+      var u: Seq[Byte] = buffer
 
       for(i <- 2 until (iterations + 1)) {
-        u = algorithm(u, password).toArray
-        for(j <- 0 until u.length) {
-          buffer(j) = (buffer(j) ^ u(j)).toByte
-        }
+        u = algorithm(u, password)
+        buffer = for(j <- 0 until u.length) yield (buffer(j) ^ u(j)).toByte
       }
 
       output = output ++ buffer
