@@ -14,7 +14,9 @@
  */
 package xyz.wiedenhoeft.scalacrypt.mode
 
-trait CBC {
+import xyz.wiedenhoeft.scalacrypt._
+
+trait CBC extends BlockCipherMode {
 
   import scala.language.implicitConversions
 
