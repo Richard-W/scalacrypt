@@ -16,7 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
-abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] {
+abstract class SymmetricBlockCipherSuite {
 
   def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
 
@@ -31,8 +31,6 @@ abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] {
   def pad(input: Iterator[Seq[Byte]]): Iterator[Seq[Byte]]
 
   def unpad(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]]
-
-  def key: KeyType
 
   def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
 
