@@ -16,13 +16,20 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
+/** Represents the padding used to extend the data to the block size of the block cipher. */
 trait BlockPadding {
 
   def blockSize: Int
 
-  /** Takes an iterator of byte sequences and outputs an iterator of blocks for encryption. */
+  /** Takes an iterator of byte sequences and outputs an iterator of blocks for encryption.
+    *
+    * Each Seq that the returned iterator returns MUST be exactly blockSize long.
+    */
   def pad(input: Iterator[Seq[Byte]]): Iterator[Seq[Byte]]
 
-  /** Takes an iterator of blocks and removes the padding. */
+  /** Takes an iterator of blocks and removes the padding.
+    *
+    * Each Seq that input contains must be exactly blockSize long.
+    */
   def unpad(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]]
 }

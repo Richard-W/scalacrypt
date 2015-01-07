@@ -16,6 +16,14 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
+/** Represents a combination of cryptographic primitives to implement
+  * a block cipher that can be used on arbitrary iterators.
+  *
+  * This class is meant to be extended by the following traits:
+  * * SymmetricBlockCipher
+  * * BlockCipherMode
+  * * BlockPadding
+  */
 abstract class SymmetricBlockCipherSuite {
 
   def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])

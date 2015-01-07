@@ -14,13 +14,23 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
+/** Describes a block cipher mode of operation like ECB or CBC.
+  *
+  * Each of the methods below gets a state and returns a state. The
+  * state is propagated like this: pre* ⇒ post* ⇒ pre*. On the first
+  * block pre* receives the None object as the state.
+  */
 trait BlockCipherMode {
 
+  /** Process the block before it is encrypted. */
   def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
 
+  /** Process the block after it was encrypted. */
   def postEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
 
+  /** Process the block before it is decrypted. */
   def preDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
 
+  /** Process the block after it was decrypted. */
   def postDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
 }
