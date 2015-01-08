@@ -40,13 +40,10 @@ class SymmetricBlockCipherSuiteSpec extends FlatSpec with Matchers {
     )
 
     for(test <- testvectors) {
-      val suite = new SymmetricBlockCipherSuite with blockcipher.AES128 with padding.NoPadding with mode.CBC {
-        def key = SymmetricKey[SymmetricKey128](Seq(0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c) map { _.toByte }).get
-        def iv = test._1
-      }
+      val enc = suite.AES128_CBC_NoPadding(SymmetricKey[SymmetricKey128](Seq(0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c) map { _.toByte }).get, Some(test._1)).get
 
-      suite.encrypt(Iterator(test._2)).toSeq.map({ _.get }).flatten should be (test._3)
-      suite.decrypt(Iterator(test._3)).toSeq.map({ _.get }).flatten should be (test._2)
+      enc.encrypt(Iterator(test._2)).toSeq.map({ _.get }).flatten should be (test._3)
+      enc.decrypt(Iterator(test._3)).toSeq.map({ _.get }).flatten should be (test._2)
     }
   }
 
@@ -64,7 +61,7 @@ class SymmetricBlockCipherSuiteSpec extends FlatSpec with Matchers {
 
     for(test <- tests) {
       val key = SymmetricKey.generate[SymmetricKey128]
-      val enc = suite.AES128_CBC_PKCS7Padding(key, None).get
+      val enc = suite.AES128_CBC_PKCS7Padding(key).get
 
       val crypt = enc.encrypt(test.toIterator).toSeq.map({ _.get }).flatten
       enc.decrypt(Iterator(crypt)).toSeq.map({ _.get }).flatten should be (test.flatten)
