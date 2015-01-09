@@ -24,25 +24,7 @@ import scala.util.{ Try, Success, Failure }
   * * BlockCipherMode
   * * BlockPadding
   */
-abstract class SymmetricBlockCipherSuite {
-
-  def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
-
-  def postEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
-
-  def preDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
-
-  def postDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
-
-  def blockSize: Int
-
-  def pad(input: Iterator[Seq[Byte]]): Iterator[Seq[Byte]]
-
-  def unpad(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]]
-
-  def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
-
-  def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
+abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] extends SymmetricBlockCipher[KeyType] with BlockCipherMode with BlockPadding {
 
   def encrypt(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
     // Pad the input and seperate it into blocks.

@@ -19,7 +19,7 @@ import scala.util.{ Try, Success, Failure }
 
 object AES128_CBC_NoPadding {
 
-  def apply(key: SymmetricKey128, iv: Option[Seq[Byte]] = None): Try[SymmetricBlockCipherSuite with blockcipher.AES128 with mode.CBC with padding.NoPadding] = {
+  def apply(key: SymmetricKey128, iv: Option[Seq[Byte]] = None): Try[SymmetricBlockCipherSuite[SymmetricKey128] with blockcipher.AES128 with mode.CBC with padding.NoPadding] = {
     val initVector = iv match {
       case Some(s) ⇒
       s
@@ -33,7 +33,7 @@ object AES128_CBC_NoPadding {
       Failure(new IllegalArgumentException("IV must be 16 bytes long."))
     }
 
-    Success(new SymmetricBlockCipherSuite with blockcipher.AES128 with mode.CBC with padding.NoPadding {
+    Success(new SymmetricBlockCipherSuite[SymmetricKey128] with blockcipher.AES128 with mode.CBC with padding.NoPadding {
       def key = k
       def iv = initVector
     })
@@ -42,7 +42,7 @@ object AES128_CBC_NoPadding {
 
 object AES192_CBC_NoPadding {
 
-  def apply(key: SymmetricKey192, iv: Option[Seq[Byte]] = None): Try[SymmetricBlockCipherSuite with blockcipher.AES192 with mode.CBC with padding.NoPadding] = {
+  def apply(key: SymmetricKey192, iv: Option[Seq[Byte]] = None): Try[SymmetricBlockCipherSuite[SymmetricKey192] with blockcipher.AES192 with mode.CBC with padding.NoPadding] = {
     val initVector = iv match {
       case Some(s) ⇒
       s
@@ -56,7 +56,7 @@ object AES192_CBC_NoPadding {
       Failure(new IllegalArgumentException("IV must be 16 bytes long."))
     }
 
-    Success(new SymmetricBlockCipherSuite with blockcipher.AES192 with mode.CBC with padding.NoPadding {
+    Success(new SymmetricBlockCipherSuite[SymmetricKey192] with blockcipher.AES192 with mode.CBC with padding.NoPadding {
       def key = k
       def iv = initVector
     })
@@ -65,7 +65,7 @@ object AES192_CBC_NoPadding {
 
 object AES256_CBC_NoPadding {
 
-  def apply(key: SymmetricKey256, iv: Option[Seq[Byte]] = None): Try[SymmetricBlockCipherSuite with blockcipher.AES256 with mode.CBC with padding.NoPadding] = {
+  def apply(key: SymmetricKey256, iv: Option[Seq[Byte]] = None): Try[SymmetricBlockCipherSuite[SymmetricKey256] with blockcipher.AES256 with mode.CBC with padding.NoPadding] = {
     val initVector = iv match {
       case Some(s) ⇒
       s
@@ -79,7 +79,7 @@ object AES256_CBC_NoPadding {
       Failure(new IllegalArgumentException("IV must be 16 bytes long."))
     }
 
-    Success(new SymmetricBlockCipherSuite with blockcipher.AES256 with mode.CBC with padding.NoPadding {
+    Success(new SymmetricBlockCipherSuite[SymmetricKey256] with blockcipher.AES256 with mode.CBC with padding.NoPadding {
       def key = k
       def iv = initVector
     })

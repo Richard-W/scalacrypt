@@ -33,7 +33,7 @@ Example for constructing a SymmetricBlockCipherMode. You have to make sure yours
 ```scala
 val outerKey = SymmetricKey.generate[SymmetricKey128]
 val outerIV = Random.nextBytes(16)
-val s = new SymmetricBlockCipherSuite with blockcipher.AES128 with mode.CBC with padding.PKCS7Padding {
+val s = new SymmetricBlockCipherSuite[SymmetricKey128] with blockcipher.AES128 with mode.CBC with padding.PKCS7Padding {
 	def key = outerKey
 	def iv = outerIV
 }
