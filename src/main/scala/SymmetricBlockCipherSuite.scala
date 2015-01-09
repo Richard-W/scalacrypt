@@ -26,6 +26,16 @@ import scala.util.{ Try, Success, Failure }
   */
 abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] extends SymmetricBlockCipher[KeyType] with BlockCipherMode with BlockPadding {
 
+  private def tryIteratorToTry(it: Iterator[Try[Seq[Byte]]]) = it.foldLeft[Try[Seq[Byte]]](Success(Seq())) { (a, b) ⇒
+    if(a.isFailure) a
+    else if(b.isFailure) b
+    else Success(a.get ++ b.get)
+  }
+
+  def encrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(encrypt(Iterator(input)))
+
+  def decrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(decrypt(Iterator(input)))
+
   def encrypt(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
     // Pad the input and seperate it into blocks.
     val blocks = pad(input)

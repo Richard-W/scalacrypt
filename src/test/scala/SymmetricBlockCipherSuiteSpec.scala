@@ -44,6 +44,9 @@ class SymmetricBlockCipherSuiteSpec extends FlatSpec with Matchers {
 
       enc.encrypt(Iterator(test._2)).toSeq.map({ _.get }).flatten should be (test._3)
       enc.decrypt(Iterator(test._3)).toSeq.map({ _.get }).flatten should be (test._2)
+
+      enc.encrypt(test._2).get should be (test._3)
+      enc.decrypt(test._3).get should be (test._2)
     }
   }
 
