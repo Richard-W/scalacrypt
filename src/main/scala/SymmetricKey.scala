@@ -45,9 +45,6 @@ trait CanGenerateSymmetricKey[KeyType <: SymmetricKey] {
 /** Singleton used to construct key objects of arbitrary length. */
 object SymmetricKey {
 
-  /** Wraps a key into a Key-object. */
-  def apply[KeyType <: SymmetricKey](from: Seq[Byte])(implicit builder: CanBuildSymmetricKey[Seq[Byte], KeyType]) = builder.tryBuild(from)
-
   /** Randomly generate a symmetric key. */
   def generate[KeyType <: SymmetricKey : CanGenerateSymmetricKey]: KeyType = implicitly[CanGenerateSymmetricKey[KeyType]].generate
 }
@@ -63,6 +60,15 @@ sealed abstract class SymmetricKey256 extends SymmetricKey
 
 /** A symmetric key of arbitrary length. */
 sealed abstract class SymmetricKeyArbitrary extends SymmetricKey
+
+/** Adds the toKey method to Any. */
+final class CanBuildSymmetricKeyOp[FromType](val value: FromType) {
+
+  /** Tries to convert the object to a specific implementation of SymmetricKey. */
+  def toKey[KeyType <: SymmetricKey]()(implicit builder: CanBuildSymmetricKey[FromType, KeyType]) = {
+    builder.tryBuild(value)
+  }
+}
 
 object CanBuildSymmetricKey {
 
@@ -142,18 +148,18 @@ object CanBuildSymmetricKey {
 object CanGenerateSymmetricKey {
 
   implicit val symmetricKey128 = new CanGenerateSymmetricKey[SymmetricKey128] {
-    def generate = SymmetricKey[SymmetricKey128](Random.nextBytes(16)).get
+    def generate = Random.nextBytes(16).toKey[SymmetricKey128].get
   }
 
   implicit val symmetricKey192 = new CanGenerateSymmetricKey[SymmetricKey192] {
-    def generate = SymmetricKey[SymmetricKey192](Random.nextBytes(24)).get
+    def generate = Random.nextBytes(24).toKey[SymmetricKey192].get
   }
 
   implicit val symmetricKey256 = new CanGenerateSymmetricKey[SymmetricKey256] {
-    def generate = SymmetricKey[SymmetricKey256](Random.nextBytes(32)).get
+    def generate = Random.nextBytes(32).toKey[SymmetricKey256].get
   }
 
   implicit val symmetricKeyArbitrary = new CanGenerateSymmetricKey[SymmetricKeyArbitrary] {
-    def generate = SymmetricKey[SymmetricKeyArbitrary](Random.nextBytes(32)).get
+    def generate = Random.nextBytes(32).toKey[SymmetricKeyArbitrary].get
   }
 }

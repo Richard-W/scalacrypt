@@ -22,9 +22,9 @@ class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
 
   "AES128" should "conform to the test vectors." in {
     val cipher: AES128 = new AES128 {
-      def key = SymmetricKey[SymmetricKey128](Seq(
+      def key = (Seq(
         0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
-      ) map { _.toByte }).get
+      ) map { _.toByte }).toKey[SymmetricKey128].get
     }
     def encrypt(block: Seq[Byte]): Seq[Byte] = cipher.encryptBlock(block).get
     def decrypt(block: Seq[Byte]): Seq[Byte] = cipher.decryptBlock(block).get

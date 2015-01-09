@@ -20,17 +20,17 @@ import scala.util.{ Try, Success, Failure }
 class SymmetricKeySpec extends FlatSpec with Matchers {
 
   "A SymmetricKey128" should "always have length 16." in {
-    SymmetricKey[SymmetricKey128](Seq(1,2,3) map { _.toByte }) shouldBe a [Failure[_]]
-    SymmetricKey[SymmetricKey128](Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16) map { _.toByte }) shouldBe a [Success[_]]
+    Seq(1,2,3).map({ _.toByte }).toKey[SymmetricKey128] shouldBe a [Failure[_]]
+    Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16).map({ _.toByte }).toKey[SymmetricKey128] shouldBe a [Success[_]]
   }
 
   "A SymmetricKey192" should "always have length 24." in {
-    SymmetricKey[SymmetricKey192](Seq(1,2,3) map { _.toByte }) shouldBe a [Failure[_]]
-    SymmetricKey[SymmetricKey192](Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24) map { _.toByte }) shouldBe a [Success[_]]
+    Seq(1,2,3).map({ _.toByte }).toKey[SymmetricKey192] shouldBe a [Failure[_]]
+    Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24).map({ _.toByte }).toKey[SymmetricKey192] shouldBe a [Success[_]]
   }
 
   "A SymmetricKey256" should "always have length 32." in {
-    SymmetricKey[SymmetricKey256](Seq(1,2,3) map { _.toByte }) shouldBe a [Failure[_]]
-    SymmetricKey[SymmetricKey256](Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32) map { _.toByte }) shouldBe a [Success[_]]
+    Seq(1,2,3).map({ _.toByte }).toKey[SymmetricKey256] shouldBe a [Failure[_]]
+    Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32).map({ _.toByte }).toKey[SymmetricKey256] shouldBe a [Success[_]]
   }
 }
