@@ -52,12 +52,15 @@ You get the idea. The predefined key classes can be instantiated using the follo
 methods:
 
 ```scala
-// Using implicit conversion: def toKey[KeyType <: SymmetricKey](from: FromType): Try[KeyType]
+// Using implicit conversion to MightBuildSymmetricKeyOp
 val specificKey = (0 until 16 map { _.toByte }).toSeq.toKey[SymmetricKey128] match { case Success(s) ⇒ s case Failure(f) ⇒ throw f }
 
-// SymmetricKey.generate[KeyType <: SymmetricKey]()(implicit CanBuildSymmetricKeyFromBytes[KeyType]): KeyType
+// Using typeclass CanGenerateSymmetricKey.
 val randomKey = SymmetricKey.generate[SymmetricKey128]
 ```
+
+When you are defined own subclasses of SymmetricKey you should also define appropriate implicit implementations of CanGenerateSymmetricKey
+and MightBuildSymmetricKey.
 
 The function returned by encrypt and decrypt is able to encrypt a single block so in the case of AES exactly 16 bytes. If your input is not
 exactly divisible by the block size you need padding. The BlockPadding trait transforms an Iterator of byte sequences to an Iterator of
