@@ -20,6 +20,6 @@ object `package` {
 
   /** Implicit Conversion that adds the toKey method to every class. */
   implicit def toCanBuildSymmetricKeyOp[FromType](from: FromType) = {
-    new CanBuildSymmetricKeyOp[FromType](from)
+    new MightBuildSymmetricKeyOp[FromType](from)
   }
 }

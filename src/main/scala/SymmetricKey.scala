@@ -29,7 +29,7 @@ trait SymmetricKey {
 }
 
 /** Base trait for symmetric key builders. */
-trait CanBuildSymmetricKey[FromType, KeyType <: SymmetricKey] {
+trait MightBuildSymmetricKey[FromType, KeyType <: SymmetricKey] {
 
   /** Tries to build the key from the given object. */
   def tryBuild(from: FromType): Try[KeyType]
@@ -62,18 +62,18 @@ sealed abstract class SymmetricKey256 extends SymmetricKey
 sealed abstract class SymmetricKeyArbitrary extends SymmetricKey
 
 /** Adds the toKey method to Any. */
-final class CanBuildSymmetricKeyOp[FromType](val value: FromType) {
+final class MightBuildSymmetricKeyOp[FromType](val value: FromType) {
 
   /** Tries to convert the object to a specific implementation of SymmetricKey. */
-  def toKey[KeyType <: SymmetricKey]()(implicit builder: CanBuildSymmetricKey[FromType, KeyType]) = {
+  def toKey[KeyType <: SymmetricKey]()(implicit builder: MightBuildSymmetricKey[FromType, KeyType]) = {
     builder.tryBuild(value)
   }
 }
 
-object CanBuildSymmetricKey {
+object MightBuildSymmetricKey {
 
   /** Builder for 128 bit symmetric keys. */
-  implicit val symmetricKey128 = new CanBuildSymmetricKey[Seq[Byte], SymmetricKey128] {
+  implicit val symmetricKey128 = new MightBuildSymmetricKey[Seq[Byte], SymmetricKey128] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
       if(keyBytes.length == 128 / 8) {
@@ -92,7 +92,7 @@ object CanBuildSymmetricKey {
   }
 
   /** Builder for 192 bit symmetric keys. */
-  implicit val symmetricKey192 = new CanBuildSymmetricKey[Seq[Byte], SymmetricKey192] {
+  implicit val symmetricKey192 = new MightBuildSymmetricKey[Seq[Byte], SymmetricKey192] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey192] = {
       if(keyBytes.length == 192 / 8) {
@@ -111,7 +111,7 @@ object CanBuildSymmetricKey {
   }
 
   /** Builder for 256 bit symmetric keys. */
-  implicit val symmetricKey256 = new CanBuildSymmetricKey[Seq[Byte], SymmetricKey256] {
+  implicit val symmetricKey256 = new MightBuildSymmetricKey[Seq[Byte], SymmetricKey256] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey256] = {
       if(keyBytes.length == 256 / 8) {
@@ -130,7 +130,7 @@ object CanBuildSymmetricKey {
   }
 
   /** Builder for symmetric keys of arbitrary length. */
-  implicit val symmetricKeyArbitrary = new CanBuildSymmetricKey[Seq[Byte], SymmetricKeyArbitrary] {
+  implicit val symmetricKeyArbitrary = new MightBuildSymmetricKey[Seq[Byte], SymmetricKeyArbitrary] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKeyArbitrary] = {
       Success(new SymmetricKeyArbitraryImpl(keyBytes))
