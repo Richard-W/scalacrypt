@@ -52,10 +52,10 @@ You get the idea. The predefined key classes can be instantiated using the follo
 methods:
 
 ```scala
-// SymmetricKey.apply[KeyType <: SymmetricKey](keyBytes: Seq[Byte])(implicit CanBuildSymmetricKeyFromByteSequence[KeyType]): Try[KeyType]
+// SymmetricKey.apply[KeyType <: SymmetricKey](keyBytes: Seq[Byte])(implicit CanBuildSymmetricKeyFromBytes[KeyType]): Try[KeyType]
 val specificKey = SymmetricKey[SymmetricKey128](0 until 16 map { _.toByte }) match { case Success(s) ⇒ s case Failure(f) ⇒ throw f }
 
-// SymmetricKey.generate[KeyType <: SymmetricKey]()(implicit CanBuildSymmetricKeyFromByteSequence[KeyType]): KeyType
+// SymmetricKey.generate[KeyType <: SymmetricKey]()(implicit CanBuildSymmetricKeyFromBytes[KeyType]): KeyType
 val randomKey = SymmetricKey.generate[SymmetricKey128]
 ```
 
