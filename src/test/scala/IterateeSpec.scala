@@ -19,7 +19,7 @@ import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 
 class IterateeSpec extends FlatSpec with Matchers {
-  val concatProto = Iteratee.fold[String, String]("") { (e, a) ⇒
+  val concatProto = Iteratee.fold[String, String]("") { (a, e) ⇒
     a ++ e
   }
 

@@ -76,12 +76,12 @@ trait Iteratee[E, A] {
 }
 
 object Iteratee {
-  def fold[E, A](initial: A)(folder: (E, A) ⇒ A) = {
+  def fold[E, A](initial: A)(folder: (A, E) ⇒ A) = {
     def getIteratee(intermediate: A): Iteratee[E, A] = new Iteratee[E, A] {
       val currentResult = intermediate
 
       val state = Cont((input: Input[E]) ⇒ input match {
-        case Element(element) ⇒ getIteratee(folder(element, currentResult))
+        case Element(element) ⇒ getIteratee(folder(currentResult, element))
         case Empty ⇒ this
         case EOF ⇒ new Iteratee[E, A] { val state = Done[E, A](currentResult) }
       })
