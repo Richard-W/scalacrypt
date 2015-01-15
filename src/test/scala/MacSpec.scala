@@ -17,6 +17,7 @@ package xyz.wiedenhoeft.scalacrypt
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 import mac._
+import iteratee._
 
 class MacSpec extends FlatSpec with Matchers {
   
@@ -50,5 +51,15 @@ class MacSpec extends FlatSpec with Matchers {
     val h1 = HmacSHA256(data, k1)
     val h2 = HmacSHA256(data, k2)
     h1 should be (h2)
+  }
+
+  "The iteratee of a Mac" should "be branchable." in {
+    val key = SymmetricKey.generate[SymmetricKeyArbitrary]
+    val base = HmacSHA256(key).fold(Element(Seq(1,2,3) map { _.toByte }))
+    val branch1Result = base.fold(Element(Seq(4,5,6) map { _.toByte })).run.get
+    val branch2Result = base.fold(Element(Seq(7,8,9) map { _.toByte })).run.get
+
+    branch1Result should be (HmacSHA256(Seq(1,2,3,4,5,6) map { _.toByte }, key))
+    branch2Result should be (HmacSHA256(Seq(1,2,3,7,8,9) map { _.toByte }, key))
   }
 }

@@ -15,12 +15,9 @@
 package xyz.wiedenhoeft.scalacrypt.mac
 
 import xyz.wiedenhoeft.scalacrypt._
-import play.api.libs.iteratee._
 import javax.crypto.spec.SecretKeySpec
 import scala.util.{ Try, Success, Failure }
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import iteratee._
 
 /** Base class for MACs implemented in javax.crypto.Mac.
   *
@@ -28,7 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   */
 class JavaMac(algorithm: String) extends Mac {
 
-  def apply(key: SymmetricKey)(implicit ec: ExecutionContext): Iteratee[Seq[Byte],Seq[Byte]] = {
+  def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]] = {
     val k: SecretKeySpec = if(key.length != 0) {
       new SecretKeySpec(key.bytes.toArray, algorithm)
     } else {
@@ -38,8 +35,9 @@ class JavaMac(algorithm: String) extends Mac {
 
     mac.init(k)
     Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
-      mac.update(data.toArray)
-      mac
+      val newMac = mac.clone.asInstanceOf[javax.crypto.Mac]
+      newMac.update(data.toArray)
+      newMac
     } map {
       mac ⇒ mac.doFinal
     }

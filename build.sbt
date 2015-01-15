@@ -16,7 +16,6 @@ scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation")
 
 libraryDependencies ++= {
   Seq(
-    "com.typesafe.play" %% "play-iteratees" % "2.4.0-M2",
     "org.scalatest" %% "scalatest" % "2.2.1" % "test"
   )
 }

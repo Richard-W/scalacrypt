@@ -15,23 +15,18 @@
 package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
-import play.api.libs.iteratee._
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import iteratee._
 
 /** Base class for MAC (Message Authentication Code) implementations. */
 trait Mac {
 
   /** Calculates the MAC. */
   def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
-    val futureMac = Await.result(apply(key).feed(Input.El(data)), Duration.Inf).run
-    Await.result(futureMac, Duration.Inf)
+    apply(key).fold(Element(data)).run.get
   }
 
   /** Returns an iteratee calculating the MAC. */
-  def apply(key: SymmetricKey)(implicit ec: ExecutionContext): Iteratee[Seq[Byte],Seq[Byte]] 
+  def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]] 
 
   /** The length in bytes of the MAC. */
   def length: Int
