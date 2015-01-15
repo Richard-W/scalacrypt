@@ -47,4 +47,31 @@ class IterateeSpec extends FlatSpec with Matchers {
     res shouldBe a [Success[_]]
     res.get should be (11)
   }
+
+  val enumHello = new Enumerator[String] {
+    def apply[A](iteratee: Iteratee[String, A]) = {
+      iteratee.fold(Element("Hello ")).fold(Element("world"))
+    }
+  }
+
+  "An Enumerator" should "be applicable to an iteratee." in {
+    enumHello.run(concatProto).get should be ("Hello world")
+  }
+
+  it should "have a working flatMap method." in {
+    val separators = enumHello.flatMap { e ⇒
+      new Enumerator[String] {
+        def apply[A](iteratee: Iteratee[String, A]) = {
+          iteratee.fold(Element(e)).fold(Element("/"))
+        }
+      }
+    }
+
+    separators.run(concatProto).get should be ("Hello /world/")
+  }
+
+  it should "have a working map method." in {
+    val counts = enumHello map { _.length.toString + " " }
+    counts.run(concatProto).get should be ("6 5 ")
+  }
 }
