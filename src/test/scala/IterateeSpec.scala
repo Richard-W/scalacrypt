@@ -19,18 +19,12 @@ import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 
 class IterateeSpec extends FlatSpec with Matchers {
-  def getConcat(str: String): Iteratee[String, String] = new Iteratee[String, String] {
-    val string = str
-
-    val state = Cont((input: Input[String]) ⇒ input match {
-      case Element(element) ⇒ getConcat(string ++ element)
-      case Empty ⇒ this
-      case EOF ⇒ new Iteratee[String, String] { val state = Done[String, String](string) }
-    })
+  val concatProto = Iteratee.fold[String, String]("") { (e, a) ⇒
+    a ++ e
   }
 
   "An Iteratee" should "be able to concat strings." in {
-    var concat = getConcat("")
+    var concat = concatProto
     concat = concat.fold(Element("Hello "))
     concat = concat.fold(Empty)
     concat = concat.fold(Element("world"))
@@ -41,7 +35,7 @@ class IterateeSpec extends FlatSpec with Matchers {
   }
 
   it should "have a working map method" in {
-    var counter = getConcat("") map { str ⇒
+    var counter = concatProto map { str ⇒
       str.length
     }
 
