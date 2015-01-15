@@ -32,3 +32,6 @@ class DecryptionException(message: String) extends Exception("Decryption: " + me
 
 /** Occurs when problems are encountered during key creation. */
 class KeyException(message: String) extends Exception("Key creation: " + message)
+
+/** Occurs when an iteratee behaves erratically. */
+class IterateeException(message: String) extends Exception("Iteratee: " + message)
