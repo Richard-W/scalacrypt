@@ -70,4 +70,27 @@ class IterateeSpec extends FlatSpec with Matchers {
     val counts = enumHello map { _.length.toString + " " }
     counts.run(concatProto).get should be ("6 5 ")
   }
+
+  val sum = Iteratee.fold(0) { (a: Int, e: Int) ⇒ a + e }
+  val toInt = Enumeratee.map { (str: String) ⇒ str.toInt }
+
+  val intEnum1 = Enumerator(5, 5, 1) // Sum 11
+  val stringEnum = Enumerator("2", "4", "6") // Sum 12 / 23
+  val intEnum2 = Enumerator(3, 4) // Sum 7 / 30
+
+  "An Enumeratee" should "be able to map input to an Iteratee" in {
+    val sum1 = intEnum1(sum)
+    val sum2 = toInt(sum1)
+    val sum3 = stringEnum(sum2)
+    val sum4 = sum3.run.get
+    val sum5 = intEnum2(sum4)
+    sum5.run.get should be (30)
+  }
+
+  it should "be able to transform an Iteratee" in {
+    val sum1 = intEnum1(sum)
+    val sum2 = toInt.transform(sum1)
+    val sum3 = stringEnum(sum2)
+    sum3.run.get should be (23)
+  }
 }
