@@ -29,12 +29,25 @@ case class Element[E](e: E) extends Input[E]
 object Empty extends Input[Nothing]
 object EOF extends Input[Nothing]
 
+/** An immutable structure that transforms a set of data to a result.
+  *
+  * An iteratee is an immutable structure that can consume an input to
+  * create a iteratee. An iteratee is only defined by its state which can
+  * be either Cont, Error or Done. Cont holds a closure that defines the next
+  * Iteratee depending on the next input. Done holds the result and Error holds
+  * a Throwable.
+  *
+  * There are three different types of Input: Element, Empty and EOF.
+  * The meaning of Element and Empty depends on the implementation, but
+  * as soon as an EOF is encountered the resulting new Iteratee must be
+  * in the Done state.
+  */
 trait Iteratee[E, A] {
 
-  /** After folding an EOF the state MUST be Done. */
   val state: State[E, A]
 
-  def fold(input: Input[E]) = state match {
+  /** Consume an Input to Create a new Iteratee */
+  def fold(input: Input[E]): Iteratee[E, A] = state match {
     case Cont(folder) ⇒
     folder(input)
 
@@ -42,6 +55,7 @@ trait Iteratee[E, A] {
     this
   }
 
+  /** Push an EOF and try to get the result. */
   def run: Try[A] = fold(EOF).state match {
     case Cont(_) ⇒
     Failure(new IterateeException("State should be a Done after EOF."))
@@ -53,6 +67,9 @@ trait Iteratee[E, A] {
     Failure(error)
   }
 
+  /** As soon as this iteratee finishes inputs are given to the new iteratee
+    * defined by f eventually producing a B.
+    */
   def flatMap[B](f: (A) ⇒ Iteratee[E, B]): Iteratee[E, B] = state match {
     case Cont(folder) ⇒
     new Iteratee[E, B] {
@@ -68,6 +85,7 @@ trait Iteratee[E, A] {
     }
   }
 
+  /** Map the result using f. */
   def map[B](f: (A) ⇒ B): Iteratee[E, B] = flatMap { result ⇒
     new Iteratee[E, B] {
       val state = Done[E, B](f(result))
@@ -76,6 +94,12 @@ trait Iteratee[E, A] {
 }
 
 object Iteratee {
+
+  /** Create a new iteratee that uses its result type as a state that is passed to its folder.
+    *
+    * The resulting iteratee ignores empty inputs and results in A only after an EOF. In
+    * combination with the map-method this iteratee is sufficient for most purposes.
+    */
   def fold[E, A](initial: A)(folder: (A, E) ⇒ A) = {
     def getIteratee(intermediate: A): Iteratee[E, A] = new Iteratee[E, A] {
       val currentResult = intermediate
