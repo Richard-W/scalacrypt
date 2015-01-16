@@ -14,7 +14,7 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
-import iteratee._
+import iteratees._
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 

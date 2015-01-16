@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.wiedenhoeft.scalacrypt.mac
+package xyz.wiedenhoeft.scalacrypt.macs
 
 import xyz.wiedenhoeft.scalacrypt._
 import javax.crypto.spec.SecretKeySpec
 import scala.util.{ Try, Success, Failure }
-import iteratee._
+import iteratees._
 
 /** Base class for MACs implemented in javax.crypto.Mac.
   *

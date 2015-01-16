@@ -15,7 +15,7 @@
 package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
-import iteratee._
+import iteratees._
 
 /** Base class for MAC (Message Authentication Code) implementations. */
 trait Mac {

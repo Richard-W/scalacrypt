@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.wiedenhoeft.scalacrypt.padding
+package xyz.wiedenhoeft.scalacrypt.paddings
 
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }

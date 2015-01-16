@@ -16,7 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
-import blockcipher.{ AES128, AES192, AES256 }
+import blockciphers.{ AES128, AES192, AES256 }
 
 class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
 

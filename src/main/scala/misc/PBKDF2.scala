@@ -16,7 +16,7 @@ package xyz.wiedenhoeft.scalacrypt.misc
 
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
-import mac._
+import macs._
 
 /** Implementation of the password based key derivation function 2. */
 class PBKDF2(algorithm: Mac) {

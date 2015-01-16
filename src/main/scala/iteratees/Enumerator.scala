@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.wiedenhoeft.scalacrypt.iteratee
+package xyz.wiedenhoeft.scalacrypt.iteratees
 
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
