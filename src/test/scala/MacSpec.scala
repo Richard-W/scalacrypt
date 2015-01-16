@@ -53,6 +53,22 @@ class MacSpec extends FlatSpec with Matchers {
     h1 should be (h2)
   }
 
+  it should "be able to process iterators without consuming them." in {
+    val key = SymmetricKey.generate[SymmetricKeyArbitrary]
+    val seq = Seq(Seq(1,2,3), Seq(4,5,6), Seq(7,8,9)) map { _.map { _.toByte }}
+    val data = seq.flatMap { e ⇒ e }
+
+    val mac = HmacSHA256(data, key)
+    var iteratee: Iteratee[Seq[Byte], Seq[Byte]] = null
+
+    (HmacSHA256(seq.toIterator, key) map({ t ⇒
+      iteratee = t._2
+      t._1
+    })).toSeq should be (seq)
+
+    iteratee.run.get should be (mac)
+  }
+
   "The iteratee of a Mac" should "be branchable." in {
     val key = SymmetricKey.generate[SymmetricKeyArbitrary]
     val base = HmacSHA256(key).fold(Element(Seq(1,2,3) map { _.toByte }))
