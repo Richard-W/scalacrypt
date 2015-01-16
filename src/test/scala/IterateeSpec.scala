@@ -48,11 +48,7 @@ class IterateeSpec extends FlatSpec with Matchers {
     res.get should be (11)
   }
 
-  val enumHello = new Enumerator[String] {
-    def apply[A](iteratee: Iteratee[String, A]) = {
-      iteratee.fold(Element("Hello ")).fold(Element("world"))
-    }
-  }
+  val enumHello = Enumerator("Hello ", "world")
 
   "An Enumerator" should "be applicable to an iteratee." in {
     enumHello.run(concatProto).get should be ("Hello world")

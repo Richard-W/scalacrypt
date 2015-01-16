@@ -19,6 +19,7 @@ import xyz.wiedenhoeft.scalacrypt._
 
 trait Enumerator[E] {
 
+  /** Apply enumerator to iteratee producing a new iteratee. */
   def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, A]
 
   /** Every element creates a new Enumerator via f. On apply
@@ -44,5 +45,21 @@ trait Enumerator[E] {
   /** Applies the enumerator and pushes EOF. */
   def run[A](iteratee: Iteratee[E, A]): Try[A] = {
     apply(iteratee).run
+  }
+}
+
+object Enumerator {
+
+  /** Creates an enumerator that applies all given arguments to an iteratee. */
+  def apply[E](elements: E*): Enumerator[E] = new Enumerator[E] {
+
+    def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, A] = {
+      def applySeqToIteratee(s: Seq[E], i: Iteratee[E, A]): Iteratee[E, A] = {
+        if(s.isEmpty) i
+        else applySeqToIteratee(s.tail, i.fold(Element(s.head)))
+      }
+
+      applySeqToIteratee(elements, iteratee)
+    }
   }
 }
