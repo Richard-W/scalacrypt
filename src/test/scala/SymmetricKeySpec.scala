@@ -33,4 +33,11 @@ class SymmetricKeySpec extends FlatSpec with Matchers {
     Seq(1,2,3).map({ _.toByte }).toKey[SymmetricKey256] shouldBe a [Failure[_]]
     Seq(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32).map({ _.toByte }).toKey[SymmetricKey256] shouldBe a [Success[_]]
   }
+
+  "MightBuildSymmetricKey" should "be contravariant in FromType." in {
+    // After the map 0 until 16 is a IndexedSeq[Byte] and therefore a subclass of Seq[Byte]
+    // Contravariance makes sure that MightBuildSymmetricKey[Seq[Byte], SymmetricKey128] is
+    // considered a subclass of MightBuildSymmetricKey[IndexedSeq[Byte], SymmetricKey128].
+    (0 until 16).map({ _.toByte }).toKey[SymmetricKey128]()(MightBuildSymmetricKey.symmetricKey128) shouldBe a [Success[_]]
+  }
 }

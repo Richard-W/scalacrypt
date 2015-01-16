@@ -29,7 +29,7 @@ trait SymmetricKey {
 }
 
 /** Base trait for symmetric key builders. */
-trait MightBuildSymmetricKey[FromType, KeyType <: SymmetricKey] {
+trait MightBuildSymmetricKey[-FromType, KeyType <: SymmetricKey] {
 
   /** Tries to build the key from the given object. */
   def tryBuild(from: FromType): Try[KeyType]
