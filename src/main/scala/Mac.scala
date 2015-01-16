@@ -26,7 +26,23 @@ trait Mac {
   }
 
   /** Returns an iteratee calculating the MAC. */
-  def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]] 
+  def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]]
+
+  /** Takes an iterator of data and returns an iterator containing a
+    * tuple of both the data chunk and an updated mac iteratee. */
+  def apply(data: Iterator[Seq[Byte]], key: SymmetricKey): Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] = {
+    new Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] {
+      var lastIteratee = apply(key)
+
+      def hasNext = data.hasNext
+      def next = {
+        val chunk = data.next
+        lastIteratee = lastIteratee.fold(Element(chunk))
+        if(!hasNext) lastIteratee = lastIteratee.fold(EOF)
+        (chunk, lastIteratee)
+      }
+    }
+  }
 
   /** The length in bytes of the MAC. */
   def length: Int
