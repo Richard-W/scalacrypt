@@ -21,6 +21,10 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.3-SNAPSHOT"
 ```
 
+As the API is subject to heavy changes i recommend you use "sbt doc" to get definitive reference.
+Im doing my best to keep the documentation and this README up-to-date but as long as i did not
+stabilize the API it might sometimes be a little off.
+
 Symmetric encryption
 --------------------
 
@@ -33,7 +37,7 @@ Example for constructing a SymmetricBlockCipherMode. You have to make sure yours
 ```scala
 val outerKey = SymmetricKey.generate[SymmetricKey128]
 val outerIV = Random.nextBytes(16)
-val s = new SymmetricBlockCipherSuite[SymmetricKey128] with blockcipher.AES128 with mode.CBC with padding.PKCS7Padding {
+val suite = new SymmetricBlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding {
 	def key = outerKey
 	def iv = outerIV
 }
@@ -42,9 +46,9 @@ val s = new SymmetricBlockCipherSuite[SymmetricKey128] with blockcipher.AES128 w
 There are certain helper functions in the 'suite' package. They automatically validate parameters and return a Try.
 
 ```scala
-val s = suite.AES128_CBC_PKCS7Padding(SymmetricKey.generate[SymmetricKey128], None)
-val iv = s.iv
-val key = s.key
+val suite = suites.AES128_CBC_PKCS7Padding(SymmetricKey.generate[SymmetricKey128], None).get
+val iv = suite.iv
+val key = suite.key
 ```
 
 KeyType is a specific child of SymmetricKey. For AES256 it is SymmetricKey256 for example.
@@ -53,9 +57,11 @@ methods:
 
 ```scala
 // Using implicit conversion to MightBuildSymmetricKeyOp
-val specificKey = (0 until 16 map { _.toByte }).toSeq.toKey[SymmetricKey128] match { case Success(s) ⇒ s case Failure(f) ⇒ throw f }
+val specificKey = (0 until 16 map { _.toByte }).toSeq.toKey[SymmetricKey128].get
+// If the supplied key is invalid toKey will return a Failure and get will throw. When
+// you can't guarantee the validity of the key use pattern matching.
 
-// Using typeclass CanGenerateSymmetricKey.
+
 val randomKey = SymmetricKey.generate[SymmetricKey128]
 ```
 
