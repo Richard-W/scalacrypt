@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.wiedenhoeft.scalacrypt.misc
+package xyz.wiedenhoeft.scalacrypt.khash
 
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
-import khash._
 
 /** Implementation of the password based key derivation function 2. */
 class PBKDF2(algorithm: KeyedHash) {

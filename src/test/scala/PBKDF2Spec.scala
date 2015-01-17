@@ -16,7 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
-import misc._
+import khash._
 
 class PBKDF2Spec extends FlatSpec with Matchers {
   
