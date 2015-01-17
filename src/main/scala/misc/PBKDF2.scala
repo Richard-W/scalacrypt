@@ -16,10 +16,10 @@ package xyz.wiedenhoeft.scalacrypt.misc
 
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
-import macs._
+import khash._
 
 /** Implementation of the password based key derivation function 2. */
-class PBKDF2(algorithm: Mac) {
+class PBKDF2(algorithm: KeyedHash) {
   def apply(password: SymmetricKey, salt: Seq[Byte], iterations: Int, length: Int): Seq[Byte] = {
     val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
     var output = Seq[Byte]()

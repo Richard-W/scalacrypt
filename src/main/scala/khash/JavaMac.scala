@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.wiedenhoeft.scalacrypt.macs
+package xyz.wiedenhoeft.scalacrypt.khash
 
 import xyz.wiedenhoeft.scalacrypt._
 import javax.crypto.spec.SecretKeySpec
@@ -23,7 +23,7 @@ import iteratees._
   *
   * Attention: If the key is empty it is substituted by a single zero-byte.
   */
-class JavaMac(algorithm: String) extends Mac {
+class JavaMac(algorithm: String) extends KeyedHash {
 
   def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]] = {
     val k: SecretKeySpec = if(key.length != 0) {

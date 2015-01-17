@@ -16,10 +16,10 @@ package xyz.wiedenhoeft.scalacrypt
 
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
-import macs._
+import khash._
 import iteratees._
 
-class MacSpec extends FlatSpec with Matchers {
+class KeyedHashSpec extends FlatSpec with Matchers {
   
   "HmacSha256" should "be consistent with the test vectors." in {
     val key1: SymmetricKey = Seq[Byte](0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b).toKey[SymmetricKeyArbitrary].get
@@ -69,7 +69,7 @@ class MacSpec extends FlatSpec with Matchers {
     iteratee.run.get should be (mac)
   }
 
-  "The iteratee of a Mac" should "be branchable." in {
+  "The iteratee of a KeyedHash" should "be branchable." in {
     val key = SymmetricKey.generate[SymmetricKeyArbitrary]
     val base = HmacSHA256(key).fold(Element(Seq(1,2,3) map { _.toByte }))
     val branch1Result = base.fold(Element(Seq(4,5,6) map { _.toByte })).run.get

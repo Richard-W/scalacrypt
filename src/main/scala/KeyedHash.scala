@@ -17,8 +17,8 @@ package xyz.wiedenhoeft.scalacrypt
 import scala.util.{ Try, Success, Failure }
 import iteratees._
 
-/** Base class for MAC (Message Authentication Code) implementations. */
-trait Mac {
+/** Base class for Keyed hash (Message Authentication Code) implementations. */
+trait KeyedHash {
 
   /** Calculates the MAC. */
   def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
