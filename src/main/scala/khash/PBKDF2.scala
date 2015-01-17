@@ -16,29 +16,47 @@ package xyz.wiedenhoeft.scalacrypt.khash
 
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
+import iteratees._
 
-/** Implementation of the password based key derivation function 2. */
-class PBKDF2(algorithm: KeyedHash) {
-  def apply(password: SymmetricKey, salt: Seq[Byte], iterations: Int, length: Int): Seq[Byte] = {
-    val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
-    var output = Seq[Byte]()
+/* Factory for PBKDF2 KeyedHash instances. */
+object PBKDF2 {
+  
+  /* Creates a Keyed hash that implements PBKDF2. The salt is passed in as the data. */
+  def apply(algorithm: KeyedHash, iterations: Int, len: Int): KeyedHash = new KeyedHash {
 
-    for(block <- 1 until numBlocks + 1) {
-      var buffer: Seq[Byte] = algorithm(salt ++ java.nio.ByteBuffer.allocate(4).putInt(block).array, password)
-      var u: Seq[Byte] = buffer
+    def length = len
 
-      for(i <- 2 until (iterations + 1)) {
-        u = algorithm(u, password)
-        buffer = for(j <- 0 until u.length) yield (buffer(j) ^ u(j)).toByte
+    def apply(key: SymmetricKey): Iteratee[Seq[Byte], Seq[Byte]] = Iteratee.fold(algorithm(key)) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
+      iteratee.fold(Element(chunk))
+    } map { keyedHash ⇒
+      val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
+
+      /* Yields a sequence (U1, U2, U3, ..., Uc) */
+      def u(iteration: Int, u1: Seq[Byte]): Seq[Seq[Byte]] = {
+        if(iteration == 1) Seq(u1)
+        else {
+          val prev = u(iteration - 1, u1)
+          prev ++ Seq(algorithm(prev.last, key))
+        }
       }
 
-      output = output ++ buffer
-    }
+      /* Calculates a block */
+      def f(blockNum: Int): Seq[Byte] = {
+        val u1: Seq[Byte] = keyedHash.fold(Element(java.nio.ByteBuffer.allocate(4).putInt(blockNum).array)).run.get
+        val uSeq = u(iterations, u1)
 
-    output.slice(0, length)
+        def xorU(us: Seq[Seq[Byte]]): Seq[Byte] = {
+          if(us.length == 1) us.head
+          else {
+            val prev = xorU(us.tail)
+            for(i <- 0 until prev.length) yield (prev(i) ^ us.head(i)).toByte
+          }
+        }
+
+        xorU(uSeq)
+      }
+
+      (for(blockNum <- 1 to numBlocks) yield f(blockNum)).flatten.slice(0, len)
+    }
   }
 }
-
-object PBKDF2HmacSHA1 extends PBKDF2(HmacSHA1)
-
-object PBKDF2HmacSHA256 extends PBKDF2(HmacSHA256)
