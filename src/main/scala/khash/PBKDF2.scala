@@ -31,29 +31,24 @@ object PBKDF2 {
     } map { keyedHash ⇒
       val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
 
-      /* Yields a sequence (U1, U2, U3, ..., Uc) */
-      def u(iteration: Int, u1: Seq[Byte]): Seq[Seq[Byte]] = {
-        if(iteration == 1) Seq(u1)
+      def xor(a: Seq[Byte], b: Seq[Byte]): Seq[Byte] = {
+        for(i <- 0 until a.length) yield (a(i) ^ b(i)).toByte
+      }
+
+      /* Returns the tuple (block, Uc). */
+      def u(iteration: Int, u1: Seq[Byte]): (Seq[Byte], Seq[Byte]) = {
+        if(iteration == 1) (u1, u1)
         else {
-          val prev = u(iteration - 1, u1)
-          prev ++ Seq(algorithm(prev.last, key))
+          val (block, prevU) = u(iteration - 1, u1)
+          val currentU = algorithm(prevU, key)
+          (xor(block, currentU), currentU)
         }
       }
 
       /* Calculates a block */
       def f(blockNum: Int): Seq[Byte] = {
         val u1: Seq[Byte] = keyedHash.fold(Element(java.nio.ByteBuffer.allocate(4).putInt(blockNum).array)).run.get
-        val uSeq = u(iterations, u1)
-
-        def xorU(us: Seq[Seq[Byte]]): Seq[Byte] = {
-          if(us.length == 1) us.head
-          else {
-            val prev = xorU(us.tail)
-            for(i <- 0 until prev.length) yield (prev(i) ^ us.head(i)).toByte
-          }
-        }
-
-        xorU(uSeq)
+        u(iterations, u1)._1
       }
 
       (for(blockNum <- 1 to numBlocks) yield f(blockNum)).flatten.slice(0, len)
