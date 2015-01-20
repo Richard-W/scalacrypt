@@ -8,9 +8,9 @@ licenses := Seq("Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 homepage := Some(url("https://github.com/richard-w/scalacrypt"))
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
-crossScalaVersions := Seq("2.11.4", "2.10.4")
+crossScalaVersions := Seq("2.11.5", "2.10.4")
 
 scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation", "-optimise")
 
