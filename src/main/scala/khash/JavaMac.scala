@@ -43,9 +43,7 @@ class JavaMac(algorithm: String) extends KeyedHash {
     }
   }
 
-  def length: Int = {
-    javax.crypto.Mac.getInstance(algorithm).getMacLength
-  }
+  lazy val length: Int = javax.crypto.Mac.getInstance(algorithm).getMacLength
 }
 
 /** HMAC-SHA1 implementation of Mac. */
