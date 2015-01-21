@@ -34,8 +34,8 @@ object AES128_CBC_PKCS7Padding {
     }
 
     Success(new SymmetricBlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding {
-      def key = k
-      def iv = initVector
+      lazy val key = k
+      lazy val iv = initVector
     })
   }
 }
@@ -57,8 +57,8 @@ object AES192_CBC_PKCS7Padding {
     }
 
     Success(new SymmetricBlockCipherSuite[SymmetricKey192] with blockciphers.AES192 with modes.CBC with paddings.PKCS7Padding {
-      def key = k
-      def iv = initVector
+      lazy val key = k
+      lazy val iv = initVector
     })
   }
 }
@@ -80,8 +80,8 @@ object AES256_CBC_PKCS7Padding {
     }
 
     Success(new SymmetricBlockCipherSuite[SymmetricKey256] with blockciphers.AES256 with modes.CBC with paddings.PKCS7Padding {
-      def key = k
-      def iv = initVector
+      lazy val key = k
+      lazy val iv = initVector
     })
   }
 }

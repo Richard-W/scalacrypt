@@ -52,6 +52,6 @@ trait SymmetricJavaBlockCipher[KeyType <: SymmetricKey] extends SymmetricBlockCi
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = crypt(block, false)
 }
 
-trait AES128 extends SymmetricJavaBlockCipher[SymmetricKey128] { def algo = "AES" }
-trait AES192 extends SymmetricJavaBlockCipher[SymmetricKey192] { def algo = "AES" }
-trait AES256 extends SymmetricJavaBlockCipher[SymmetricKey256] { def algo = "AES" }
+trait AES128 extends SymmetricJavaBlockCipher[SymmetricKey128] { lazy val algo = "AES" }
+trait AES192 extends SymmetricJavaBlockCipher[SymmetricKey192] { lazy val algo = "AES" }
+trait AES256 extends SymmetricJavaBlockCipher[SymmetricKey256] { lazy val algo = "AES" }
