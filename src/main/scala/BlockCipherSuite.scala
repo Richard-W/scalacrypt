@@ -20,11 +20,11 @@ import scala.util.{ Try, Success, Failure }
   * a block cipher that can be used on arbitrary iterators.
   *
   * This class is meant to be extended by the following traits:
-  * * SymmetricBlockCipher
+  * * BlockCipher
   * * BlockCipherMode
   * * BlockPadding
   */
-abstract class SymmetricBlockCipherSuite[KeyType <: Key] extends SymmetricBlockCipher[KeyType] with BlockCipherMode with BlockPadding {
+abstract class BlockCipherSuite[KeyType <: Key] extends BlockCipher[KeyType] with BlockCipherMode with BlockPadding {
 
   private def tryIteratorToTry(it: Iterator[Try[Seq[Byte]]]) = it.foldLeft[Try[Seq[Byte]]](Success(Seq())) { (a, b) ⇒
     if(a.isFailure) a

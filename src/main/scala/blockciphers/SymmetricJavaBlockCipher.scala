@@ -20,7 +20,7 @@ import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
 /** Base class for symmetric block ciphers that are implemented in the java crypto API. */
-trait SymmetricJavaBlockCipher[KeyType <: Key] extends SymmetricBlockCipher[KeyType] {
+trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyType] {
 
   protected def algo: String
 
