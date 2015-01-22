@@ -63,7 +63,7 @@ class SymmetricBlockCipherSuiteSpec extends FlatSpec with Matchers {
     )
 
     for(test <- tests) {
-      val key = SymmetricKey.generate[SymmetricKey128]
+      val key = Key.generate[SymmetricKey128]
       val enc = suites.AES128_CBC_PKCS7Padding(key).get
 
       val crypt = enc.encrypt(test.toIterator).toSeq.map({ _.get }).flatten

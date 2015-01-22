@@ -19,7 +19,7 @@ import scala.util.{ Try, Success, Failure }
 /** A wrapper for a sequence of bytes used
   * as a key for encryption.
   */
-trait SymmetricKey {
+trait Key {
 
   /** Length of the key in bytes. */
   def length: Int
@@ -29,51 +29,51 @@ trait SymmetricKey {
 }
 
 /** Base trait for symmetric key builders. */
-trait MightBuildSymmetricKey[-FromType, KeyType <: SymmetricKey] {
+trait MightBuildKey[-FromType, KeyType <: Key] {
 
   /** Tries to build the key from the given object. */
   def tryBuild(from: FromType): Try[KeyType]
 }
 
 /** Base trait for type classes generating random keys. */
-trait CanGenerateSymmetricKey[KeyType <: SymmetricKey] {
+trait CanGenerateKey[KeyType <: Key] {
 
   /** Generate symmetric key. */
   def generate: KeyType
 }
 
 /** Singleton used to construct key objects of arbitrary length. */
-object SymmetricKey {
+object Key {
 
   /** Randomly generate a symmetric key. */
-  def generate[KeyType <: SymmetricKey : CanGenerateSymmetricKey]: KeyType = implicitly[CanGenerateSymmetricKey[KeyType]].generate
+  def generate[KeyType <: Key : CanGenerateKey]: KeyType = implicitly[CanGenerateKey[KeyType]].generate
 }
 
 /** A 128 bit symmetric key. */
-sealed abstract class SymmetricKey128 extends SymmetricKey
+sealed abstract class SymmetricKey128 extends Key
 
 /** A 192 bit symmetric key. */
-sealed abstract class SymmetricKey192 extends SymmetricKey
+sealed abstract class SymmetricKey192 extends Key
 
 /** A 256 bit symmetric key. */
-sealed abstract class SymmetricKey256 extends SymmetricKey
+sealed abstract class SymmetricKey256 extends Key
 
 /** A symmetric key of arbitrary length. */
-sealed abstract class SymmetricKeyArbitrary extends SymmetricKey
+sealed abstract class SymmetricKeyArbitrary extends Key
 
 /** Adds the toKey method to Any. */
-final class MightBuildSymmetricKeyOp[FromType](val value: FromType) {
+final class MightBuildKeyOp[FromType](val value: FromType) {
 
-  /** Tries to convert the object to a specific implementation of SymmetricKey. */
-  def toKey[KeyType <: SymmetricKey]()(implicit builder: MightBuildSymmetricKey[FromType, KeyType]) = {
+  /** Tries to convert the object to a specific implementation of Key. */
+  def toKey[KeyType <: Key]()(implicit builder: MightBuildKey[FromType, KeyType]) = {
     builder.tryBuild(value)
   }
 }
 
-object MightBuildSymmetricKey {
+object MightBuildKey {
 
   /** Builder for 128 bit symmetric keys. */
-  implicit val symmetricKey128 = new MightBuildSymmetricKey[Seq[Byte], SymmetricKey128] {
+  implicit val symmetricKey128 = new MightBuildKey[Seq[Byte], SymmetricKey128] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
       if(keyBytes.length == 128 / 8) {
@@ -92,7 +92,7 @@ object MightBuildSymmetricKey {
   }
 
   /** Builder for 192 bit symmetric keys. */
-  implicit val symmetricKey192 = new MightBuildSymmetricKey[Seq[Byte], SymmetricKey192] {
+  implicit val symmetricKey192 = new MightBuildKey[Seq[Byte], SymmetricKey192] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey192] = {
       if(keyBytes.length == 192 / 8) {
@@ -111,7 +111,7 @@ object MightBuildSymmetricKey {
   }
 
   /** Builder for 256 bit symmetric keys. */
-  implicit val symmetricKey256 = new MightBuildSymmetricKey[Seq[Byte], SymmetricKey256] {
+  implicit val symmetricKey256 = new MightBuildKey[Seq[Byte], SymmetricKey256] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey256] = {
       if(keyBytes.length == 256 / 8) {
@@ -130,7 +130,7 @@ object MightBuildSymmetricKey {
   }
 
   /** Builder for symmetric keys of arbitrary length. */
-  implicit val symmetricKeyArbitrary = new MightBuildSymmetricKey[Seq[Byte], SymmetricKeyArbitrary] {
+  implicit val symmetricKeyArbitrary = new MightBuildKey[Seq[Byte], SymmetricKeyArbitrary] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKeyArbitrary] = {
       Success(new SymmetricKeyArbitraryImpl(keyBytes))
@@ -145,21 +145,21 @@ object MightBuildSymmetricKey {
   }
 }
 
-object CanGenerateSymmetricKey {
+object CanGenerateKey {
 
-  implicit val symmetricKey128 = new CanGenerateSymmetricKey[SymmetricKey128] {
+  implicit val symmetricKey128 = new CanGenerateKey[SymmetricKey128] {
     def generate = Random.nextBytes(16).toKey[SymmetricKey128].get
   }
 
-  implicit val symmetricKey192 = new CanGenerateSymmetricKey[SymmetricKey192] {
+  implicit val symmetricKey192 = new CanGenerateKey[SymmetricKey192] {
     def generate = Random.nextBytes(24).toKey[SymmetricKey192].get
   }
 
-  implicit val symmetricKey256 = new CanGenerateSymmetricKey[SymmetricKey256] {
+  implicit val symmetricKey256 = new CanGenerateKey[SymmetricKey256] {
     def generate = Random.nextBytes(32).toKey[SymmetricKey256].get
   }
 
-  implicit val symmetricKeyArbitrary = new CanGenerateSymmetricKey[SymmetricKeyArbitrary] {
+  implicit val symmetricKeyArbitrary = new CanGenerateKey[SymmetricKeyArbitrary] {
     def generate = Random.nextBytes(32).toKey[SymmetricKeyArbitrary].get
   }
 }

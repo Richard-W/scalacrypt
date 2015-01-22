@@ -17,7 +17,7 @@ package xyz.wiedenhoeft.scalacrypt
 import scala.util.{ Try, Success, Failure }
 
 /** Base trait for symmetric block ciphers such as AES. */
-trait SymmetricBlockCipher[KeyType <: SymmetricKey] {
+trait SymmetricBlockCipher[KeyType <: Key] {
 
   /** Block size in bytes. */
   def blockSize: Int

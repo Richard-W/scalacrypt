@@ -52,7 +52,7 @@ class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
 
   it should "return IllegalBlockSizeException on illegal block sizes." in {
     val cipher: AES128 = new AES128 {
-      def key = SymmetricKey.generate[SymmetricKey128]
+      def key = Key.generate[SymmetricKey128]
     }
     def encrypt(block: Seq[Byte]): Try[Seq[Byte]] = cipher.encryptBlock(block)
     def decrypt(block: Seq[Byte]): Try[Seq[Byte]] = cipher.decryptBlock(block)
@@ -69,8 +69,8 @@ class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
   }
 
   "All AES objects" should "yield the correct block size." in {
-    new AES128 { def key = SymmetricKey.generate[SymmetricKey128] }.blockSize should be (16)
-    new AES128 { def key = SymmetricKey.generate[SymmetricKey128] }.blockSize should be (16)
-    new AES128 { def key = SymmetricKey.generate[SymmetricKey128] }.blockSize should be (16)
+    new AES128 { def key = Key.generate[SymmetricKey128] }.blockSize should be (16)
+    new AES128 { def key = Key.generate[SymmetricKey128] }.blockSize should be (16)
+    new AES128 { def key = Key.generate[SymmetricKey128] }.blockSize should be (16)
   }
 }

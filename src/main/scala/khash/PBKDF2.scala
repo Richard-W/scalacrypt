@@ -26,7 +26,7 @@ object PBKDF2 {
 
     def length = len
 
-    def apply(key: SymmetricKey): Iteratee[Seq[Byte], Seq[Byte]] = Iteratee.fold(algorithm(key)) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
+    def apply(key: Key): Iteratee[Seq[Byte], Seq[Byte]] = Iteratee.fold(algorithm(key)) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
       iteratee.fold(Element(chunk))
     } map { keyedHash ⇒
       val numBlocks = (length.toFloat / algorithm.length).ceil.toInt

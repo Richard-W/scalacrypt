@@ -21,16 +21,16 @@ import iteratees._
 trait KeyedHash {
 
   /** Calculates the MAC. */
-  def apply(data: Seq[Byte], key: SymmetricKey): Seq[Byte] = {
+  def apply(data: Seq[Byte], key: Key): Seq[Byte] = {
     apply(key).fold(Element(data)).run.get
   }
 
   /** Returns an iteratee calculating the MAC. */
-  def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]]
+  def apply(key: Key): Iteratee[Seq[Byte],Seq[Byte]]
 
   /** Takes an iterator of data and returns an iterator containing a
     * tuple of both the data chunk and an updated mac iteratee. */
-  def apply(data: Iterator[Seq[Byte]], key: SymmetricKey): Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] = {
+  def apply(data: Iterator[Seq[Byte]], key: Key): Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] = {
     new Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] {
       var lastIteratee = apply(key)
 

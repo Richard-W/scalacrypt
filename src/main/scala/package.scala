@@ -19,7 +19,7 @@ object `package` {
   import scala.language.implicitConversions
 
   /** Implicit Conversion that adds the toKey method to every class. */
-  implicit def toCanBuildSymmetricKeyOp[FromType](from: FromType) = {
-    new MightBuildSymmetricKeyOp[FromType](from)
+  implicit def toCanBuildKeyOp[FromType](from: FromType) = {
+    new MightBuildKeyOp[FromType](from)
   }
 }

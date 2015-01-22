@@ -25,7 +25,7 @@ import iteratees._
   */
 class JavaMac(algorithm: String) extends KeyedHash {
 
-  def apply(key: SymmetricKey): Iteratee[Seq[Byte],Seq[Byte]] = {
+  def apply(key: Key): Iteratee[Seq[Byte],Seq[Byte]] = {
     val k: SecretKeySpec = if(key.length != 0) {
       new SecretKeySpec(key.bytes.toArray, algorithm)
     } else {

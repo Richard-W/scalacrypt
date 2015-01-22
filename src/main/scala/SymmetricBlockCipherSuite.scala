@@ -24,7 +24,7 @@ import scala.util.{ Try, Success, Failure }
   * * BlockCipherMode
   * * BlockPadding
   */
-abstract class SymmetricBlockCipherSuite[KeyType <: SymmetricKey] extends SymmetricBlockCipher[KeyType] with BlockCipherMode with BlockPadding {
+abstract class SymmetricBlockCipherSuite[KeyType <: Key] extends SymmetricBlockCipher[KeyType] with BlockCipherMode with BlockPadding {
 
   private def tryIteratorToTry(it: Iterator[Try[Seq[Byte]]]) = it.foldLeft[Try[Seq[Byte]]](Success(Seq())) { (a, b) ⇒
     if(a.isFailure) a

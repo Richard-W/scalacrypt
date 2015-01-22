@@ -18,16 +18,15 @@ import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
-import java.security.Key
 
 /** Base class for symmetric block ciphers that are implemented in the java crypto API. */
-trait SymmetricJavaBlockCipher[KeyType <: SymmetricKey] extends SymmetricBlockCipher[KeyType] {
+trait SymmetricJavaBlockCipher[KeyType <: Key] extends SymmetricBlockCipher[KeyType] {
 
   protected def algo: String
 
   def blockSize: Int = Cipher.getInstance(algo + "/ECB/NoPadding").getBlockSize
 
-  private val secretKey: Key = new SecretKeySpec(key.bytes.toArray, "AES")
+  private val secretKey: java.security.Key = new SecretKeySpec(key.bytes.toArray, "AES")
   private val encryptor: Cipher = Cipher.getInstance(algo + "/ECB/NoPadding")
   encryptor.init(Cipher.ENCRYPT_MODE, secretKey)
   private val decryptor: Cipher = Cipher.getInstance(algo + "/ECB/NoPadding")
