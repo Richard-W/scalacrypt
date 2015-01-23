@@ -79,6 +79,60 @@ sealed abstract class SymmetricKey256 extends Key
 /** A symmetric key of arbitrary length. */
 sealed abstract class SymmetricKeyArbitrary extends Key
 
+/** Asymmetric RSA key. */
+sealed abstract class RSAKey extends Key {
+
+  /** First prime factor of N */
+  val p: Option[BigInt]
+
+  /** Second prime factor of N */
+  val q: Option[BigInt]
+
+  /** RSA modulus. */
+  val n: BigInt
+
+  /** Public exponent. */
+  val e: BigInt
+
+  /** Private exponent. */
+  val d: Option[BigInt]
+
+  /** Whether this key should be kept secret. */
+  def isPrivateKey: Boolean = if(p.isDefined || q.isDefined || d.isDefined) true else false
+
+  /** Whether it is safe to publish this key. */
+  def isPublicKey: Boolean = !isPrivateKey
+
+  def publicKey: RSAKey = {
+    val base = this
+    new RSAKey {
+      val n = base.n
+      val e = base.e
+      val d = None
+      val p = None
+      val q = None
+    }
+  }
+
+  def length = (n.bitLength.toFloat / 8.0).ceil.toInt
+
+  def bytes: Seq[Byte] = {
+    def f(identifier: Int, part: Option[BigInt]): List[Byte] = {
+      part match {
+        case Some(value) ⇒
+        val byteArray: List[Byte] = value.toByteArray.toList
+        val lengthBytes: List[Byte] = java.nio.ByteBuffer.allocate(4).putInt(byteArray.length).array.toList
+        identifier.toByte :: lengthBytes ::: byteArray ::: Nil
+
+        case _ ⇒
+        Nil
+      }
+    }
+
+    f(0, Some(n)) ::: f(1, Some(e)) ::: f(2, d) ::: f(3, p) ::: f(4, q) ::: Nil
+  }
+}
+
 /** Adds the toKey method to Any. */
 final class MightBuildKeyOp[FromType](val value: FromType) {
 
@@ -161,6 +215,54 @@ object MightBuildKey {
       def bytes: Seq[Byte] = keyBytes
     }
   }
+
+  implicit val rsaKey = new MightBuildKey[Seq[Byte], RSAKey] {
+
+    def tryBuild(keyBytes: Seq[Byte]): Try[RSAKey] = {
+      def createMap(map: Map[Int, BigInt], bytes: Seq[Byte]): Try[Map[Int, BigInt]] = {
+        if(bytes.length == 0) {
+          Success(Map[Int, BigInt]())
+        } else if(bytes.length < 5) {
+          Failure(new KeyException("Invalid length of RSA key."))
+        } else {
+          val identifier = bytes(0)
+          val length = java.nio.ByteBuffer.allocate(4).put(bytes.slice(1, 5).toArray).getInt(0)
+          val withoutHeader = bytes.slice(5, bytes.length)
+          if(withoutHeader.length < length) {
+            Failure(new KeyException("Invalid length of RSA key."))
+          } else {
+            val data = withoutHeader.slice(0, length)
+            val newMap = map + ((identifier.toInt, BigInt(data.toArray)))
+            createMap(newMap, withoutHeader.slice(length, withoutHeader.length)) match {
+              case Success(rMap) ⇒
+              Success(newMap ++ rMap)
+
+              case f: Failure[_] ⇒
+              f
+            }
+          }
+        }
+      }
+
+      val map: Map[Int, BigInt] = createMap(Map[Int, BigInt](), keyBytes) match {
+        case Success(m) ⇒
+        m
+
+        case f: Failure[_] ⇒
+        return f.asInstanceOf[Try[RSAKey]]
+      }
+
+      if(! map.contains(0) || !map.contains(1)) {
+        Failure(new KeyException("Important parameters missing in RSAKey."))
+      } else Success(new RSAKey {
+        val n = map.get(0).get
+        val e = map.get(1).get
+        val d = map.get(2)
+        val p = map.get(3)
+        val q = map.get(4)
+      })
+    }
+  }
 }
 
 object CanGenerateKey {
@@ -179,5 +281,17 @@ object CanGenerateKey {
 
   implicit val symmetricKeyArbitrary = new CanGenerateKey[SymmetricKeyArbitrary] {
     def generate = Random.nextBytes(32).toKey[SymmetricKeyArbitrary].get
+  }
+
+  implicit val rsaKey = new CanGenerateKey[RSAKey] {
+    def generate = new RSAKey {
+      // FIXME: Use secure PRNG.
+      val p = Some(BigInt.probablePrime(2048, scala.util.Random))
+      val q = Some(BigInt.probablePrime(2048, scala.util.Random))
+      val n = p.get * q.get
+      val ϕ = (p.get - 1) * (q.get - 1)
+      val e = BigInt("65537")
+      val d = Some(e modInverse ϕ)
+    }
   }
 }
