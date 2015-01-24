@@ -53,5 +53,7 @@ object PBKDF2 {
 
       (for(blockNum <- 1 to numBlocks) yield f(blockNum)).flatten.slice(0, len)
     }
+
+    def verify(hash: Seq[Byte], key: Key): Iteratee[Seq[Byte], Boolean] = apply(key) map { _ == hash }
   }
 }

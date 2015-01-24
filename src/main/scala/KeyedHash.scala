@@ -44,6 +44,10 @@ trait KeyedHash {
     }
   }
 
+  def verify(hash: Seq[Byte], key: Key): Iteratee[Seq[Byte], Boolean]
+
+  def verify(data: Seq[Byte], hash: Seq[Byte], key: Key): Boolean = verify(hash, key).fold(Element(data)).run.get
+
   /** The length in bytes of the MAC. */
   def length: Int
 }
