@@ -28,16 +28,16 @@ stabilize the API it might sometimes be a little off.
 Symmetric encryption
 --------------------
 
-Symmetric encryption in scalacrypt is achieved by combining a SymmetricBlockCipher, a BlockPadding and a BlockCipherMode trait.
-These traits are applied to the SymmetricBlockCipherSuite class. Different choices of these traits need different abstract methods
-defined in the derived class. For instance it is necessary to supply a certain SymmetricKey to all traits deriving from
-SymmetricBlockCipher and an IV to CBC mode.
+Symmetric encryption in scalacrypt is achieved by combining a BlockCipher, a BlockPadding and a BlockCipherMode trait.
+These traits are applied to the BlockCipherSuite class. Different choices of these traits need different abstract methods
+defined in the derived class. For instance it is necessary to supply a certain Key to all traits deriving from
+BlockCipher and an IV to CBC mode.
 
-Example for constructing a SymmetricBlockCipherMode. You have to make sure yourself that the IV is valid.
+Example for constructing a BlockCipherSuite. You have to make sure yourself that the IV is valid.
 ```scala
-val outerKey = SymmetricKey.generate[SymmetricKey128]
+val outerKey = Key.generate[SymmetricKey128]
 val outerIV = Random.nextBytes(16)
-val suite = new SymmetricBlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding {
+val suite = new BlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding {
 	def key = outerKey
 	def iv = outerIV
 }
@@ -46,12 +46,12 @@ val suite = new SymmetricBlockCipherSuite[SymmetricKey128] with blockciphers.AES
 There are certain helper functions in the 'suite' package. They automatically validate parameters and return a Try.
 
 ```scala
-val suite = suites.AES128_CBC_PKCS7Padding(SymmetricKey.generate[SymmetricKey128], None).get
+val suite = suites.AES128_CBC_PKCS7Padding(Key.generate[SymmetricKey128], None).get
 val iv = suite.iv
 val key = suite.key
 ```
 
-KeyType is a specific child of SymmetricKey. For AES256 it is SymmetricKey256 for example.
+KeyType is a specific child of Key. For AES256 it is SymmetricKey256 for example.
 You get the idea. The predefined key classes can be instantiated using the following
 methods:
 
@@ -62,11 +62,11 @@ val specificKey = (0 until 16 map { _.toByte }).toSeq.toKey[SymmetricKey128].get
 // you can't guarantee the validity of the key use pattern matching.
 
 
-val randomKey = SymmetricKey.generate[SymmetricKey128]
+val randomKey = Key.generate[SymmetricKey128]
 ```
 
-When you are defined own subclasses of SymmetricKey you should also define appropriate implicit implementations of CanGenerateSymmetricKey
-and MightBuildSymmetricKey.
+When you define own subclasses of SymmetricKey you should also define appropriate implicit implementations of CanGenerateKey
+and MightBuildKey.
 
 The function returned by encrypt and decrypt is able to encrypt a single block so in the case of AES exactly 16 bytes. If your input is not
 exactly divisible by the block size you need padding. The BlockPadding trait transforms an Iterator of byte sequences to an Iterator of
