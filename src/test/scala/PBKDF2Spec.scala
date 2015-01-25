@@ -17,6 +17,7 @@ package xyz.wiedenhoeft.scalacrypt
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 import khash._
+import util._
 
 class PBKDF2Spec extends FlatSpec with Matchers {
   
@@ -50,5 +51,14 @@ class PBKDF2Spec extends FlatSpec with Matchers {
       val key = test._1.getBytes.toSeq.toKey[SymmetricKeyArbitrary].get
       instance(test._2.getBytes.toSeq, key) should be (test._4)
     }
+  }
+
+  "PBKDF2Easy" should "verify hashes in a backwards compatible manner." in {
+    val password = "password".getBytes
+    val hash = PBKDF2Easy(password)
+    PBKDF2Easy.verify(password, hash) should be (true)
+
+    // Whenever the default values are changed somehow add a test for it here.
+    PBKDF2Easy.verify(password, "AQAATiAAAAAgFGporonZGhmbMTQidJPd8LHxyq+JzyiW8ivwfrgoZ6sAAAAgMdVuGSQgga7QpQGbqom+3EKhxioJEEwGAxngt/9UifM=".toBase64Bytes) should be (true)
   }
 }
