@@ -37,12 +37,26 @@ object PBKDF2 {
 
       /* Returns the tuple (block, Uc). */
       def u(iteration: Int, u1: Seq[Byte]): (Seq[Byte], Seq[Byte]) = {
+        var block: Seq[Byte] = u1
+        var u: Seq[Byte] = u1
+
+        for(iteration <- (2 to iterations)) {
+          u = algorithm(u, key)
+          block = xor(block, u)
+        }
+
+        (block, u)
+
+        // This recursive approach is much nicer but
+        // it creates stack overflows.
+        /*
         if(iteration == 1) (u1, u1)
         else {
           val (block, prevU) = u(iteration - 1, u1)
           val currentU = algorithm(prevU, key)
           (xor(block, currentU), currentU)
         }
+        */
       }
 
       /* Calculates a block */
