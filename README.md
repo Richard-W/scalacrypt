@@ -72,6 +72,19 @@ The function returned by encrypt and decrypt is able to encrypt a single block s
 exactly divisible by the block size you need padding. The BlockPadding trait transforms an Iterator of byte sequences to an Iterator of
 properly padded blocks.
 
+When you have created a suite you can use the encrypt/decrypt method to encrypt/decrypt an Iterator[Seq[Byte]] to an Iterator[Try[Seq[Byte]]].
+If the resulting iterator contains a single Failure encryption or decryption must be aborted. There are helper methods for processing a single
+Seq[Byte] to a single Try[Seq[Byte]]. These helper methods overload encrypt and decrypt.
+
+Password hashing
+----------------
+
+This library contains the util.PBKDF2Easy object which securely hashes a Seq[Byte] using PBKDF2. The used parameters and the salt are encoded
+in the resulting Seq[Byte]. It is safe to save the result to a database.
+
+If you want to use the pure PBKDF2 for other purposes than password hashing you can use khash.PBKDF2 which generates KeyedHash objects.
+The data supplied to this KeyedHash is used as the salt.
+
 Contributing
 ------------
 
