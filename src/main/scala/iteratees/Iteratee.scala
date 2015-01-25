@@ -113,4 +113,7 @@ object Iteratee {
 
     getIteratee(initial)
   }
+
+  /** Returns an iteratee that is already in the Done state with the given result. */
+  def done[E, A](result: A) = new Iteratee[E, A] { val state = Done[E, A](result) }
 }

@@ -93,4 +93,10 @@ class IterateeSpec extends FlatSpec with Matchers {
     val sum3 = stringEnum(sum2)
     sum3.run.get should be (23)
   }
+
+  "Iteratee.done" should "return an Iteratee which is Done." in {
+    val iteratee = Iteratee.done[Any, Boolean](true)
+    iteratee.state shouldBe a [Done[_,_]]
+    iteratee.run.get should be (true)
+  }
 }
