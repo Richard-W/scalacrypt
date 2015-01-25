@@ -26,23 +26,22 @@ object PBKDF2Easy {
   )
 
   lazy val defaultAlgorithm = 1.toByte
-  val defaultIterations = 20000
   val defaultSaltLength = 32
   val defaultHashLength = 32
 
-  lazy val defaultIterationsBytes = java.nio.ByteBuffer.allocate(4).putInt(defaultIterations).array.toList
   lazy val defaultSaltLengthBytes = java.nio.ByteBuffer.allocate(4).putInt(defaultSaltLength).array.toList
   lazy val defaultHashLengthBytes = java.nio.ByteBuffer.allocate(4).putInt(defaultHashLength).array.toList
 
-  lazy val defaultPBKDF2 = khash.PBKDF2(algoMap(defaultAlgorithm), defaultIterations, defaultHashLength)
 
-  def apply(password: Seq[Byte]): Seq[Byte] = {
+  def apply(password: Seq[Byte], iterations: Int = 20000): Seq[Byte] = {
     val key = password.toKey[SymmetricKeyArbitrary].get
+    val iterationsBytes = java.nio.ByteBuffer.allocate(4).putInt(iterations).array.toList
+    val pbkdf2 = khash.PBKDF2(algoMap(defaultAlgorithm), iterations, defaultHashLength)
 
     val salt = Random.nextBytes(32).toList
-    val hash = defaultPBKDF2(salt, key).toList
+    val hash = pbkdf2(salt, key).toList
 
-    defaultAlgorithm :: defaultIterationsBytes ::: defaultSaltLengthBytes ::: salt ::: defaultHashLengthBytes ::: hash
+    defaultAlgorithm :: iterationsBytes ::: defaultSaltLengthBytes ::: salt ::: defaultHashLengthBytes ::: hash
   }
 
   def verify(password: Seq[Byte], hash: Seq[Byte]): Boolean = {
