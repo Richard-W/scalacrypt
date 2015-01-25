@@ -22,4 +22,18 @@ object `package` {
   implicit def toCanBuildKeyOp[FromType](from: FromType) = {
     new MightBuildKeyOp[FromType](from)
   }
+
+  implicit def toRichByteSeq(value: Seq[Byte]): RichByteSeq = new RichByteSeq(value)
+  /** Adds methods to Seq[Byte]. */
+  class RichByteSeq(value: Seq[Byte]) {
+
+    def toBase64String: String = (new sun.misc.BASE64Encoder).encodeBuffer(value.toArray)
+  }
+
+  implicit def toRichString(value: String): RichString = new RichString(value)
+  /** Adds methods to String. */
+  class RichString(value: String) {
+
+    def toBase64Bytes: Seq[Byte] = (new sun.misc.BASE64Decoder).decodeBuffer(value)
+  }
 }
