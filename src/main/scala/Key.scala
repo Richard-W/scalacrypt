@@ -134,7 +134,7 @@ sealed abstract class RSAKey extends Key {
 }
 
 /** Adds the toKey method to Any. */
-final class MightBuildKeyOp[FromType](val value: FromType) {
+final class MightBuildKeyOp[FromType](value: FromType) {
 
   /** Tries to convert the object to a specific implementation of Key. */
   def toKey[KeyType <: Key]()(implicit builder: MightBuildKey[FromType, KeyType]) = {
