@@ -49,8 +49,10 @@ trait OAEP extends BlockPadding {
     def hasNext = data.hasNext
     
     def next: Try[Seq[Byte]] = {
-      val xy = data.next
-      if(xy.length != (hash1.length + hash2.length)) return Failure(new BadPaddingException("Invalid length: " + xy.length))
+      val next = data.next
+      val xylen = hash1.length + hash2.length
+      if(next.length > xylen) return Failure(new BadPaddingException("Invalid length: " + next.length))
+      val xy = next ++ Seq.fill[Byte](xylen - next.length) { 0.toByte }
 
       val x = xy.slice(0, hash2.length)
       val y = xy.slice(hash2.length, xy.length)
