@@ -38,4 +38,11 @@ class RSASpec extends FlatSpec with Matchers {
     pubKey.p should be (None)
     pubKey.q should be (None)
   }
+
+  "RSA encryption" should "correctly encrypt and decrypt keys" in {
+    val suite = suites.RSA_ECB_OAEP(testKey, 16).get
+    val test = (0 until 16) map { _.toByte }
+    val c = suite.encrypt(test).get
+    suite.decrypt(c).get should be (test)
+  }
 }
