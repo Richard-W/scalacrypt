@@ -30,6 +30,9 @@ class InvalidCiphertextException(message: String) extends Exception("Invalid cip
 /** Occurs when during decryption problems are encountered. */
 class DecryptionException(message: String) extends Exception("Decryption: " + message)
 
+/** Occurs when during encryption problems are encountered. */
+class EncryptionException(message: String) extends Exception("Encryption: " + message)
+
 /** Occurs when problems are encountered during key creation. */
 class KeyException(message: String) extends Exception("Key creation: " + message)
 
