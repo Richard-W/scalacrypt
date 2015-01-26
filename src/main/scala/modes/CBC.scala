@@ -20,12 +20,6 @@ trait CBC extends BlockCipherMode {
 
   import scala.language.implicitConversions
 
-  // Define xor operator
-  private class ByteSeqWrapper(lhs: Seq[Byte]) {
-    def xor(rhs: Seq[Byte]): Seq[Byte] = for(i <- 0 until lhs.length) yield (lhs(i) ^ rhs(i)).toByte
-  }
-  private implicit def wrapByteSeq(seq: Seq[Byte]) = new ByteSeqWrapper(seq)
-
   def iv: Seq[Byte]
 
   def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any]) = {

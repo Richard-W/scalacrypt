@@ -28,6 +28,11 @@ object `package` {
   class RichByteSeq(value: Seq[Byte]) {
 
     def toBase64String: String = (new sun.misc.BASE64Encoder).encodeBuffer(value.toArray)
+
+    def xor(other: Seq[Byte]): Seq[Byte] = {
+      def min(a: Int, b: Int): Int = if(a < b) a else b
+      for(i <- (0 until min(value.length, other.length))) yield (value(i) ^ other(i)).toByte
+    }
   }
 
   implicit def toRichString(value: String): RichString = new RichString(value)

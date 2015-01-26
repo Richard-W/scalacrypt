@@ -31,10 +31,6 @@ object PBKDF2 {
     } map { keyedHash ⇒
       val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
 
-      def xor(a: Seq[Byte], b: Seq[Byte]): Seq[Byte] = {
-        for(i <- 0 until a.length) yield (a(i) ^ b(i)).toByte
-      }
-
       /* Returns the tuple (block, Uc). */
       def u(iteration: Int, u1: Seq[Byte]): (Seq[Byte], Seq[Byte]) = {
         var block: Seq[Byte] = u1
@@ -42,7 +38,7 @@ object PBKDF2 {
 
         for(iteration <- (2 to iterations)) {
           u = algorithm(u, key)
-          block = xor(block, u)
+          block = block xor u
         }
 
         (block, u)
