@@ -17,7 +17,7 @@ package xyz.wiedenhoeft.scalacrypt
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
 
-class RSAKeySpec extends FlatSpec with Matchers {
+class RSASpec extends FlatSpec with Matchers {
   val testKey = Key.generate[RSAKey]
   
   "A generated RSAKey" should "be serializable." in {
