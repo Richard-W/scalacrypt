@@ -69,7 +69,7 @@ object `package` {
       /* Calculate the position of the most significant digit (base 256). */
       var exponent = 0
       var exponentNumber = BigInt(1)
-      while(value > exponentNumber) {
+      while(value >= exponentNumber) {
         exponent += 1
         exponentNumber = base pow exponent
       }
