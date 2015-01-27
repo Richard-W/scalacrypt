@@ -23,22 +23,22 @@ class RichBigIntSpec extends FlatSpec with Matchers {
     val tests = Seq[(Int, Seq[Int])](
       (
         0,
-        Seq()
+        Seq(0, 0 ,0)
       ), (
         1,
-        Seq(1)
+        Seq(0, 0, 1)
       ), (
         255,
-        Seq(255)
+        Seq(0, 0, 255)
       ), (
         256,
-        Seq(1, 0)
+        Seq(0, 1, 0)
       ), (
         257,
-        Seq(1, 1)
+        Seq(0, 1, 1)
       ), (
         511,
-        Seq(1, 255)
+        Seq(0, 1, 255)
       )
     )
 
@@ -46,8 +46,14 @@ class RichBigIntSpec extends FlatSpec with Matchers {
       val int = BigInt(test._1)
       val bytes = test._2 map { _.toByte }
 
-      int.toBytes should be (bytes)
-      bytes.toBigInt should be (int)
+      int.i2osp(bytes.length).get should be (bytes)
+      bytes.os2ip should be (int)
     }
+  }
+
+  it should "correctly convert numbers on the upper end of their magnitude." in {
+    val testBytes = Seq(255, 255, 255) map { _.toByte }
+    val number = testBytes.os2ip
+    number.i2osp(3).get should be (testBytes)
   }
 }

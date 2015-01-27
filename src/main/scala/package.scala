@@ -14,6 +14,8 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
+import scala.util.{ Try, Success, Failure }
+
 object `package` {
 
   import scala.language.implicitConversions
@@ -34,7 +36,7 @@ object `package` {
       for(i <- (0 until min(value.length, other.length))) yield (value(i) ^ other(i)).toByte
     }
 
-    def toBigInt: BigInt = {
+    def os2ip: BigInt = {
       def byteToInt(byte: Byte): Int = {
         val result = byte.toInt
         if(result < 0) result + 256
@@ -61,18 +63,18 @@ object `package` {
   /** Adds methods to BigInt. */
   class RichBigInt(value: BigInt) {
 
-    def toBytes: Seq[Byte] = {
-      var remaining = value
-      var result = Seq[Byte]()
+    /** I2OSP as defined by PKCS#1 v2.1 */
+    def i2osp(length: Int): Try[Seq[Byte]] = {
       val base = BigInt(256)
+      var exponent = length
 
-      /* Calculate the position of the most significant digit (base 256). */
-      var exponent = 0
-      var exponentNumber = BigInt(1)
-      while(value >= exponentNumber) {
-        exponent += 1
-        exponentNumber = base pow exponent
-      }
+      if(length <= 0) return Failure(new Exception("Invalid length"))
+      if(value < 0) return Failure(new Exception("Negative values can not be converted using I2OSP"))
+      val maxValue = (base pow exponent) - 1
+      if(value > maxValue) return Failure(new Exception(s"Value too large: $value (max. $maxValue when length is $length)"))
+
+      var remaining = value
+      val result = new Array[Byte](length)
 
       /* Calculate the digits (base 256, big endian). */
       while(exponent > 0) {
@@ -82,10 +84,11 @@ object `package` {
         val remainingBackup = remaining
         remaining = remaining mod factor
         val difference = remainingBackup - remaining
-        result = result :+ (difference / factor).toByte
+        val index = (length - 1) - exponent
+        result(index) = (difference / factor).toByte
       }
 
-      result
+      Success(result)
     }
   }
 }

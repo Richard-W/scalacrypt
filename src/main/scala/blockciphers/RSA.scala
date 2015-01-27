@@ -28,21 +28,27 @@ trait RSA extends BlockCipher[RSAKey] {
   lazy val blockSize = (key.n.bitLength.toFloat / 8.0).ceil.toInt
 
   def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
-    val m = block.toBigInt
+    val blocklen = block.length
+    if(blocklen != cleartextBlockSize)
+      return Failure(new EncryptionException(s"Invalid cleartext block size. Expected length $cleartextBlockSize, got $blocklen."))
+
+    val m = block.os2ip
     if(m > key.n) return Failure(new EncryptionException("Message is bigger than modulus."))
 
     val c = m modPow (key.e, key.n)
-    Success(c.toBytes)
+    c.i2osp(blockSize)
   }
 
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
-    val c = block.toBigInt
+    if(block.length != blockSize) return Failure(new DecryptionException("Invalid block size"))
+
+    val c = block.os2ip
     if(c > key.n) return Failure(new DecryptionException("Invalid ciphertext"))
 
     key.d match {
       case Some(d) ⇒
       val m = c modPow (d, key.n)
-      Success(m.toBytes)
+      m.i2osp(cleartextBlockSize)
 
       case _ ⇒
       Failure(new DecryptionException("No private key."))
