@@ -72,7 +72,7 @@ trait RSA extends BlockCipher[RSAKey] {
     if(m > key.n) return Failure(new EncryptionException("Message is bigger than modulus."))
 
     val c = m modPow (key.e, key.n)
-    Success(c.toByteArray)
+    Success(intToBytes(c))
   }
 
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
