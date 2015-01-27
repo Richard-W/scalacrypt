@@ -33,6 +33,21 @@ object `package` {
       def min(a: Int, b: Int): Int = if(a < b) a else b
       for(i <- (0 until min(value.length, other.length))) yield (value(i) ^ other(i)).toByte
     }
+
+    def toBigInt: BigInt = {
+      def byteToInt(byte: Byte): Int = {
+        val result = byte.toInt
+        if(result < 0) result + 256
+        else result
+      }
+
+      var result = BigInt(0)
+      for(i <- (0 until value.length)) {
+        val exponent = value.length - 1 - i
+        result += (BigInt(256) pow exponent) * byteToInt(value(i))
+      }
+      result
+    }
   }
 
   implicit def toRichString(value: String): RichString = new RichString(value)
@@ -40,5 +55,37 @@ object `package` {
   class RichString(value: String) {
 
     def toBase64Bytes: Seq[Byte] = (new sun.misc.BASE64Decoder).decodeBuffer(value)
+  }
+
+  implicit def toRichBigInt(value: BigInt): RichBigInt = new RichBigInt(value)
+  /** Adds methods to BigInt. */
+  class RichBigInt(value: BigInt) {
+
+    def toBytes: Seq[Byte] = {
+      var remaining = value
+      var result = Seq[Byte]()
+      val base = BigInt(256)
+
+      /* Calculate the position of the most significant digit (base 256). */
+      var exponent = 0
+      var exponentNumber = BigInt(1)
+      while(value > exponentNumber) {
+        exponent += 1
+        exponentNumber = base pow exponent
+      }
+
+      /* Calculate the digits (base 256, big endian). */
+      while(exponent > 0) {
+        exponent -= 1
+
+        val factor = base pow exponent
+        val remainingBackup = remaining
+        remaining = remaining mod factor
+        val difference = remainingBackup - remaining
+        result = result :+ (difference / factor).toByte
+      }
+
+      result
+    }
   }
 }
