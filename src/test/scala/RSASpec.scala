@@ -76,7 +76,7 @@ class RSASpec extends FlatSpec with Matchers {
 
   it should "not fail on certain data inputs." in {
     val test = "AmzVJLEIo/6xoaqpZ6G5SutGJ8Rxh5Mk9mPhnuj+CBDnp+BE4jITQo1wtzFOLjQnwSp/nmK9zScDJoDsWYk9CA==".toBase64Bytes
-    val rsa = new blockciphers.RSA { val key = testKey }
+    val rsa = new blockciphers.RSA { val key = testKey; override val cleartextBlockSize = 64 }
     rsa.decryptBlock(rsa.encryptBlock(test).get).get should be (test)
   }
 }

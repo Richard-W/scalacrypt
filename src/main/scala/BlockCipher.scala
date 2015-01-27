@@ -22,6 +22,9 @@ trait BlockCipher[KeyType <: Key] {
   /** Block size in bytes. */
   def blockSize: Int
 
+  /** Size of cleartext blocks. */
+  def cleartextBlockSize: Int
+
   /** The key used for en- and decryption. */
   def key: KeyType
 

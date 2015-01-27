@@ -28,6 +28,8 @@ trait OAEP extends BlockPadding {
   /** Length of the random part. */
   lazy val k0: Int = hash2.length
 
+  lazy val cleartextBlockSize = hash1.length + hash2.length
+
   /** Number of zeroes appended to m. */
   def k1: Int
 
@@ -50,9 +52,8 @@ trait OAEP extends BlockPadding {
     
     def next: Try[Seq[Byte]] = {
       val next = data.next
-      val xylen = hash1.length + hash2.length
-      if(next.length > xylen) return Failure(new BadPaddingException("Invalid length: " + next.length))
-      val xy = next ++ Seq.fill[Byte](xylen - next.length) { 0.toByte }
+      if(next.length > cleartextBlockSize) return Failure(new BadPaddingException("Invalid length: " + next.length))
+      val xy = next ++ Seq.fill[Byte](cleartextBlockSize - next.length) { 0.toByte }
 
       val x = xy.slice(0, hash2.length)
       val y = xy.slice(hash2.length, xy.length)
