@@ -20,7 +20,7 @@ import hash._
 
 object RSAES_OAEP {
 
-  def apply(k: RSAKey, messageLen: Int, label: Seq[Byte] = Seq[Byte](), hash: Hash = SHA256, genSeed: (Int) ⇒ Seq[Byte] = { length ⇒ Random.nextBytes(length) }): Try[BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB] = {
+  def apply(k: RSAKey, label: Seq[Byte] = Seq[Byte](), hash: Hash = SHA256, genSeed: (Int) ⇒ Seq[Byte] = { length ⇒ Random.nextBytes(length) }): Try[BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB] = {
     val l = label
     Success(new BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB {
       val key = k

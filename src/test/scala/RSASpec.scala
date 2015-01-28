@@ -68,7 +68,7 @@ class RSASpec extends FlatSpec with Matchers {
   }
 
   "RSAES_OAEP encryption" should "correctly encrypt and decrypt data" in {
-    val suite = suites.RSAES_OAEP(testKey, 16).get
+    val suite = suites.RSAES_OAEP(testKey).get
     val test = (0 until 16) map { _.toByte }
     val c = suite.encrypt(test).get
     suite.decrypt(c).get should be (test)
@@ -96,8 +96,8 @@ class RSASpec extends FlatSpec with Matchers {
     val publicKey = (e, n).toKey[RSAKey].get
     val privateKey = (e, d, n).toKey[RSAKey].get
 
-    val encryptor = suites.RSAES_OAEP(publicKey, m.length, Seq[Byte](), hash.SHA1, { _ ⇒ seed }).get
-    val decryptor = suites.RSAES_OAEP(privateKey, m.length, Seq[Byte](), hash.SHA1, { _ ⇒ seed }).get
+    val encryptor = suites.RSAES_OAEP(publicKey, Seq[Byte](), hash.SHA1, { _ ⇒ seed }).get
+    val decryptor = suites.RSAES_OAEP(privateKey, Seq[Byte](), hash.SHA1, { _ ⇒ seed }).get
 
     encryptor.encrypt(m).get should be (c)
     decryptor.decrypt(c).get should be (m)
