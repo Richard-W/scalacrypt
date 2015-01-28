@@ -216,7 +216,27 @@ object MightBuildKey {
     }
   }
 
-  implicit val rsaKey = new MightBuildKey[Seq[Byte], RSAKey] {
+  implicit val publicRsaKeyFromTuple = new MightBuildKey[(Seq[Byte], Seq[Byte]), RSAKey] {
+    def tryBuild(keyTuple: (Seq[Byte], Seq[Byte])): Try[RSAKey] = Success(new RSAKey {
+      val n = keyTuple._2.os2ip
+      val e = keyTuple._1.os2ip
+      val d = None
+      val p = None
+      val q = None
+    })
+  }
+
+  implicit val privateRsaKeyFromTuple = new MightBuildKey[(Seq[Byte], Seq[Byte], Seq[Byte]), RSAKey] {
+    def tryBuild(keyTuple: (Seq[Byte], Seq[Byte], Seq[Byte])): Try[RSAKey] = Success(new RSAKey {
+      val n = keyTuple._3.os2ip
+      val e = keyTuple._1.os2ip
+      val d = Some(keyTuple._2.os2ip)
+      val p = None
+      val q = None
+    })
+  }
+
+  implicit val rsaKeyFromBytes = new MightBuildKey[Seq[Byte], RSAKey] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[RSAKey] = {
       def createMap(map: Map[Int, BigInt], bytes: Seq[Byte]): Try[Map[Int, BigInt]] = {
