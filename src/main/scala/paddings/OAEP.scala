@@ -53,6 +53,9 @@ trait OAEP extends BlockPadding {
   /** Optional label that can be verified during decryption */
   def label: Seq[Byte] = Seq[Byte]()
 
+  /** Function that generates a seed of the given length. */
+  def seedGenerator: (Int) ⇒ Seq[Byte]
+
   /** Hash of the label. */
   lazy val labelHash = hashFunction(label)
 
@@ -77,7 +80,7 @@ trait OAEP extends BlockPadding {
         rv
       }
 
-      val seed = Random.nextBytes(hashFunction.length)
+      val seed = seedGenerator(hashFunction.length)
       val db = (labelHash ++ (Seq.fill[Byte](maxMessageLength - message.length) { 0.toByte }) :+ 1.toByte) ++ message
 
       val dbMask = mgf(seed, db.length)
