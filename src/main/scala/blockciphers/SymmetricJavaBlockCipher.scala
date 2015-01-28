@@ -25,7 +25,6 @@ trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyType] {
   protected def algo: String
 
   lazy val blockSize: Int = Cipher.getInstance(algo + "/ECB/NoPadding").getBlockSize
-  lazy val cleartextBlockSize = blockSize
 
   private val secretKey: java.security.Key = new SecretKeySpec(key.bytes.toArray, "AES")
   private val encryptor: Cipher = Cipher.getInstance(algo + "/ECB/NoPadding")

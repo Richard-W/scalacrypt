@@ -16,18 +16,19 @@ package xyz.wiedenhoeft.scalacrypt.suites
 
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
+import hash._
 
-object RSA_ECB_OAEP {
+object RSAES_OAEP {
 
-  def apply(k: RSAKey, messageLen: Int): Try[BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB] = {
+  def apply(k: RSAKey, messageLen: Int, label: Seq[Byte] = Seq[Byte]()): Try[BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB] = {
     if(k.length < 64 || messageLen > 32) Failure(new Exception("Invalid parameters"))
-    else Success(new BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB {
-      lazy val key = k
-
-      lazy val hash1 = hash.SHA256
-      lazy val hash2 = hash.SHA256
-
-      lazy val k1 = 32 - messageLen
-    })
+    else {
+      val l = label
+      Success(new BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB {
+        val key = k
+        val hashFunction = SHA256
+        override val label = l
+      })
+    }
   }
 }

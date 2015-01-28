@@ -17,32 +17,76 @@ package xyz.wiedenhoeft.scalacrypt.paddings
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 
+/** Optimal asymmetric encryption padding as defined in PKCS#1 v2.1
+  *
+  * Block (length k)
+  * 0    1 2 3 4 ... hLen hlen+1 ... k
+  * -----------------------------
+  * 0x00 ------Seed------ ------DB----
+  *
+  * k=16
+  * hlen=5
+  * 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+  * 0 s s s s s d d d d  d  d  d  d  d  d
+  *
+  * DB (length k - hLen - 1)
+  * 0 1 2 ... hlen-1 hlen ... k-hLen-1
+  * ----------------------------------
+  * ------lHash----- ------mPart------
+  *
+  * k=16
+  * hlen=5
+  * 0 1 2 3 4 5 6 7 8 9 10 
+  * h h h h h m m m m m  m
+  */
+
 trait OAEP extends BlockPadding {
 
-  /** Generates the hash that is xored with m. */
-  def hash1: Hash
+  /** Hash function. */
+  def hashFunction: Hash
 
-  /** Generates the hash that is xored with r. */
-  def hash2: Hash
+  private def mgf(seed: Seq[Byte], length: Int) = {
+    val numBlocks = (length.toFloat / hashFunction.length.toFloat).ceil.toInt
+    (for(i <- (0 until numBlocks)) yield hashFunction(seed ++ BigInt(i).i2osp(4).get)).flatten.slice(0, length)
+  }
 
-  /** Length of the random part. */
-  lazy val k0: Int = hash2.length
+  /** Optional label that can be verified during decryption */
+  def label: Seq[Byte] = Seq[Byte]()
 
-  lazy val cleartextBlockSize = hash1.length + hash2.length
+  /** Hash of the label. */
+  lazy val labelHash = hashFunction(label)
 
-  /** Number of zeroes appended to m. */
-  def k1: Int
+  /** Maximum length of a message */
+  lazy val maxMessageLength = blockSize - 2 * hashFunction.length - 2
 
   def pad(data: Iterator[Seq[Byte]]): Iterator[Seq[Byte]] = new Iterator[Seq[Byte]] {
+    var buffer = Seq[Byte]()
 
-    def hasNext = data.hasNext
+    def hasNext = data.hasNext || buffer.length > 0
 
     def next: Seq[Byte] = {
-      val m = data.next ++ Seq.fill[Byte](k1) { 0.toByte }
-      val r = Random.nextBytes(k0)
-      val x = m xor hash1(r)
-      val y = r xor hash2(x)
-      x ++ y
+      while(buffer.length < maxMessageLength && data.hasNext) buffer = buffer ++ data.next
+
+      val message = if(buffer.length > maxMessageLength) {
+        val rv = buffer
+        buffer = buffer.slice(maxMessageLength, buffer.length)
+        rv
+      } else {
+        val rv = buffer
+        buffer = Seq[Byte]()
+        rv
+      }
+
+      val seed = Random.nextBytes(hashFunction.length)
+      val db = (labelHash ++ (Seq.fill[Byte](maxMessageLength - message.length) { 0.toByte }) :+ 1.toByte) ++ message
+
+      val dbMask = mgf(seed, db.length)
+      val maskedDB = db xor dbMask
+
+      val seedMask = mgf(maskedDB, seed.length)
+      val maskedSeed = seed xor seedMask
+
+      (0.toByte +: maskedSeed) ++ maskedDB
     }
   }
 
@@ -51,19 +95,59 @@ trait OAEP extends BlockPadding {
     def hasNext = data.hasNext
     
     def next: Try[Seq[Byte]] = {
-      val next = data.next
-      if(next.length > cleartextBlockSize) return Failure(new BadPaddingException("Invalid length: " + next.length))
-      val xy = next ++ Seq.fill[Byte](cleartextBlockSize - next.length) { 0.toByte }
+      val block = data.next
+      if(block.length != blockSize)
+        return Failure(new IllegalBlockSizeException("Unpad needs blocks of correct length."))
 
-      val x = xy.slice(0, hash2.length)
-      val y = xy.slice(hash2.length, xy.length)
-      val r = y xor hash2(x)
-      val m = x xor hash2(r)
+      /* Never specify what went wrong exactly. */
+      val standardError = Some(new BadPaddingException("Invalid OAEP"))
+      var error: Option[Exception] = None
 
-      val zeroes = m.slice(m.length - k1, m.length)
-      if(zeroes != Seq.fill[Byte](k1) { 0.toByte }) return Failure(new BadPaddingException("No nullbytes"))
+      if(block(0) != 0.toByte) {
+        error = standardError
+      }
+      val maskedSeed = block.slice(1, hashFunction.length + 1)
+      val maskedDB = block.slice(hashFunction.length + 1, blockSize)
 
-      Success(m.slice(0, m.length - k1))
+      val seedMask = mgf(maskedDB, maskedSeed.length)
+      val seed = maskedSeed xor seedMask
+
+      val dbMask = mgf(seed, maskedDB.length)
+      val db = maskedDB xor dbMask
+
+      val dbLabel = db.slice(0, hashFunction.length)
+      if(dbLabel != labelHash) {
+        error = standardError
+      }
+
+      val dbPaddedMessage = db.slice(hashFunction.length, db.length)
+      var index = 0
+      var indexInPadding = true
+      var message = Seq[Byte]()
+
+      // This is overly complicated, but continuing on error
+      // makes side channel attacks to get the specific padding
+      // error much harder and unreliable.
+      while(index < dbPaddedMessage.length && indexInPadding) {
+        val digit = dbPaddedMessage(index)
+        if(digit != 0.toByte) {
+          if(digit == 1.toByte) {
+            indexInPadding = false
+            message = dbPaddedMessage.slice(index + 1, dbPaddedMessage.length)
+          } else {
+            error = standardError
+          }
+        }
+        index += 1
+      }
+
+      error match {
+        case Some(e) ⇒
+        Failure(e)
+
+        case _ ⇒
+        Success(message)
+      }
     }
   }
 }

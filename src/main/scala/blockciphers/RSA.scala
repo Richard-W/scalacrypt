@@ -29,11 +29,11 @@ trait RSA extends BlockCipher[RSAKey] {
 
   def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
     val blocklen = block.length
-    if(blocklen != cleartextBlockSize)
-      return Failure(new EncryptionException(s"Invalid cleartext block size. Expected length $cleartextBlockSize, got $blocklen."))
+    if(blocklen != blockSize)
+      return Failure(new EncryptionException(s"Invalid block size. Expected length $blockSize, got $blocklen."))
 
     val m = block.os2ip
-    if(m > key.n) return Failure(new EncryptionException("Message is bigger than modulus."))
+    if(m > key.n) return Failure(new EncryptionException("Message representative out of range."))
 
     val c = m modPow (key.e, key.n)
     c.i2osp(blockSize)
@@ -48,7 +48,7 @@ trait RSA extends BlockCipher[RSAKey] {
     key.d match {
       case Some(d) ⇒
       val m = c modPow (d, key.n)
-      m.i2osp(cleartextBlockSize)
+      m.i2osp(blockSize)
 
       case _ ⇒
       Failure(new DecryptionException("No private key."))
