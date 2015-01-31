@@ -2,12 +2,12 @@ Scalacrypt
 ==========
 
 Scalacrypt provides advanced cryptographic functions for scala projects. It wraps the
-javax.crypto API and provides a few things that are not implemented there. So far
-this project only provides symmetric encryption. This may change in the future.
+javax.crypto API and provides a few things that are not implemented there in a way
+usable for this project.
 
-This project is under heavy development and not suited for production!!!
+This project is under heavy development and not suited for production use!!!
 
-To add this scalacrypt to your sbt project just add the following line to your build.sbt:
+To add scalacrypt to your sbt project just add the following line to your build.sbt:
 
 ```scala
 libraryDependencies += "xyz.wiedenhoeft" %% "scalacrypt" % "0.3.0"
@@ -43,7 +43,7 @@ val suite = new BlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with 
 }
 ```
 
-There are certain helper functions in the 'suite' package. They automatically validate parameters and return a Try.
+There are certain helper functions in the 'suites' package. They automatically validate parameters and return a Try.
 
 ```scala
 val suite = suites.AES128_CBC_PKCS7Padding(Key.generate[SymmetricKey128], None).get
@@ -56,7 +56,7 @@ You get the idea. The predefined key classes can be instantiated using the follo
 methods:
 
 ```scala
-// Using implicit conversion to MightBuildSymmetricKeyOp
+// Using implicit conversion to MightBuildKeyOp
 val specificKey = (0 until 16 map { _.toByte }).toSeq.toKey[SymmetricKey128].get
 // If the supplied key is invalid toKey will return a Failure and get will throw. When
 // you can't guarantee the validity of the key use pattern matching.
@@ -65,7 +65,7 @@ val specificKey = (0 until 16 map { _.toByte }).toSeq.toKey[SymmetricKey128].get
 val randomKey = Key.generate[SymmetricKey128]
 ```
 
-When you define own subclasses of SymmetricKey you should also define appropriate implicit implementations of CanGenerateKey
+When you define own subclasses of Key you should also define appropriate implicit implementations of CanGenerateKey
 and MightBuildKey.
 
 The function returned by encrypt and decrypt is able to encrypt a single block so in the case of AES exactly 16 bytes. If your input is not
@@ -75,6 +75,26 @@ properly padded blocks.
 When you have created a suite you can use the encrypt/decrypt method to encrypt/decrypt an Iterator[Seq[Byte]] to an Iterator[Try[Seq[Byte]]].
 If the resulting iterator contains a single Failure encryption or decryption must be aborted. There are helper methods for processing a single
 Seq[Byte] to a single Try[Seq[Byte]]. These helper methods overload encrypt and decrypt.
+
+Asymmetric encryption
+---------------------
+
+Since version 0.4 scalacrypt contains an RSA implementation. You can generate a key just like a symmetric key.
+The key type is RSAKey. An RSAKey can be either public or private. Internally there are two types of private keys
+which essentially do the same but with different computational efficiency (see Chinese Remainder Theorem).
+
+```scala
+val privateKey = Key.generate[RSAKey]
+val publicKey = privateKey.publicKey
+```
+
+RSA keys can be stored using the output of key.bytes. The resulting sequence of bytes can be restored to a key
+using its toKey[RSAKey] method. The binary format used for serializing the keys is specific to scalacrypt and
+sadly not compatible with anything. This will most likely change.
+
+There is exactly one cipher suite available for RSA encryption: RSAES\_OAEP which implements message encryption
+according to PKCS#1. Usage is equivalent to the symmetric cipher suites except decryption will return a Failure
+when the private key is unavailable.
 
 Password hashing
 ----------------
