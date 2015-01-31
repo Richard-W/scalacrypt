@@ -47,37 +47,89 @@ class RSASpec extends FlatSpec with Matchers {
     |gNtRiS5oPGuOedwKjjWcs1qaJzFsHfbwIqsrONBZVrlg13/btV5Bytovx9bKJEA1J6//Dqn7azOZ
     |zHAjKg+8WLwwlMOTWSjBaSA4j7261rSmoZaIVyjr9aseRMyfoLzBGl0padb6dljSDtRiTMxu6by3
     |5zIfjLTf4x6AEgvDsQltpLsCxSXGx4c5w4PfRQ==""".stripMargin.toBase64Bytes.toKey[RSAKey].get
-  
+
+  val testKey2 =
+""" |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
+    |WbN8wknG5lqLs7Cu7w==""".stripMargin.toBase64Bytes.toKey[RSAKey].get
+
   "A generated RSAKey" should "be serializable." in {
     val bytes = testKey.bytes
+    val bytes2 = testKey2.bytes
     val newKey = bytes.toKey[RSAKey].get
+    val newKey2 = bytes2.toKey[RSAKey].get
     newKey should be (testKey)
+    newKey2 should be (testKey2)
   }
 
   it should "have length 512." in {
     testKey.length should be (512)
+    testKey2.length should be (512)
   }
 
   it should "export the public part." in {
     testKey.isPrivateKey should be (true)
     val pubKey = testKey.publicKey
     pubKey.isPrivateKey should be (false)
-    pubKey.d should be (None)
-    pubKey.p should be (None)
-    pubKey.q should be (None)
+    pubKey.privateKey1 should be (None)
+    pubKey.privateKey2 should be (None)
   }
 
   "RSAES_OAEP encryption" should "correctly encrypt and decrypt data" in {
     val suite = suites.RSAES_OAEP(testKey).get
+    val suite2 = suites.RSAES_OAEP(testKey2).get
     val test = (0 until 16) map { _.toByte }
     val c = suite.encrypt(test).get
+    val c2 = suite2.encrypt(test).get
     suite.decrypt(c).get should be (test)
+    suite2.decrypt(c2).get should be (test)
   }
 
   it should "not fail on certain data inputs." in {
     val test = (Seq.fill[Byte](512 - 64) { 0.toByte }) ++ "AmzVJLEIo/6xoaqpZ6G5SutGJ8Rxh5Mk9mPhnuj+CBDnp+BE4jITQo1wtzFOLjQnwSp/nmK9zScDJoDsWYk9CA==".toBase64Bytes
     val rsa = new blockciphers.RSA { val key = testKey; }
+    val rsa2 = new blockciphers.RSA { val key = testKey2; }
     rsa.decryptBlock(rsa.encryptBlock(test).get).get should be (test)
+    rsa2.decryptBlock(rsa2.encryptBlock(test).get).get should be (test)
   }
 
   it should "conform to the test vector." in {
