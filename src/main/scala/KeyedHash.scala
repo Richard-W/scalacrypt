@@ -24,14 +24,8 @@ trait KeyedHash[KeyType <: Key] {
   def apply(key: KeyType): Try[Iteratee[Seq[Byte],Seq[Byte]]]
 
   /** Calculates the MAC. */
-  def apply(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
-    apply(key) match {
-      case Success(iteratee) ⇒
-      iteratee.fold(Element(data)).run
-
-      case Failure(f) ⇒
-      Failure(f)
-    }
+  def apply(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = apply(key) flatMap {
+    _.fold(Element(data)).run
   }
 
   /** Takes an iterator of data and returns an iterator containing a
@@ -67,12 +61,8 @@ trait KeyedHash[KeyType <: Key] {
 
   def verify(hash: Seq[Byte], key: KeyType): Try[Iteratee[Seq[Byte], Boolean]]
 
-  def verify(data: Seq[Byte], hash: Seq[Byte], key: KeyType): Try[Boolean] = verify(hash, key) match {
-    case Success(iteratee) ⇒
-    iteratee.fold(Element(data)).run
-
-    case Failure(f) ⇒
-    Failure(f)
+  def verify(data: Seq[Byte], hash: Seq[Byte], key: KeyType): Try[Boolean] = verify(hash, key) flatMap {
+    _.fold(Element(data)).run
   }
 
   /** The length in bytes of the MAC. */
