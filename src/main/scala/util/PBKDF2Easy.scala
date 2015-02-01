@@ -21,7 +21,7 @@ import xyz.wiedenhoeft.scalacrypt._
   * The verification process is backwards compatible.
   */
 object PBKDF2Easy {
-  lazy val algoMap = Map[Byte, KeyedHash](
+  lazy val algoMap = Map[Byte, KeyedHash[Key]](
     1.toByte -> khash.HmacSHA256
   )
 

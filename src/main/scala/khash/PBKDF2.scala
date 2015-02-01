@@ -22,7 +22,7 @@ import iteratees._
 object PBKDF2 {
   
   /* Creates a Keyed hash that implements PBKDF2. The salt is passed in as the data. */
-  def apply(algorithm: KeyedHash, iterations: Int, len: Int): KeyedHash = new KeyedHash {
+  def apply(algorithm: KeyedHash[Key], iterations: Int, len: Int): KeyedHash[Key] = new KeyedHash[Key] {
 
     def length = len
 

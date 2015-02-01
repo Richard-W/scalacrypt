@@ -18,19 +18,19 @@ import scala.util.{ Try, Success, Failure }
 import iteratees._
 
 /** Base class for Keyed hash (Message Authentication Code) implementations. */
-trait KeyedHash {
+trait KeyedHash[KeyType <: Key] {
 
   /** Calculates the MAC. */
-  def apply(data: Seq[Byte], key: Key): Seq[Byte] = {
+  def apply(data: Seq[Byte], key: KeyType): Seq[Byte] = {
     apply(key).fold(Element(data)).run.get
   }
 
   /** Returns an iteratee calculating the MAC. */
-  def apply(key: Key): Iteratee[Seq[Byte],Seq[Byte]]
+  def apply(key: KeyType): Iteratee[Seq[Byte],Seq[Byte]]
 
   /** Takes an iterator of data and returns an iterator containing a
     * tuple of both the data chunk and an updated mac iteratee. */
-  def apply(data: Iterator[Seq[Byte]], key: Key): Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] = {
+  def apply(data: Iterator[Seq[Byte]], key: KeyType): Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] = {
     new Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] {
       var lastIteratee = apply(key)
 
@@ -44,9 +44,9 @@ trait KeyedHash {
     }
   }
 
-  def verify(hash: Seq[Byte], key: Key): Iteratee[Seq[Byte], Boolean]
+  def verify(hash: Seq[Byte], key: KeyType): Iteratee[Seq[Byte], Boolean]
 
-  def verify(data: Seq[Byte], hash: Seq[Byte], key: Key): Boolean = verify(hash, key).fold(Element(data)).run.get
+  def verify(data: Seq[Byte], hash: Seq[Byte], key: KeyType): Boolean = verify(hash, key).fold(Element(data)).run.get
 
   /** The length in bytes of the MAC. */
   def length: Int

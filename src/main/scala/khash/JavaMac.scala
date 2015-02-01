@@ -23,7 +23,7 @@ import iteratees._
   *
   * Attention: If the key is empty it is substituted by a single zero-byte.
   */
-class JavaMac(algorithm: String) extends KeyedHash {
+class JavaMac(algorithm: String) extends KeyedHash[Key] {
 
   def apply(key: Key): Iteratee[Seq[Byte],Seq[Byte]] = {
     val k: SecretKeySpec = if(key.length != 0) {
