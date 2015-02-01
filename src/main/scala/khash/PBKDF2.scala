@@ -30,7 +30,7 @@ object PBKDF2 {
       algorithm(key) match {
         case Success(initialIteratee) ⇒
         Success(Iteratee.fold(initialIteratee) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
-          iteratee.fold(Element(chunk))
+          Success(iteratee.fold(Element(chunk)))
         } map { keyedHash ⇒
           val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
 

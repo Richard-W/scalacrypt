@@ -31,7 +31,7 @@ trait Enumerator[E] {
     new Enumerator[B] {
       def apply[A](iteratee: Iteratee[B, A]): Iteratee[B, A] = {
         base(Iteratee.fold[E, Iteratee[B, A]](iteratee) { (i, e) ⇒
-          f(e).apply(i)
+          Success(f(e).apply(i))
         }).run.get
       }
     }

@@ -20,7 +20,7 @@ import scala.util.{ Try, Success, Failure }
 
 class IterateeSpec extends FlatSpec with Matchers {
   val concatProto = Iteratee.fold[String, String]("") { (a, e) ⇒
-    a ++ e
+    Success(a ++ e)
   }
 
   "An Iteratee" should "be able to concat strings." in {
@@ -71,7 +71,7 @@ class IterateeSpec extends FlatSpec with Matchers {
     counts.run(concatProto).get should be ("6 5 ")
   }
 
-  val sum = Iteratee.fold(0) { (a: Int, e: Int) ⇒ a + e }
+  val sum = Iteratee.fold(0) { (a: Int, e: Int) ⇒ Success(a + e) }
   val toInt = Enumeratee.map { (str: String) ⇒ str.toInt }
 
   val intEnum1 = Enumerator(5, 5, 1) // Sum 11

@@ -100,12 +100,18 @@ object Iteratee {
     * The resulting iteratee ignores empty inputs and results in A only after an EOF. In
     * combination with the map-method this iteratee is sufficient for most purposes.
     */
-  def fold[E, A](initial: A)(folder: (A, E) ⇒ A) = {
+  def fold[E, A](initial: A)(folder: (A, E) ⇒ Try[A]) = {
     def getIteratee(intermediate: A): Iteratee[E, A] = new Iteratee[E, A] {
       val currentResult = intermediate
 
       val state = Cont((input: Input[E]) ⇒ input match {
-        case Element(element) ⇒ getIteratee(folder(currentResult, element))
+        case Element(element) ⇒ folder(currentResult, element) match {
+          case Success(folderResult) ⇒
+          getIteratee(folderResult)
+
+          case Failure(f) ⇒
+          new Iteratee[E, A] { val state = Error[E, A](f) }
+        }
         case Empty ⇒ this
         case EOF ⇒ new Iteratee[E, A] { val state = Done[E, A](currentResult) }
       })

@@ -37,7 +37,7 @@ class JavaMac(algorithm: String) extends KeyedHash[Key] {
     Success(Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
       val newMac = mac.clone.asInstanceOf[javax.crypto.Mac]
       newMac.update(data.toArray)
-      newMac
+      Success(newMac)
     } map {
       mac ⇒ mac.doFinal
     })

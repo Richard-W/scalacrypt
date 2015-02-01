@@ -16,6 +16,7 @@ package xyz.wiedenhoeft.scalacrypt.hash
 
 import xyz.wiedenhoeft.scalacrypt._
 import iteratees._
+import scala.util.{ Try, Success, Failure }
 
 /** Base class for hash algorithms implemented in javax.security.MessageDigest. */
 class JavaHash(algorithm: String) extends Hash {
@@ -26,7 +27,7 @@ class JavaHash(algorithm: String) extends Hash {
     Iteratee.fold[Seq[Byte],java.security.MessageDigest](digest) { (digest, data) ⇒
       val newDigest = digest.clone.asInstanceOf[java.security.MessageDigest]
       newDigest.update(data.toArray)
-      newDigest
+      Success(newDigest)
     } map {
       digest ⇒ digest.digest
     }
