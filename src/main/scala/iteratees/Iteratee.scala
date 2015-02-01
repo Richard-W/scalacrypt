@@ -122,4 +122,8 @@ object Iteratee {
 
   /** Returns an iteratee that is already in the Done state with the given result. */
   def done[E, A](result: A) = new Iteratee[E, A] { val state = Done[E, A](result) }
+
+
+  /** Returns an iteratee that is in the Error state. */
+  def error[E, A](error: Throwable) = new Iteratee[E, A] { val state = Error[E, A](error) }
 }
