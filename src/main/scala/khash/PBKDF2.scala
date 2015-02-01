@@ -31,40 +31,29 @@ object PBKDF2 {
         case Success(initialIteratee) ⇒
         Success(Iteratee.fold(initialIteratee) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
           Success(iteratee.fold(Element(chunk)))
-        } map { keyedHash ⇒
+        } flatMap { keyedHash ⇒
           val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
 
-          /* Returns the tuple (block, Uc). */
-          def u(iteration: Int, u1: Seq[Byte]): (Seq[Byte], Seq[Byte]) = {
-            var block: Seq[Byte] = u1
-            var u: Seq[Byte] = u1
+          /* Calculates a block */
+          def calcBlock(blockNum: Int): Try[Seq[Byte]] = {
+            val blockNumBytes = java.nio.ByteBuffer.allocate(4).putInt(blockNum).array
+            var block: Seq[Byte] = keyedHash.fold(Element(blockNumBytes)).run.get
+            var u: Seq[Byte] = block
 
             for(iteration <- (2 to iterations)) {
-              u = algorithm(u, key).get
+              u = algorithm(u, key) match {
+                case Success(newU) ⇒ newU
+                case Failure(f) ⇒ return Failure(f)
+              }
               block = block xor u
             }
-
-            (block, u)
-
-            // This recursive approach is much nicer but
-            // it creates stack overflows.
-            /*
-            if(iteration == 1) (u1, u1)
-            else {
-              val (block, prevU) = u(iteration - 1, u1)
-              val currentU = algorithm(prevU, key)
-              (xor(block, currentU), currentU)
-            }
-            */
+            Success(block)
           }
 
-          /* Calculates a block */
-          def f(blockNum: Int): Seq[Byte] = {
-            val u1: Seq[Byte] = keyedHash.fold(Element(java.nio.ByteBuffer.allocate(4).putInt(blockNum).array)).run.get
-            u(iterations, u1)._1
-          }
-
-          (for(blockNum <- 1 to numBlocks) yield f(blockNum)).flatten.slice(0, len)
+          val blocks = for(blockNum <- 1 to numBlocks) yield calcBlock(blockNum)
+          val failures = blocks filter { _.isFailure }
+          if(failures.length == 0) Iteratee.done((blocks map { _.get }).flatten.slice(0, length))
+          else Iteratee.error(failures(0).failed.get)
         })
 
         case Failure(f) ⇒
@@ -72,12 +61,6 @@ object PBKDF2 {
       }
     }
 
-    def verify(hash: Seq[Byte], key: Key): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) match {
-      case Success(iteratee) ⇒
-      Success(iteratee map { _ == hash })
-
-      case Failure(f) ⇒
-      Failure(f)
-    }
+    def verify(hash: Seq[Byte], key: Key): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
   }
 }
