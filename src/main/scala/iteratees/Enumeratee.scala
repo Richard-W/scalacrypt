@@ -23,14 +23,9 @@ trait Enumeratee[From, To] {
 
   def transform[A](inner: Iteratee[To, A]): Iteratee[From, A] = apply(inner) flatMap {
     _.fold(EOF).state match {
-      case Cont(_) ⇒
-      new Iteratee[From, A] { val state = Error[From, A](new IterateeException("Iteratee must be done after EOF")) }
-
-      case Error(error) ⇒
-      new Iteratee[From, A] { val state = Error[From, A](error) }
-
-      case Done(result) ⇒
-      new Iteratee[From, A] { val state = Done[From, A](result) }
+      case Cont(_) ⇒ Iteratee.error(new IterateeException("Iteratee must be done after EOF"))
+      case Error(error) ⇒ Iteratee.error(error)
+      case Done(result) ⇒ Iteratee.done(result)
     }
   }
 }
@@ -38,18 +33,13 @@ trait Enumeratee[From, To] {
 object Enumeratee {
 
   def map[From, To](f: (From) ⇒ To) = new Enumeratee[From, To] {
-    def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = new Iteratee[From, Iteratee[To, A]] {
-      val state: State[From, Iteratee[To, A]] = inner.state match {
-        case Cont(folder) ⇒
-        Cont((input: Input[From]) ⇒ input match {
-          case Element(el) ⇒ apply(inner.fold(Element(f(el))))
-          case Empty ⇒ apply(inner)
-          case EOF ⇒ new Iteratee[From, Iteratee[To, A]] { val state = Done[From, Iteratee[To, A]](inner) }
-        })
-
-        case _ ⇒
-        Done(inner)
+    def apply[A](inner: Iteratee[To, A]): Iteratee[From, Iteratee[To, A]] = inner.state match {
+      case Cont(folder) ⇒ Iteratee.cont {
+        case Element(element) ⇒ apply(inner.fold(Element(f(element))))
+        case Empty ⇒ apply(inner)
+        case EOF ⇒ Iteratee.done(inner)
       }
+      case _ ⇒ Iteratee.done(inner)
     }
   }
 }

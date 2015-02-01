@@ -48,49 +48,28 @@ trait Iteratee[E, A] {
 
   /** Consume an Input to Create a new Iteratee */
   def fold(input: Input[E]): Iteratee[E, A] = state match {
-    case Cont(folder) ⇒
-    folder(input)
-
-    case _ ⇒
-    this
+    case Cont(folder) ⇒ folder(input)
+    case _ ⇒ this
   }
 
   /** Push an EOF and try to get the result. */
   def run: Try[A] = fold(EOF).state match {
-    case Cont(_) ⇒
-    Failure(new IterateeException("State should be a Done after EOF."))
-
-    case Done(result) ⇒
-    Success(result)
-
-    case Error(error) ⇒
-    Failure(error)
+    case Cont(_) ⇒ Failure(new IterateeException("State should be a Done after EOF."))
+    case Done(result) ⇒ Success(result)
+    case Error(error) ⇒ Failure(error)
   }
 
   /** As soon as this iteratee finishes inputs are given to the new iteratee
     * defined by f eventually producing a B.
     */
   def flatMap[B](f: (A) ⇒ Iteratee[E, B]): Iteratee[E, B] = state match {
-    case Cont(folder) ⇒
-    new Iteratee[E, B] {
-      val state = Cont[E, B]((input: Input[E]) ⇒ folder(input).flatMap(f))
-    }
-
-    case Done(result) ⇒
-    f(result)
-
-    case Error(error) ⇒
-    new Iteratee[E, B] {
-      val state = Error[E, B](error)
-    }
+    case Cont(folder) ⇒ Iteratee.cont { input ⇒ folder(input).flatMap(f) }
+    case Done(result) ⇒ f(result)
+    case Error(error) ⇒ Iteratee.error(error)
   }
 
   /** Map the result using f. */
-  def map[B](f: (A) ⇒ B): Iteratee[E, B] = flatMap { result ⇒
-    new Iteratee[E, B] {
-      val state = Done[E, B](f(result))
-    }
-  }
+  def map[B](f: (A) ⇒ B): Iteratee[E, B] = flatMap[B] { result ⇒ Iteratee.done(f(result)) }
 }
 
 object Iteratee {
@@ -100,29 +79,20 @@ object Iteratee {
     * The resulting iteratee ignores empty inputs and results in A only after an EOF. In
     * combination with the map-method this iteratee is sufficient for most purposes.
     */
-  def fold[E, A](initial: A)(folder: (A, E) ⇒ Try[A]) = {
-    def getIteratee(intermediate: A): Iteratee[E, A] = new Iteratee[E, A] {
-      val currentResult = intermediate
-
-      val state = Cont((input: Input[E]) ⇒ input match {
-        case Element(element) ⇒ folder(currentResult, element) match {
-          case Success(folderResult) ⇒
-          getIteratee(folderResult)
-
-          case Failure(f) ⇒
-          new Iteratee[E, A] { val state = Error[E, A](f) }
-        }
-        case Empty ⇒ this
-        case EOF ⇒ new Iteratee[E, A] { val state = Done[E, A](currentResult) }
-      })
+  def fold[E, A](initial: A)(folder: (A, E) ⇒ Try[A]): Iteratee[E, A] = Iteratee.cont {
+    case Element(element) ⇒ folder(initial, element) match {
+      case Success(s) ⇒ Iteratee.fold(s)(folder)
+      case Failure(f) ⇒ Iteratee.error(f)
     }
-
-    getIteratee(initial)
+    case Empty ⇒ Iteratee.fold(initial)(folder)
+    case EOF ⇒ Iteratee.done(initial)
   }
+
+  /** Returns an Iteratee in the Cont state. */
+  def cont[E, A](folder: (Input[E]) ⇒ Iteratee[E, A]) = new Iteratee[E, A] { val state = Cont[E, A](folder) }
 
   /** Returns an iteratee that is already in the Done state with the given result. */
   def done[E, A](result: A) = new Iteratee[E, A] { val state = Done[E, A](result) }
-
 
   /** Returns an iteratee that is in the Error state. */
   def error[E, A](error: Throwable) = new Iteratee[E, A] { val state = Error[E, A](error) }
