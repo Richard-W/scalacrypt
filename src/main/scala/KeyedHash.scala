@@ -31,31 +31,17 @@ trait KeyedHash[KeyType <: Key] {
   /** Takes an iterator of data and returns an iterator containing a
     * tuple of both the data chunk and an option finally containing the hash. */
   def apply(data: Iterator[Seq[Byte]], key: KeyType): Try[Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])]] = {
-    apply(key) match {
-      case Success(initialIteratee) ⇒
-      Success(new Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])] {
+    apply(key) map { initialIteratee ⇒
+      new Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])] {
         var lastIteratee = initialIteratee
 
         def hasNext = data.hasNext
         def next = {
           val chunk = data.next
           lastIteratee = lastIteratee.fold(Element(chunk))
-          val option: Option[Try[Seq[Byte]]] = if(!hasNext) {
-            lastIteratee = lastIteratee.fold(EOF)
-            lastIteratee.run match {
-              case Success(hash) ⇒
-              Some(Success(hash))
-
-              case Failure(f) ⇒
-              Some(Failure(f))
-            }
-          } else None
-          (chunk, option)
+          (chunk, if(!hasNext) Some(lastIteratee.fold(EOF).run) else None)
         }
-      })
-
-      case Failure(f) ⇒
-      Failure(f)
+      }
     }
   }
 
