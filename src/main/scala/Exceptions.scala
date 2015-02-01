@@ -38,3 +38,6 @@ class KeyException(message: String) extends Exception("Key creation: " + message
 
 /** Occurs when an iteratee behaves erratically. */
 class IterateeException(message: String) extends Exception("Iteratee: " + message)
+
+/** Occurs when a keyed hash fails. */
+class KeyedHashException(message: String) extends Exception("KeyedHash: " + message)

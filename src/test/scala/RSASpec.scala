@@ -154,4 +154,12 @@ class RSASpec extends FlatSpec with Matchers {
     encryptor.encrypt(m).get should be (c)
     decryptor.decrypt(c).get should be (m)
   }
+
+  "RSASSA_PSS" should "be able to verify a created signature." in {
+    val signer = khash.RSASSA_PSS(hash.SHA256, 32)
+    val message = (1 to 16) map { _.toByte }
+    val signature = signer(message, testKey).get
+
+    signer.verify(signature, testKey.publicKey).get
+  }
 }
