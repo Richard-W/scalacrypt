@@ -25,7 +25,7 @@ import iteratees._
   */
 class JavaMac(algorithm: String) extends KeyedHash[Key] {
 
-  def apply(key: Key): Iteratee[Seq[Byte],Seq[Byte]] = {
+  def apply(key: Key): Try[Iteratee[Seq[Byte],Seq[Byte]]] = {
     val k: SecretKeySpec = if(key.length != 0) {
       new SecretKeySpec(key.bytes.toArray, algorithm)
     } else {
@@ -34,16 +34,16 @@ class JavaMac(algorithm: String) extends KeyedHash[Key] {
     val mac = javax.crypto.Mac.getInstance(algorithm)
 
     mac.init(k)
-    Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
+    Success(Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
       val newMac = mac.clone.asInstanceOf[javax.crypto.Mac]
       newMac.update(data.toArray)
       newMac
     } map {
       mac ⇒ mac.doFinal
-    }
+    })
   }
 
-  def verify(hash: Seq[Byte], key: Key): Iteratee[Seq[Byte], Boolean] = apply(key) map { _ == hash }
+  def verify(hash: Seq[Byte], key: Key): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
 
   lazy val length: Int = javax.crypto.Mac.getInstance(algorithm).getMacLength
 }

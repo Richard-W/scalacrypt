@@ -20,33 +20,60 @@ import iteratees._
 /** Base class for Keyed hash (Message Authentication Code) implementations. */
 trait KeyedHash[KeyType <: Key] {
 
-  /** Calculates the MAC. */
-  def apply(data: Seq[Byte], key: KeyType): Seq[Byte] = {
-    apply(key).fold(Element(data)).run.get
-  }
-
   /** Returns an iteratee calculating the MAC. */
-  def apply(key: KeyType): Iteratee[Seq[Byte],Seq[Byte]]
+  def apply(key: KeyType): Try[Iteratee[Seq[Byte],Seq[Byte]]]
 
-  /** Takes an iterator of data and returns an iterator containing a
-    * tuple of both the data chunk and an updated mac iteratee. */
-  def apply(data: Iterator[Seq[Byte]], key: KeyType): Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] = {
-    new Iterator[(Seq[Byte], Iteratee[Seq[Byte], Seq[Byte]])] {
-      var lastIteratee = apply(key)
+  /** Calculates the MAC. */
+  def apply(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = {
+    apply(key) match {
+      case Success(iteratee) ⇒
+      iteratee.fold(Element(data)).run
 
-      def hasNext = data.hasNext
-      def next = {
-        val chunk = data.next
-        lastIteratee = lastIteratee.fold(Element(chunk))
-        if(!hasNext) lastIteratee = lastIteratee.fold(EOF)
-        (chunk, lastIteratee)
-      }
+      case Failure(f) ⇒
+      Failure(f)
     }
   }
 
-  def verify(hash: Seq[Byte], key: KeyType): Iteratee[Seq[Byte], Boolean]
+  /** Takes an iterator of data and returns an iterator containing a
+    * tuple of both the data chunk and an option finally containing the hash. */
+  def apply(data: Iterator[Seq[Byte]], key: KeyType): Try[Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])]] = {
+    apply(key) match {
+      case Success(initialIteratee) ⇒
+      Success(new Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])] {
+        var lastIteratee = initialIteratee
 
-  def verify(data: Seq[Byte], hash: Seq[Byte], key: KeyType): Boolean = verify(hash, key).fold(Element(data)).run.get
+        def hasNext = data.hasNext
+        def next = {
+          val chunk = data.next
+          lastIteratee = lastIteratee.fold(Element(chunk))
+          val option: Option[Try[Seq[Byte]]] = if(!hasNext) {
+            lastIteratee = lastIteratee.fold(EOF)
+            lastIteratee.run match {
+              case Success(hash) ⇒
+              Some(Success(hash))
+
+              case Failure(f) ⇒
+              Some(Failure(f))
+            }
+          } else None
+          (chunk, option)
+        }
+      })
+
+      case Failure(f) ⇒
+      Failure(f)
+    }
+  }
+
+  def verify(hash: Seq[Byte], key: KeyType): Try[Iteratee[Seq[Byte], Boolean]]
+
+  def verify(data: Seq[Byte], hash: Seq[Byte], key: KeyType): Try[Boolean] = verify(hash, key) match {
+    case Success(iteratee) ⇒
+    iteratee.fold(Element(data)).run
+
+    case Failure(f) ⇒
+    Failure(f)
+  }
 
   /** The length in bytes of the MAC. */
   def length: Int

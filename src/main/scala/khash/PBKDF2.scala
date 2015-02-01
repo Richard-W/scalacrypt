@@ -26,44 +26,58 @@ object PBKDF2 {
 
     def length = len
 
-    def apply(key: Key): Iteratee[Seq[Byte], Seq[Byte]] = Iteratee.fold(algorithm(key)) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
-      iteratee.fold(Element(chunk))
-    } map { keyedHash ⇒
-      val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
+    def apply(key: Key): Try[Iteratee[Seq[Byte], Seq[Byte]]] = {
+      algorithm(key) match {
+        case Success(initialIteratee) ⇒
+        Success(Iteratee.fold(initialIteratee) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
+          iteratee.fold(Element(chunk))
+        } map { keyedHash ⇒
+          val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
 
-      /* Returns the tuple (block, Uc). */
-      def u(iteration: Int, u1: Seq[Byte]): (Seq[Byte], Seq[Byte]) = {
-        var block: Seq[Byte] = u1
-        var u: Seq[Byte] = u1
+          /* Returns the tuple (block, Uc). */
+          def u(iteration: Int, u1: Seq[Byte]): (Seq[Byte], Seq[Byte]) = {
+            var block: Seq[Byte] = u1
+            var u: Seq[Byte] = u1
 
-        for(iteration <- (2 to iterations)) {
-          u = algorithm(u, key)
-          block = block xor u
-        }
+            for(iteration <- (2 to iterations)) {
+              u = algorithm(u, key).get
+              block = block xor u
+            }
 
-        (block, u)
+            (block, u)
 
-        // This recursive approach is much nicer but
-        // it creates stack overflows.
-        /*
-        if(iteration == 1) (u1, u1)
-        else {
-          val (block, prevU) = u(iteration - 1, u1)
-          val currentU = algorithm(prevU, key)
-          (xor(block, currentU), currentU)
-        }
-        */
+            // This recursive approach is much nicer but
+            // it creates stack overflows.
+            /*
+            if(iteration == 1) (u1, u1)
+            else {
+              val (block, prevU) = u(iteration - 1, u1)
+              val currentU = algorithm(prevU, key)
+              (xor(block, currentU), currentU)
+            }
+            */
+          }
+
+          /* Calculates a block */
+          def f(blockNum: Int): Seq[Byte] = {
+            val u1: Seq[Byte] = keyedHash.fold(Element(java.nio.ByteBuffer.allocate(4).putInt(blockNum).array)).run.get
+            u(iterations, u1)._1
+          }
+
+          (for(blockNum <- 1 to numBlocks) yield f(blockNum)).flatten.slice(0, len)
+        })
+
+        case Failure(f) ⇒
+        Failure(f)
       }
-
-      /* Calculates a block */
-      def f(blockNum: Int): Seq[Byte] = {
-        val u1: Seq[Byte] = keyedHash.fold(Element(java.nio.ByteBuffer.allocate(4).putInt(blockNum).array)).run.get
-        u(iterations, u1)._1
-      }
-
-      (for(blockNum <- 1 to numBlocks) yield f(blockNum)).flatten.slice(0, len)
     }
 
-    def verify(hash: Seq[Byte], key: Key): Iteratee[Seq[Byte], Boolean] = apply(key) map { _ == hash }
+    def verify(hash: Seq[Byte], key: Key): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) match {
+      case Success(iteratee) ⇒
+      Success(iteratee map { _ == hash })
+
+      case Failure(f) ⇒
+      Failure(f)
+    }
   }
 }
