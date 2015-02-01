@@ -20,7 +20,7 @@ import iteratees._
 
 object RSASSA_PSS {
 
-  def apply(hashFunction: Hash, saltLength: Int, saltGenerator: (Int) ⇒ Seq[Byte] = Random.nextBytes _) = new KeyedHash[RSAKey] {
+  def apply(hashFunction: Hash = hash.SHA256, saltLength: Int = 32, saltGenerator: (Int) ⇒ Seq[Byte] = Random.nextBytes _) = new KeyedHash[RSAKey] {
 
     private def mgf1(seed: Seq[Byte], length: Int) = {
       val numBlocks = (length.toFloat / hashFunction.length.toFloat).ceil.toInt
@@ -31,6 +31,7 @@ object RSASSA_PSS {
       if(!key.isPrivateKey) return Failure(new KeyedHashException("No private key."))
       Success(hashFunction.apply flatMap { mHash ⇒
         val emLen = key.length
+        val emBits = key.n.bitLength - 1
         val hLen = hashFunction.length
         val sLen = saltLength
         val dbLen = emLen - hLen - 1
@@ -43,7 +44,16 @@ object RSASSA_PSS {
         val ps = Seq.fill[Byte](psLen){0.toByte}
         val db = (ps :+ 1.toByte) ++ salt
         val dbMask = mgf1(h, dbLen)
-        val maskedDB = 0.toByte +: (db xor dbMask).slice(1, dbLen)
+
+        val wipeBits = 8 * emLen - emBits
+        val saveBits = 8 - wipeBits
+        var wipeMask = 0.toByte
+        for(i <- (0 until saveBits)) {
+          wipeMask = (wipeMask | (1.toByte << i).toByte).toByte
+        }
+
+        val maskedDB = (db xor dbMask).toArray
+        maskedDB(0) = (maskedDB(0) & wipeMask).toByte
 
         val em = (maskedDB ++ h) :+ 0xbc.toByte
 
@@ -65,6 +75,7 @@ object RSASSA_PSS {
       }
 
       val emLen = key.length
+      val emBits = key.n.bitLength - 1
       val hLen = hashFunction.length
       val sLen = saltLength
       val dbLen = emLen - hLen - 1
@@ -75,12 +86,21 @@ object RSASSA_PSS {
       val maskedDB = em.slice(0, dbLen)
       val h = em.slice(dbLen, dbLen + hLen)
       val dbMask = mgf1(h, dbLen)
-      val db = 0.toByte +: (dbMask xor maskedDB).slice(1, dbLen)
+
+      val wipeBits = 8 * emLen - emBits
+      val saveBits = 8 - wipeBits
+      var wipeMask = 0.toByte
+      for(i <- (0 until saveBits)) {
+        wipeMask = (wipeMask | (1.toByte << i).toByte).toByte
+      }
+
+      val db = (dbMask xor maskedDB).toArray
+      db(0) = (db(0) & wipeMask).toByte
 
       val ps = Seq.fill[Byte](psLen){0.toByte}
-      if(db.slice(0, psLen) != ps || db(psLen) != 1.toByte) return Failure(standardError)
+      if(db.slice(0, psLen).toSeq != ps || db(psLen) != 1.toByte) return Failure(standardError)
 
-      val salt = db.slice(psLen + 1, dbLen)
+      val salt = db.slice(psLen + 1, dbLen).toSeq
       Success(hashFunction.apply map { mHash ⇒
         val mTick = Seq.fill[Byte](8){0.toByte} ++ mHash ++ salt
         h == hashFunction(mTick)
