@@ -317,9 +317,10 @@ object CanGenerateKey {
 
   implicit val rsaKey = new CanGenerateKey[RSAKey] {
     def generate = new RSAKey {
-      // FIXME: Use secure PRNG.
-      val p = BigInt.probablePrime(2048, scala.util.Random)
-      val q = BigInt.probablePrime(2048, scala.util.Random)
+      val random = new scala.util.Random(new java.security.SecureRandom)
+
+      val p = BigInt.probablePrime(2048, random)
+      val q = BigInt.probablePrime(2048, random)
 
       // Public Key
       val n = p * q
