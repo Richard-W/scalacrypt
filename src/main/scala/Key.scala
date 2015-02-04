@@ -76,6 +76,12 @@ sealed abstract class SymmetricKey192 extends Key
 /** A 256 bit symmetric key. */
 sealed abstract class SymmetricKey256 extends Key
 
+/** A 512 bit symmetric key. */
+sealed abstract class SymmetricKey512 extends Key
+
+/** A 1024 bit symmetric key. */
+sealed abstract class SymmetricKey1024 extends Key
+
 /** A symmetric key of arbitrary length. */
 sealed abstract class SymmetricKeyArbitrary extends Key
 
@@ -206,6 +212,44 @@ object MightBuildKey {
     }
   }
 
+  /** Builder for 512 bit symmetric keys. */
+  implicit val symmetricKey512 = new MightBuildKey[Seq[Byte], SymmetricKey512] {
+
+    def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey512] = {
+      if(keyBytes.length == 512 / 8) {
+        Success(new SymmetricKey512Impl(keyBytes))
+      } else {
+        Failure(new KeyException("Illegal key size. Key should be exactly 512 bit/64 byte long."))
+      }
+    }
+
+    private class SymmetricKey512Impl(keyBytes: Seq[Byte]) extends SymmetricKey512 {
+
+      def length: Int = 64
+
+      def bytes: Seq[Byte] = keyBytes
+    }
+  }
+
+  /** Builder for 1024 bit symmetric keys. */
+  implicit val symmetricKey1024 = new MightBuildKey[Seq[Byte], SymmetricKey1024] {
+
+    def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey1024] = {
+      if(keyBytes.length == 1024 / 8) {
+        Success(new SymmetricKey1024Impl(keyBytes))
+      } else {
+        Failure(new KeyException("Illegal key size. Key should be exactly 1024 bit/128 byte long."))
+      }
+    }
+
+    private class SymmetricKey1024Impl(keyBytes: Seq[Byte]) extends SymmetricKey1024 {
+
+      def length: Int = 128
+
+      def bytes: Seq[Byte] = keyBytes
+    }
+  }
+
   /** Builder for symmetric keys of arbitrary length. */
   implicit val symmetricKeyArbitrary = new MightBuildKey[Seq[Byte], SymmetricKeyArbitrary] {
 
@@ -309,6 +353,14 @@ object CanGenerateKey {
 
   implicit val symmetricKey256 = new CanGenerateKey[SymmetricKey256] {
     def generate = Random.nextBytes(32).toKey[SymmetricKey256].get
+  }
+
+  implicit val symmetricKey512 = new CanGenerateKey[SymmetricKey512] {
+    def generate = Random.nextBytes(64).toKey[SymmetricKey512].get
+  }
+
+  implicit val symmetricKey1024 = new CanGenerateKey[SymmetricKey1024] {
+    def generate = Random.nextBytes(128).toKey[SymmetricKey1024].get
   }
 
   implicit val symmetricKeyArbitrary = new CanGenerateKey[SymmetricKeyArbitrary] {
