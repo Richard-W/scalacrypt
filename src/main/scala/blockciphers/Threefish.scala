@@ -40,16 +40,16 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
   /** The number of words this cipher processes in one block. */
   lazy val numWords = blockSize / 8
 
-  private def bytes2word(bytes: Seq[Byte]): Long =
+  def bytes2word(bytes: Seq[Byte]): Long =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).put(bytes.toArray).getLong(0)
 
-  private def word2bytes(word: Long): Seq[Byte] =
+  def word2bytes(word: Long): Seq[Byte] =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(word).array
 
-  private def block2words(block: Seq[Byte]): Seq[Long] =
+  def block2words(block: Seq[Byte]): Seq[Long] =
     for(byteWord <- block.grouped(8).toSeq) yield bytes2word(byteWord)
 
-  private def words2block(words: Seq[Long]): Seq[Byte] =
+  def words2block(words: Seq[Long]): Seq[Byte] =
     (for(word <- words) yield word2bytes(word)).flatten
 
   lazy val tweakWords: Seq[Long] = {
