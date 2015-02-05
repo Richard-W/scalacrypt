@@ -22,6 +22,8 @@ import java.nio.{ ByteBuffer, ByteOrder }
 /** Threefish block cipher. */
 trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
 
+  type Word = Long
+
   /** The tweak of this block cipher. */
   def tweak: Seq[Byte]
 
@@ -29,10 +31,10 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
   def rotations: Seq[Seq[Int]]
 
   /** Permutation used by the cipher. */
-  def permutate(block: Seq[Long]): Seq[Long]
+  def permutate(block: Seq[Word]): Seq[Word]
 
   /** Reversal of permutate. */
-  def reversePermutate(block: Seq[Long]): Seq[Long]
+  def reversePermutate(block: Seq[Word]): Seq[Word]
 
   /** Number of rounds applied. */
   def numRounds: Int
@@ -40,26 +42,26 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
   /** The number of words this cipher processes in one block. */
   lazy val numWords = blockSize / 8
 
-  def bytes2word(bytes: Seq[Byte]): Long =
+  def bytes2word(bytes: Seq[Byte]): Word =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).put(bytes.toArray).getLong(0)
 
-  def word2bytes(word: Long): Seq[Byte] =
+  def word2bytes(word: Word): Seq[Byte] =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(word).array
 
-  def block2words(block: Seq[Byte]): Seq[Long] =
+  def block2words(block: Seq[Byte]): Seq[Word] =
     for(byteWord <- block.grouped(8).toSeq) yield bytes2word(byteWord)
 
-  def words2block(words: Seq[Long]): Seq[Byte] =
+  def words2block(words: Seq[Word]): Seq[Byte] =
     (for(word <- words) yield word2bytes(word)).flatten
 
-  lazy val tweakWords: Seq[Long] = {
+  lazy val tweakWords: Seq[Word] = {
     val words = block2words(tweak)
     words :+ (words(0) ^ words(1))
   }
 
-  lazy val keyWords: Seq[Long] = {
+  lazy val keyWords: Seq[Word] = {
     @tailrec
-    def xorSeq(result: Long, list: List[Long]): Long =
+    def xorSeq(result: Word, list: List[Word]): Word =
       if(list != Nil)
         xorSeq(result ^ list.head, list.tail)
       else
@@ -69,7 +71,7 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     words :+ xorSeq(0x1BD11BDAA9FC1A22L, words.toList)
   }
 
-  lazy val roundKeys: Seq[Seq[Long]] = {
+  lazy val roundKeys: Seq[Seq[Word]] = {
     def genRoundKey(s: Int) = {
       for(i <- (0 until numWords)) yield {
         if(i == numWords - 1)
@@ -86,20 +88,20 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     for(s <- (0 to (numRounds / 4))) yield genRoundKey(s)
   }
 
-  def mix(a: Long, b: Long, r: Int): Seq[Long] = {
+  def mix(a: Word, b: Word, r: Int): Seq[Word] = {
     val x = a + b
     val y = ((b << r) | (b >>> (64 - r))) ^ x
     Seq(x, y)
   }
 
-  def unmix(x: Long, y: Long, r: Int): Seq[Long] = {
+  def unmix(x: Word, y: Word, r: Int): Seq[Word] = {
     val z = y ^ x
     val b = ((z >>> r) | (z << (64 - r)))
     val a = x - b
     Seq(a, b)
   }
 
-  def applyRound(words: Seq[Long], rotations: Seq[Int], keyOption: Option[Seq[Long]] = None) = {
+  def applyRound(words: Seq[Word], rotations: Seq[Int], keyOption: Option[Seq[Word]] = None) = {
     val keyed = keyOption match {
       case Some(key) ⇒ for(i <- (0 until numWords)) yield words(i) + key(i)
       case _ ⇒ words
@@ -108,7 +110,7 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     permutate(mixed)
   }
 
-  def unapplyRound(words: Seq[Long], rotations: Seq[Int], keyOption: Option[Seq[Long]] = None) = {
+  def unapplyRound(words: Seq[Word], rotations: Seq[Int], keyOption: Option[Seq[Word]] = None) = {
     val ordered = reversePermutate(words)
     val unmixed = (for(i <- (0 until numWords by 2)) yield unmix(ordered(i), ordered(i + 1), rotations(i / 2))).flatten
     keyOption match {
@@ -122,11 +124,11 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
       return Failure(new IllegalBlockSizeException("Expected size 32, got " + block.length))
 
     @tailrec
-    def applyCipher(words: Seq[Long], round: Int): Seq[Long] = {
+    def applyCipher(words: Seq[Word], round: Int): Seq[Word] = {
       if(round == numRounds)
         for(i <- (0 until numWords)) yield words(i) + roundKeys.last(i)
       else {
-        val keyOption: Option[Seq[Long]] =
+        val keyOption: Option[Seq[Word]] =
           if(round % 4 == 0)
             Some(roundKeys(round / 4))
           else
@@ -143,13 +145,13 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
       return Failure(new IllegalBlockSizeException("Expected size 32, got " + block.length))
 
     @tailrec
-    def unapplyCipher(words: Seq[Long], round: Int): Seq[Long] = {
+    def unapplyCipher(words: Seq[Word], round: Int): Seq[Word] = {
       if(round == numRounds)
         unapplyCipher(for(i <- (0 until numWords)) yield words(i) - roundKeys.last(i), round - 1)
       else if(round < 0)
         words
       else {
-        val keyOption: Option[Seq[Long]] =
+        val keyOption: Option[Seq[Word]] =
           if(round % 4 == 0)
             Some(roundKeys(round / 4))
           else
@@ -179,10 +181,10 @@ trait Threefish256 extends Threefish[SymmetricKey256] {
     Seq(32, 32)
   )
 
-  def permutate(b: Seq[Long]): Seq[Long] =
+  def permutate(b: Seq[Word]): Seq[Word] =
     Seq(b(0), b(3), b(2), b(1))
 
-  def reversePermutate(b: Seq[Long]): Seq[Long] =
+  def reversePermutate(b: Seq[Word]): Seq[Word] =
     Seq(b(0), b(3), b(2), b(1))
 }
 
@@ -203,10 +205,10 @@ trait Threefish512 extends Threefish[SymmetricKey512] {
     Seq( 8, 35, 56, 22)
   )
 
-  def permutate(b: Seq[Long]): Seq[Long] =
+  def permutate(b: Seq[Word]): Seq[Word] =
     Seq(b(2), b(1), b(4), b(7), b(6), b(5), b(0), b(3))
 
-  def reversePermutate(b: Seq[Long]): Seq[Long] =
+  def reversePermutate(b: Seq[Word]): Seq[Word] =
     Seq(b(6), b(1), b(0), b(7), b(2), b(5), b(4), b(3))
 }
 
@@ -227,9 +229,9 @@ trait Threefish1024 extends Threefish[SymmetricKey1024] {
     Seq( 9, 48, 35, 52, 23, 31, 37, 20)
   )
 
-  def permutate(b: Seq[Long]): Seq[Long] =
+  def permutate(b: Seq[Word]): Seq[Word] =
     Seq(b(0), b(9), b(2), b(13), b(6), b(11), b(4), b(15), b(10), b(7), b(12), b(3), b(14), b(5), b(8), b(1))
 
-  def reversePermutate(b: Seq[Long]): Seq[Long] =
+  def reversePermutate(b: Seq[Word]): Seq[Word] =
     Seq(b(0), b(15), b(2), b(11), b(6), b(13), b(4), b(9), b(14), b(1), b(8), b(5), b(10), b(3), b(12), b(7))
 }
