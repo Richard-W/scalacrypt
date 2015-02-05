@@ -101,8 +101,8 @@ class ThreefishSpec extends FlatSpec with Matchers {
       (Long.MaxValue, Long.MaxValue, 34)
     )
     for(test <- tests) {
-      val mix = tf256.mix(test._1, test._2, test._3)
-      val unmix = tf256.unmix(mix(0), mix(1), test._3)
+      val mix = Threefish.mix(test._1, test._2, test._3)
+      val unmix = Threefish.unmix(mix(0), mix(1), test._3)
       unmix(0) should be (test._1)
       unmix(1) should be (test._2)
     }
@@ -118,8 +118,8 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   "The Threefish conversion between bytes and words" should "be reversible." in {
-    tf256.block2words(tf256.words2block(tests256(1)._3)) should be (tests256(1)._3)
-    tf256.block2words(tf256.words2block(tests256(1)._4)) should be (tests256(1)._4)
+    Threefish.block2words(Threefish.words2block(tests256(1)._3)) should be (tests256(1)._3)
+    Threefish.block2words(Threefish.words2block(tests256(1)._4)) should be (tests256(1)._4)
   }
 
   "Threefish256" should "use the correct reverse permutation." in {
@@ -134,8 +134,8 @@ class ThreefishSpec extends FlatSpec with Matchers {
 
   it should "have its key and tweak correctly initialized." in {
     val tf = new Threefish256 {
-      val key = tf256.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = tf256.words2block(tests256(1)._2)
+      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
+      val tweak = Threefish.words2block(tests256(1)._2)
     }
 
     tf.keyWords.slice(0, tf.keyWords.length - 1) should be (tests256(1)._1)
@@ -144,8 +144,8 @@ class ThreefishSpec extends FlatSpec with Matchers {
 
   it should "use the correct round keys." in {
     val tf = new Threefish256 {
-      val key = tf256.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = tf256.words2block(tests256(1)._2)
+      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
+      val tweak = Threefish.words2block(tests256(1)._2)
     }
 
     val k = tf.keyWords
@@ -175,8 +175,8 @@ class ThreefishSpec extends FlatSpec with Matchers {
 
   it should "use the correct additional key and tweak word." in {
     val tf = new Threefish256 {
-      val key = tf256.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = tf256.words2block(tests256(1)._2)
+      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
+      val tweak = Threefish.words2block(tests256(1)._2)
     }
 
     tf.keyWords.last should be (2004413935125273122L)
@@ -186,11 +186,11 @@ class ThreefishSpec extends FlatSpec with Matchers {
   it should "conform to the testvectors." in {
     for(test <- tests256) {
       val tf = new Threefish256 {
-        val key = tf256.words2block(test._1).toKey[SymmetricKey256].get
-        val tweak = tf256.words2block(test._2)
+        val key = Threefish.words2block(test._1).toKey[SymmetricKey256].get
+        val tweak = Threefish.words2block(test._2)
       }
-      tf.encryptBlock(tf.words2block(test._3)).get should be (tf.words2block(test._4))
-      tf.decryptBlock(tf.words2block(test._4)).get should be (tf.words2block(test._3))
+      tf.encryptBlock(Threefish.words2block(test._3)).get should be (Threefish.words2block(test._4))
+      tf.decryptBlock(Threefish.words2block(test._4)).get should be (Threefish.words2block(test._3))
     }
   }
 
@@ -207,11 +207,11 @@ class ThreefishSpec extends FlatSpec with Matchers {
   it should "conform to the testvectors." in {
     for(test <- tests512) {
       val tf = new Threefish512 {
-        val key = tf512.words2block(test._1).toKey[SymmetricKey512].get
-        val tweak = tf512.words2block(test._2)
+        val key = Threefish.words2block(test._1).toKey[SymmetricKey512].get
+        val tweak = Threefish.words2block(test._2)
       }
-      tf.encryptBlock(tf.words2block(test._3)).get should be (tf.words2block(test._4))
-      tf.decryptBlock(tf.words2block(test._4)).get should be (tf.words2block(test._3))
+      tf.encryptBlock(Threefish.words2block(test._3)).get should be (Threefish.words2block(test._4))
+      tf.decryptBlock(Threefish.words2block(test._4)).get should be (Threefish.words2block(test._3))
     }
   }
 
@@ -228,11 +228,11 @@ class ThreefishSpec extends FlatSpec with Matchers {
   it should "conform to the testvectors." in {
     for(test <- tests1024) {
       val tf = new Threefish1024 {
-        val key = tf1024.words2block(test._1).toKey[SymmetricKey1024].get
-        val tweak = tf1024.words2block(test._2)
+        val key = Threefish.words2block(test._1).toKey[SymmetricKey1024].get
+        val tweak = Threefish.words2block(test._2)
       }
-      tf.encryptBlock(tf.words2block(test._3)).get should be (tf.words2block(test._4))
-      tf.decryptBlock(tf.words2block(test._4)).get should be (tf.words2block(test._3))
+      tf.encryptBlock(Threefish.words2block(test._3)).get should be (Threefish.words2block(test._4))
+      tf.decryptBlock(Threefish.words2block(test._4)).get should be (Threefish.words2block(test._3))
     }
   }
 }

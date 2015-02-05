@@ -19,8 +19,40 @@ import scala.util.{ Try, Success, Failure }
 import scala.annotation.tailrec
 import java.nio.{ ByteBuffer, ByteOrder }
 
+object Threefish {
+
+  type Word = Long
+
+  def bytes2word(bytes: Seq[Byte]): Word =
+    ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).put(bytes.toArray).getLong(0)
+
+  def word2bytes(word: Word): Seq[Byte] =
+    ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(word).array
+
+  def block2words(block: Seq[Byte]): Seq[Word] =
+    for(byteWord <- block.grouped(8).toSeq) yield bytes2word(byteWord)
+
+  def words2block(words: Seq[Word]): Seq[Byte] =
+    (for(word <- words) yield word2bytes(word)).flatten
+
+  def mix(a: Word, b: Word, r: Int): Seq[Word] = {
+    val x = a + b
+    val y = ((b << r) | (b >>> (64 - r))) ^ x
+    Seq(x, y)
+  }
+
+  def unmix(x: Word, y: Word, r: Int): Seq[Word] = {
+    val z = y ^ x
+    val b = ((z >>> r) | (z << (64 - r)))
+    val a = x - b
+    Seq(a, b)
+  }
+}
+
 /** Threefish block cipher. */
 trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
+
+  import Threefish._
 
   type Word = Long
 
@@ -41,18 +73,6 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
 
   /** The number of words this cipher processes in one block. */
   lazy val numWords = blockSize / 8
-
-  def bytes2word(bytes: Seq[Byte]): Word =
-    ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).put(bytes.toArray).getLong(0)
-
-  def word2bytes(word: Word): Seq[Byte] =
-    ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(word).array
-
-  def block2words(block: Seq[Byte]): Seq[Word] =
-    for(byteWord <- block.grouped(8).toSeq) yield bytes2word(byteWord)
-
-  def words2block(words: Seq[Word]): Seq[Byte] =
-    (for(word <- words) yield word2bytes(word)).flatten
 
   lazy val tweakWords: Seq[Word] = {
     val words = block2words(tweak)
@@ -86,19 +106,6 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     }
 
     for(s <- (0 to (numRounds / 4))) yield genRoundKey(s)
-  }
-
-  def mix(a: Word, b: Word, r: Int): Seq[Word] = {
-    val x = a + b
-    val y = ((b << r) | (b >>> (64 - r))) ^ x
-    Seq(x, y)
-  }
-
-  def unmix(x: Word, y: Word, r: Int): Seq[Word] = {
-    val z = y ^ x
-    val b = ((z >>> r) | (z << (64 - r)))
-    val a = x - b
-    Seq(a, b)
   }
 
   def applyRound(words: Seq[Word], rotations: Seq[Int], keyOption: Option[Seq[Word]] = None) = {
