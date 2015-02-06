@@ -184,7 +184,12 @@ class ThreefishSpec extends FlatSpec with Matchers {
       val tweak = Threefish.words2block(tests256(1)._2)
     }
 
+    tf.keyWords.length should be (5)
+    Threefish.words2block(tf.keyWords) should be (Seq(16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 34, 26, 252, 169, 218, 27, 209, 27) map { _.toByte })
     tf.keyWords.slice(0, tf.keyWords.length - 1) should be (tests256(1)._1)
+
+    tf.tweakWords.length should be (3)
+    Threefish.words2block(tf.tweakWords) should be (Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 8, 8, 8, 8, 8, 8, 8, 8) map { _.toByte })
     tf.tweakWords.slice(0, 2) should be (tests256(1)._2)
   }
 
@@ -217,6 +222,27 @@ class ThreefishSpec extends FlatSpec with Matchers {
     rk(16) should be (Seq(k(1), k(2) + t(1), k(3) + t(2), k(4) + 16))
     rk(17) should be (Seq(k(2), k(3) + t(2), k(4) + t(0), k(0) + 17))
     rk(18) should be (Seq(k(3), k(4) + t(0), k(0) + t(1), k(1) + 18))
+
+
+    Threefish.words2block(rk( 0)) should be (Seq(16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 40, 41, 42, 43, 44, 45, 46, 47) map { _.toByte })
+    Threefish.words2block(rk( 1)) should be (Seq(24, 25, 26, 27, 28, 29, 30, 31, 40, 42, 44, 46, 48, 50, 52, 54, 48, 49, 50, 51, 52, 53, 54, 55, 35, 26, 252, 169, 218, 27, 209, 27) map { _.toByte })
+    Threefish.words2block(rk( 2)) should be (Seq(32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 34, 27, 254, 172, 222, 32, 215, 34, 18, 17, 18, 19, 20, 21, 22, 23) map { _.toByte })
+    Threefish.words2block(rk( 3)) should be (Seq(40, 41, 42, 43, 44, 45, 46, 47, 34, 27, 254, 172, 222, 32, 215, 34, 24, 26, 28, 30, 32, 34, 36, 38, 27, 25, 26, 27, 28, 29, 30, 31) map { _.toByte })
+    Threefish.words2block(rk( 4)) should be (Seq(34, 26, 252, 169, 218, 27, 209, 27, 24, 26, 28, 30, 32, 34, 36, 38, 32, 33, 34, 35, 36, 37, 38, 39, 36, 33, 34, 35, 36, 37, 38, 39) map { _.toByte })
+    Threefish.words2block(rk( 5)) should be (Seq(16, 17, 18, 19, 20, 21, 22, 23, 32, 33, 34, 35, 36, 37, 38, 39, 32, 34, 36, 38, 40, 42, 44, 46, 45, 41, 42, 43, 44, 45, 46, 47) map { _.toByte })
+    Threefish.words2block(rk( 6)) should be (Seq(24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 40, 26, 252, 169, 218, 27, 209, 27) map { _.toByte })
+    Threefish.words2block(rk( 7)) should be (Seq(32, 33, 34, 35, 36, 37, 38, 39, 48, 50, 52, 54, 56, 58, 60, 62, 42, 34, 4, 178, 226, 35, 217, 35, 23, 17, 18, 19, 20, 21, 22, 23) map { _.toByte })
+    Threefish.words2block(rk( 8)) should be (Seq(40, 41, 42, 43, 44, 45, 46, 47, 42, 34, 4, 178, 226, 35, 217, 35, 16, 18, 20, 22, 24, 26, 28, 30, 32, 25, 26, 27, 28, 29, 30, 31) map { _.toByte })
+    Threefish.words2block(rk( 9)) should be (Seq(34, 26, 252, 169, 218, 27, 209, 27, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 41, 33, 34, 35, 36, 37, 38, 39) map { _.toByte })
+    Threefish.words2block(rk(10)) should be (Seq(16, 17, 18, 19, 20, 21, 22, 23, 32, 34, 36, 38, 40, 42, 44, 46, 40, 41, 42, 43, 44, 45, 46, 47, 50, 41, 42, 43, 44, 45, 46, 47) map { _.toByte })
+    Threefish.words2block(rk(11)) should be (Seq(24, 25, 26, 27, 28, 29, 30, 31, 40, 41, 42, 43, 44, 45, 46, 47, 40, 42, 44, 46, 48, 50, 52, 54, 45, 26, 252, 169, 218, 27, 209, 27) map { _.toByte })
+    Threefish.words2block(rk(12)) should be (Seq(32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 44, 46, 48, 50, 52, 54, 42, 35, 6, 181, 230, 40, 223, 42, 28, 17, 18, 19, 20, 21, 22, 23) map { _.toByte })
+    Threefish.words2block(rk(13)) should be (Seq(40, 41, 42, 43, 44, 45, 46, 47, 42, 35, 6, 181, 230, 40, 223, 42, 24, 25, 26, 27, 28, 29, 30, 31, 37, 25, 26, 27, 28, 29, 30, 31) map { _.toByte })
+    Threefish.words2block(rk(14)) should be (Seq(34, 26, 252, 169, 218, 27, 209, 27, 24, 25, 26, 27, 28, 29, 30, 31, 24, 26, 28, 30, 32, 34, 36, 38, 46, 33, 34, 35, 36, 37, 38, 39) map { _.toByte })
+    Threefish.words2block(rk(15)) should be (Seq(16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 55, 41, 42, 43, 44, 45, 46, 47) map { _.toByte })
+    Threefish.words2block(rk(16)) should be (Seq(24, 25, 26, 27, 28, 29, 30, 31, 40, 42, 44, 46, 48, 50, 52, 54, 48, 49, 50, 51, 52, 53, 54, 55, 50, 26, 252, 169, 218, 27, 209, 27) map { _.toByte })
+    Threefish.words2block(rk(17)) should be (Seq(32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55, 34, 27, 254, 172, 222, 32, 215, 34, 33, 17, 18, 19, 20, 21, 22, 23) map { _.toByte })
+    Threefish.words2block(rk(18)) should be (Seq(40, 41, 42, 43, 44, 45, 46, 47, 34, 27, 254, 172, 222, 32, 215, 34, 24, 26, 28, 30, 32, 34, 36, 38, 42, 25, 26, 27, 28, 29, 30, 31) map { _.toByte })
   }
 
   it should "use the correct additional key and tweak word." in {
