@@ -108,6 +108,52 @@ class ThreefishSpec extends FlatSpec with Matchers {
     }
   }
 
+  it should "be consistent with the testvectors." in {
+    val tests = Seq[(Seq[Byte], Seq[Byte], Int, Seq[Byte], Seq[Byte])](
+      (
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        0,
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }
+      ), (
+        Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        0,
+        Seq(2, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(3, 0, 0, 0, 0, 0, 0, 0) map { _.toByte } 
+      ), (
+        Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        1,
+        Seq(2, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }
+      ), (
+        Seq(232, 3, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(208, 7, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        5,
+        Seq(184, 11, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(184, 241, 0, 0, 0, 0, 0, 0) map { _.toByte }
+      ), (
+        Seq(232, 3, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(208, 7, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        62,
+        Seq(184, 11, 0, 0, 0, 0, 0, 0) map { _.toByte },
+        Seq(76, 10, 0, 0, 0, 0, 0, 0) map { _.toByte }
+      )
+    )
+
+    for(test <- tests) {
+      val a = Threefish.bytes2word(test._1)
+      val b = Threefish.bytes2word(test._2)
+      val r = test._3
+      val x = Threefish.bytes2word(test._4)
+      val y = Threefish.bytes2word(test._5)
+
+      Threefish.mix(a, b, r) should be (Seq(x, y))
+    }
+  }
+
   "The Threefish round application" should "be reversible." in {
     val test = Seq[Long](1, 2, 3, 4)
     val rots = Seq(52, 32, 67, 12)
