@@ -16,6 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import org.scalatest._
 import scala.util.{ Try, Success, Failure }
+import blockciphers._
 
 class RSASpec extends FlatSpec with Matchers {
   val testKey =
@@ -126,8 +127,10 @@ class RSASpec extends FlatSpec with Matchers {
 
   it should "not fail on certain data inputs." in {
     val test = (Seq.fill[Byte](512 - 64) { 0.toByte }) ++ "AmzVJLEIo/6xoaqpZ6G5SutGJ8Rxh5Mk9mPhnuj+CBDnp+BE4jITQo1wtzFOLjQnwSp/nmK9zScDJoDsWYk9CA==".toBase64Bytes
-    val rsa = new blockciphers.RSA { val key = testKey; }
-    val rsa2 = new blockciphers.RSA { val key = testKey2; }
+    val params1 = Parameters('rsaKey -> testKey)
+    val params2 = Parameters('rsaKey -> testKey2)
+    val rsa = BlockCipher[RSA](params1).get
+    val rsa2 = BlockCipher[RSA](params2).get
     rsa.decryptBlock(rsa.encryptBlock(test).get).get should be (test)
     rsa2.decryptBlock(rsa2.encryptBlock(test).get).get should be (test)
   }

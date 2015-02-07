@@ -63,3 +63,15 @@ trait RSA extends BlockCipher[RSAKey] {
     }
   }
 }
+
+object RSA {
+
+  implicit val builder = new CanBuildBlockCipher[RSA] {
+    def build(params: Parameters): Try[RSA] = {
+      Parameters.checkParam[RSAKey](params, 'rsaKey) match {
+        case Success(k) ⇒ Success(new RSA { val key = k })
+        case Failure(f) ⇒ Failure(f)
+      }
+    }
+  }
+}

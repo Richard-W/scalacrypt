@@ -41,3 +41,6 @@ class IterateeException(message: String) extends Exception("Iteratee: " + messag
 
 /** Occurs when a keyed hash fails. */
 class KeyedHashException(message: String) extends Exception("KeyedHash: " + message)
+
+/** Occurs when something is wrong with the given parameters. */
+class ParameterException(val symbol: Symbol, message: String) extends Exception("Parameters: " + message)

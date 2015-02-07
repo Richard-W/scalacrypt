@@ -31,3 +31,14 @@ trait BlockCipher[KeyType <: Key] {
   /** Returns a function that decrypts single blocks using the key. */
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]]
 }
+
+abstract class CanBuildBlockCipher[A <: BlockCipher[_]] {
+
+  def build(params: Parameters): Try[A]
+}
+
+object BlockCipher {
+
+  def apply[A <: BlockCipher[_] : CanBuildBlockCipher](params: Parameters)(implicit builder: CanBuildBlockCipher[A]) =
+    builder.build(params)
+}

@@ -91,4 +91,6 @@ object `package` {
       Success(result)
     }
   }
+
+  type Parameters = Map[Symbol, Any]
 }

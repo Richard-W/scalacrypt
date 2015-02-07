@@ -239,3 +239,45 @@ trait Threefish1024 extends Threefish[SymmetricKey1024] {
 
   val reversePermutation: Seq[Int] = Seq(0, 15, 2, 11, 6, 13, 4, 9, 14, 1, 8, 5, 10, 3, 12, 7)
 }
+
+object Threefish256 {
+  implicit val builder = new CanBuildBlockCipher[Threefish256] {
+    def build(params: Parameters): Try[Threefish256] = {
+      Parameters.checkParam[SymmetricKey256](params, 'symmetricKey256) match {
+        case Success(k) ⇒ Parameters.checkParam[Seq[Byte]](params, 'tweak) match {
+          case Success(t) ⇒ Success(new Threefish256 { lazy val key = k; lazy val tweak = t })
+          case Failure(f) ⇒ Failure(f)
+        }
+        case Failure(f) ⇒ Failure(f)
+      }
+    }
+  }
+}
+
+object Threefish512 {
+  implicit val builder = new CanBuildBlockCipher[Threefish512] {
+    def build(params: Parameters): Try[Threefish512] = {
+      Parameters.checkParam[SymmetricKey512](params, 'symmetricKey512) match {
+        case Success(k) ⇒ Parameters.checkParam[Seq[Byte]](params, 'tweak) match {
+          case Success(t) ⇒ Success(new Threefish512 { lazy val key = k; lazy val tweak = t })
+          case Failure(f) ⇒ Failure(f)
+        }
+        case Failure(f) ⇒ Failure(f)
+      }
+    }
+  }
+}
+
+object Threefish1024 {
+  implicit val builder = new CanBuildBlockCipher[Threefish1024] {
+    def build(params: Parameters): Try[Threefish1024] = {
+      Parameters.checkParam[SymmetricKey1024](params, 'symmetricKey1024) match {
+        case Success(k) ⇒ Parameters.checkParam[Seq[Byte]](params, 'tweak) match {
+          case Success(t) ⇒ Success(new Threefish1024 { lazy val key = k; lazy val tweak = t })
+          case Failure(f) ⇒ Failure(f)
+        }
+        case Failure(f) ⇒ Failure(f)
+      }
+    }
+  }
+}

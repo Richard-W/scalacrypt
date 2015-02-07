@@ -21,11 +21,12 @@ import blockciphers.{ AES128, AES192, AES256 }
 class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
 
   "AES128" should "conform to the test vectors." in {
-    val cipher: AES128 = new AES128 {
-      def key = (Seq(
-        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
-      ) map { _.toByte }).toKey[SymmetricKey128].get
-    }
+    val params = Parameters('symmetricKey128 -> (Seq(
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+        0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
+        ) map { _.toByte }).toKey[SymmetricKey128].get
+    )
+    val cipher = BlockCipher[AES128](params).get
     def encrypt(block: Seq[Byte]): Seq[Byte] = cipher.encryptBlock(block).get
     def decrypt(block: Seq[Byte]): Seq[Byte] = cipher.decryptBlock(block).get
 
@@ -51,9 +52,8 @@ class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
   }
 
   it should "return IllegalBlockSizeException on illegal block sizes." in {
-    val cipher: AES128 = new AES128 {
-      def key = Key.generate[SymmetricKey128]
-    }
+    val params = Parameters('symmetricKey128 -> Key.generate[SymmetricKey128])
+    val cipher = BlockCipher[AES128](params).get
     def encrypt(block: Seq[Byte]): Try[Seq[Byte]] = cipher.encryptBlock(block)
     def decrypt(block: Seq[Byte]): Try[Seq[Byte]] = cipher.decryptBlock(block)
 
@@ -69,8 +69,13 @@ class SymmetricBlockCipherSpec extends FlatSpec with Matchers {
   }
 
   "All AES objects" should "yield the correct block size." in {
-    new AES128 { def key = Key.generate[SymmetricKey128] }.blockSize should be (16)
-    new AES128 { def key = Key.generate[SymmetricKey128] }.blockSize should be (16)
-    new AES128 { def key = Key.generate[SymmetricKey128] }.blockSize should be (16)
+    val params = Parameters(
+      'symmetricKey128 -> Key.generate[SymmetricKey128],
+      'symmetricKey192 -> Key.generate[SymmetricKey192],
+      'symmetricKey256 -> Key.generate[SymmetricKey256]
+    )
+    BlockCipher[AES128](params).get.blockSize should be (16)
+    BlockCipher[AES192](params).get.blockSize should be (16)
+    BlockCipher[AES256](params).get.blockSize should be (16)
   }
 }

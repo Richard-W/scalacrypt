@@ -19,20 +19,16 @@ import scala.util.{ Try, Success, Failure }
 import blockciphers._
 
 class ThreefishSpec extends FlatSpec with Matchers {
-  val tf256 = new Threefish256 {
-    val key = Key.generate[SymmetricKey256]
-    val tweak = (1 to 16) map { _.toByte }
-  }
+  val params = Parameters(
+    'symmetricKey256 -> Key.generate[SymmetricKey256],
+    'symmetricKey512 -> Key.generate[SymmetricKey512],
+    'symmetricKey1024 -> Key.generate[SymmetricKey1024],
+    'tweak -> ((1 to 16) map { _.toByte })
+  )
 
-  val tf512 = new Threefish512 {
-    val key = Key.generate[SymmetricKey512]
-    val tweak = (1 to 16) map { _.toByte }
-  }
-
-  val tf1024 = new Threefish1024 {
-    val key = Key.generate[SymmetricKey1024]
-    val tweak = (1 to 16) map { _.toByte }
-  }
+  val tf256 = BlockCipher[Threefish256](params).get
+  val tf512 = BlockCipher[Threefish512](params).get
+  val tf1024 = BlockCipher[Threefish1024](params).get
 
   // Key, Tweak, Input, Output
   val tests256 = Seq[(Seq[Long], Seq[Long], Seq[Long], Seq[Long])](
@@ -91,6 +87,20 @@ class ThreefishSpec extends FlatSpec with Matchers {
           0xFDA694875AA31A35L, 0x03D1319C26C2624CL, 0xA2066D0DF2BF7827L, 0x6831CCDAA5C8A370L,
           0x2B8FCD9189698DACL, 0xE47818BBFD604399L, 0xDF47E519CBCEA541L, 0x5EFD5FF4A5D4C259L)
     )
+  )
+
+  val test0Params = Parameters(
+    'symmetricKey256 -> Threefish.words2block(tests256(0)._1).toKey[SymmetricKey256].get,
+    'symmetricKey512 -> Threefish.words2block(tests512(0)._1).toKey[SymmetricKey512].get,
+    'symmetricKey1024 -> Threefish.words2block(tests1024(0)._1).toKey[SymmetricKey1024].get,
+    'tweak -> Threefish.words2block(tests256(0)._2)
+  )
+
+  val test1Params = Parameters(
+    'symmetricKey256 -> Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get,
+    'symmetricKey512 -> Threefish.words2block(tests512(1)._1).toKey[SymmetricKey512].get,
+    'symmetricKey1024 -> Threefish.words2block(tests1024(1)._1).toKey[SymmetricKey1024].get,
+    'tweak -> Threefish.words2block(tests256(1)._2)
   )
 
   "The Threefish mix function" should "be reversible." in {
@@ -165,10 +175,7 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   it should "have its key and tweak correctly initialized." in {
-    val tf = new Threefish256 {
-      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = Threefish.words2block(tests256(1)._2)
-    }
+    val tf = BlockCipher[Threefish256](test1Params).get
 
     tf.keyWords.length should be (5)
     Threefish.words2block(tf.keyWords) should be (Seq(16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 34, 26, 252, 169, 218, 27, 209, 27) map { _.toByte })
@@ -180,10 +187,7 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   it should "use the correct round keys." in {
-    val tf = new Threefish256 {
-      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = Threefish.words2block(tests256(1)._2)
-    }
+    val tf = BlockCipher[Threefish256](test1Params).get
 
     val k = tf.keyWords
     val t = tf.tweakWords
@@ -232,25 +236,20 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   it should "use the correct additional key and tweak word." in {
-    val tf = new Threefish256 {
-      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = Threefish.words2block(tests256(1)._2)
-    }
+    val tf = BlockCipher[Threefish256](test1Params).get
 
     tf.keyWords.last should be (2004413935125273122L)
     tf.tweakWords.last should be (578721382704613384L)
   }
 
   it should "conform to the testvectors." in {
-    for(test <- tests256) {
-      val tf = new Threefish256 {
-        val key = Threefish.words2block(test._1).toKey[SymmetricKey256].get
-        val tweak = Threefish.words2block(test._2)
-      }
+    val tf0 = BlockCipher[Threefish256](test0Params).get
+    val c0 = Threefish.words2block(tests256(0)._4.zip(tests256(0)._3) map { t ⇒ t._1 ^ t._2 })
+    tf0.encryptBlock(Threefish.words2block(tests256(0)._3)).get should be (c0)
 
-      val cipher = Threefish.words2block(test._4.zip(test._3) map { t ⇒ t._1 ^ t._2 })
-      tf.encryptBlock(Threefish.words2block(test._3)).get should be (cipher)
-    }
+    val tf1 = BlockCipher[Threefish256](test1Params).get
+    val c1 = Threefish.words2block(tests256(1)._4.zip(tests256(1)._3) map { t ⇒ t._1 ^ t._2 })
+    tf1.encryptBlock(Threefish.words2block(tests256(1)._3)).get should be (c1)
   }
 
   def testPermutation(a: Seq[Int], b: Seq[Int]) = {
@@ -260,10 +259,7 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   it should "have the correct reverse permutation" in {
-    val tf = new Threefish256 {
-      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
-      val tweak = Threefish.words2block(tests256(1)._2)
-    }
+    val tf = BlockCipher[Threefish256](test1Params).get
     testPermutation(tf.permutation, tf.reversePermutation)
   }
 
@@ -273,22 +269,17 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   it should "conform to the testvectors." in {
-    for(test <- tests512) {
-      val tf = new Threefish512 {
-        val key = Threefish.words2block(test._1).toKey[SymmetricKey512].get
-        val tweak = Threefish.words2block(test._2)
-      }
+    val tf0 = BlockCipher[Threefish512](test0Params).get
+    val c0 = Threefish.words2block(tests512(0)._4.zip(tests512(0)._3) map { t ⇒ t._1 ^ t._2 })
+    tf0.encryptBlock(Threefish.words2block(tests512(0)._3)).get should be (c0)
 
-      val cipher = Threefish.words2block(test._4.zip(test._3) map { t ⇒ t._1 ^ t._2 })
-      tf.encryptBlock(Threefish.words2block(test._3)).get should be (cipher)
-    }
+    val tf1 = BlockCipher[Threefish512](test1Params).get
+    val c1 = Threefish.words2block(tests512(1)._4.zip(tests512(1)._3) map { t ⇒ t._1 ^ t._2 })
+    tf1.encryptBlock(Threefish.words2block(tests512(1)._3)).get should be (c1)
   }
 
   it should "have the correct reverse permutation" in {
-    val tf = new Threefish512 {
-      val key = Threefish.words2block(tests512(1)._1).toKey[SymmetricKey512].get
-      val tweak = Threefish.words2block(tests512(1)._2)
-    }
+    val tf = BlockCipher[Threefish512](test1Params).get
     testPermutation(tf.permutation, tf.reversePermutation)
   }
 
@@ -298,22 +289,17 @@ class ThreefishSpec extends FlatSpec with Matchers {
   }
 
   it should "conform to the testvectors." in {
-    for(test <- tests1024) {
-      val tf = new Threefish1024 {
-        val key = Threefish.words2block(test._1).toKey[SymmetricKey1024].get
-        val tweak = Threefish.words2block(test._2)
-      }
+    val tf0 = BlockCipher[Threefish1024](test0Params).get
+    val c0 = Threefish.words2block(tests1024(0)._4.zip(tests1024(0)._3) map { t ⇒ t._1 ^ t._2 })
+    tf0.encryptBlock(Threefish.words2block(tests1024(0)._3)).get should be (c0)
 
-      val cipher = Threefish.words2block(test._4.zip(test._3) map { t ⇒ t._1 ^ t._2 })
-      tf.encryptBlock(Threefish.words2block(test._3)).get should be (cipher)
-    }
+    val tf1 = BlockCipher[Threefish1024](test1Params).get
+    val c1 = Threefish.words2block(tests1024(1)._4.zip(tests1024(1)._3) map { t ⇒ t._1 ^ t._2 })
+    tf1.encryptBlock(Threefish.words2block(tests1024(1)._3)).get should be (c1)
   }
 
   it should "have the correct reverse permutation" in {
-    val tf = new Threefish1024 {
-      val key = Threefish.words2block(tests1024(1)._1).toKey[SymmetricKey1024].get
-      val tweak = Threefish.words2block(tests1024(1)._2)
-    }
+    val tf = BlockCipher[Threefish256](test1Params).get
     testPermutation(tf.permutation, tf.reversePermutation)
   }
 }
