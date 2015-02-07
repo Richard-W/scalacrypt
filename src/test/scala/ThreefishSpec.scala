@@ -154,26 +154,12 @@ class ThreefishSpec extends FlatSpec with Matchers {
     }
   }
 
-  "The Threefish round application" should "be reversible." in {
-    val test = Seq[Long](1, 2, 3, 4)
-    val rots = Seq(52, 32, 67, 12)
-    val key = Seq[Long](5, 6, 7, 8)
-
-    tf256.unapplyRound(tf256.applyRound(test, rots, None), rots, None) should be (test)
-    tf256.unapplyRound(tf256.applyRound(test, rots, Some(key)), rots, Some(key)) should be (test)
-  }
-
   "The Threefish conversion between bytes and words" should "be reversible." in {
     Threefish.block2words(Threefish.words2block(tests256(1)._3)) should be (tests256(1)._3)
     Threefish.block2words(Threefish.words2block(tests256(1)._4)) should be (tests256(1)._4)
   }
 
-  "Threefish256" should "use the correct reverse permutation." in {
-    val test = (1 to 4) map { _.toLong }
-    tf256.reversePermutate(tf256.permutate(test)) should be (test)
-  }
-
-  it should "correctly decrypt a previously encrypted block." in {
+  "Threefish256" should "correctly decrypt a previously encrypted block." in {
     val test = (1 to 32) map { _.toByte }
     tf256.decryptBlock(tf256.encryptBlock(test).get).get should be (test)
   }
@@ -261,17 +247,27 @@ class ThreefishSpec extends FlatSpec with Matchers {
         val key = Threefish.words2block(test._1).toKey[SymmetricKey256].get
         val tweak = Threefish.words2block(test._2)
       }
-      tf.encryptBlock(Threefish.words2block(test._3)).get should be (Threefish.words2block(test._4))
-      tf.decryptBlock(Threefish.words2block(test._4)).get should be (Threefish.words2block(test._3))
+
+      val cipher = Threefish.words2block(test._4.zip(test._3) map { t ⇒ t._1 ^ t._2 })
+      tf.encryptBlock(Threefish.words2block(test._3)).get should be (cipher)
     }
   }
 
-  "Threefish512" should "use the correct reverse permutation." in {
-    val test = (1 to 8) map { _.toLong }
-    tf512.reversePermutate(tf512.permutate(test)) should be (test)
+  def testPermutation(a: Seq[Int], b: Seq[Int]) = {
+    for(i <- (0 until a.length)) {
+      a(b(i)) should be (i)
+    }
   }
 
-  it should "correctly decrypt a previously encrypted block." in {
+  it should "have the correct reverse permutation" in {
+    val tf = new Threefish256 {
+      val key = Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get
+      val tweak = Threefish.words2block(tests256(1)._2)
+    }
+    testPermutation(tf.permutation, tf.reversePermutation)
+  }
+
+  "Threefish512" should "correctly decrypt a previously encrypted block." in {
     val test = (1 to 64) map { _.toByte }
     tf512.decryptBlock(tf512.encryptBlock(test).get).get should be (test)
   }
@@ -282,17 +278,21 @@ class ThreefishSpec extends FlatSpec with Matchers {
         val key = Threefish.words2block(test._1).toKey[SymmetricKey512].get
         val tweak = Threefish.words2block(test._2)
       }
-      tf.encryptBlock(Threefish.words2block(test._3)).get should be (Threefish.words2block(test._4))
-      tf.decryptBlock(Threefish.words2block(test._4)).get should be (Threefish.words2block(test._3))
+
+      val cipher = Threefish.words2block(test._4.zip(test._3) map { t ⇒ t._1 ^ t._2 })
+      tf.encryptBlock(Threefish.words2block(test._3)).get should be (cipher)
     }
   }
 
-  "Threefish1024" should "use the correct reverse permutation." in {
-    val test = (1 to 16) map { _.toLong }
-    tf1024.reversePermutate(tf1024.permutate(test)) should be (test)
+  it should "have the correct reverse permutation" in {
+    val tf = new Threefish512 {
+      val key = Threefish.words2block(tests512(1)._1).toKey[SymmetricKey512].get
+      val tweak = Threefish.words2block(tests512(1)._2)
+    }
+    testPermutation(tf.permutation, tf.reversePermutation)
   }
 
-  it should "correctly decrypt a previously encrypted block." in {
+  "Threefish1024" should "correctly decrypt a previously encrypted block." in {
     val test = (1 to 128) map { _.toByte }
     tf1024.decryptBlock(tf1024.encryptBlock(test).get).get should be (test)
   }
@@ -303,8 +303,17 @@ class ThreefishSpec extends FlatSpec with Matchers {
         val key = Threefish.words2block(test._1).toKey[SymmetricKey1024].get
         val tweak = Threefish.words2block(test._2)
       }
-      tf.encryptBlock(Threefish.words2block(test._3)).get should be (Threefish.words2block(test._4))
-      tf.decryptBlock(Threefish.words2block(test._4)).get should be (Threefish.words2block(test._3))
+
+      val cipher = Threefish.words2block(test._4.zip(test._3) map { t ⇒ t._1 ^ t._2 })
+      tf.encryptBlock(Threefish.words2block(test._3)).get should be (cipher)
     }
+  }
+
+  it should "have the correct reverse permutation" in {
+    val tf = new Threefish1024 {
+      val key = Threefish.words2block(tests1024(1)._1).toKey[SymmetricKey1024].get
+      val tweak = Threefish.words2block(tests1024(1)._2)
+    }
+    testPermutation(tf.permutation, tf.reversePermutation)
   }
 }

@@ -63,10 +63,10 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
   def rotations: Seq[Seq[Int]]
 
   /** Permutation used by the cipher. */
-  def permutate(block: Seq[Word]): Seq[Word]
+  def permutation: Seq[Int]
 
-  /** Reversal of permutate. */
-  def reversePermutate(block: Seq[Word]): Seq[Word]
+  /** Reverse permutation used by the cipher. */
+  def reversePermutation: Seq[Int]
 
   /** Number of rounds applied. */
   def numRounds: Int
@@ -108,66 +108,64 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     for(s <- (0 to (numRounds / 4))) yield genRoundKey(s)
   }
 
-  def applyRound(words: Seq[Word], rotations: Seq[Int], keyOption: Option[Seq[Word]] = None) = {
-    val keyed = keyOption match {
-      case Some(key) ⇒ for(i <- (0 until numWords)) yield words(i) + key(i)
-      case _ ⇒ words
-    }
-    val mixed = (for(i <- (0 until numWords by 2)) yield mix(keyed(i), keyed(i + 1), rotations(i / 2))).flatten
-    permutate(mixed)
-  }
-
-  def unapplyRound(words: Seq[Word], rotations: Seq[Int], keyOption: Option[Seq[Word]] = None) = {
-    val ordered = reversePermutate(words)
-    val unmixed = (for(i <- (0 until numWords by 2)) yield unmix(ordered(i), ordered(i + 1), rotations(i / 2))).flatten
-    keyOption match {
-      case Some(key) ⇒ for(i <- (0 until numWords)) yield unmixed(i) - key(i)
-      case _ ⇒ unmixed
-    }
-  }
-
   def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
     if(block.length != blockSize)
       return Failure(new IllegalBlockSizeException("Expected size 32, got " + block.length))
 
-    @tailrec
-    def applyCipher(words: Seq[Word], round: Int): Seq[Word] = {
-      if(round == numRounds)
-        for(i <- (0 until numWords)) yield words(i) + roundKeys.last(i)
-      else {
-        val keyOption: Option[Seq[Word]] =
-          if(round % 4 == 0)
-            Some(roundKeys(round / 4))
-          else
-            None
-        applyCipher(applyRound(words, rotations(round % 8), keyOption), round + 1)
+    var round = 0
+    var v = block2words(block)
+
+    for(d <- (0 until numRounds)) {
+      /* Add round key every 4th round */
+      val e = if(d % 4 == 0) {
+        val k = roundKeys(d / 4)
+        for(i <- (0 until numWords)) yield v(i) + k(i)
+      } else {
+        v
       }
+
+      /* Apply mix function */
+      val rot = rotations(d % 8)
+      val f = (for(i <- (0 until numWords by 2)) yield mix(e(i), e(i + 1), rot(i / 2))).flatten
+
+      /* Apply permutation */
+      v = for(i <- 0 until numWords) yield f(permutation(i))
     }
     
-    Success(words2block(applyCipher(block2words(block), 0)))
+    /* Apply last round key. */
+    v = for(i <- (0 until numWords)) yield v(i) + roundKeys.last(i)
+
+    Success(words2block(v))
   }
 
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
     if(block.length != blockSize)
       return Failure(new IllegalBlockSizeException("Expected size 32, got " + block.length))
 
-    @tailrec
-    def unapplyCipher(words: Seq[Word], round: Int): Seq[Word] = {
-      if(round == numRounds)
-        unapplyCipher(for(i <- (0 until numWords)) yield words(i) - roundKeys.last(i), round - 1)
-      else if(round < 0)
-        words
-      else {
-        val keyOption: Option[Seq[Word]] =
-          if(round % 4 == 0)
-            Some(roundKeys(round / 4))
-          else
-            None
-        unapplyCipher(unapplyRound(words, rotations(round % 8), keyOption), round - 1)
+    var round = 0
+    var v = block2words(block)
+
+    /* Substract last round key. */
+    v = for(i <- (0 until numWords)) yield v(i) - roundKeys.last(i)
+
+    for(d <- ((numRounds - 1) to 0 by -1)) {
+      /* Reverse permutation. */
+      val f = for(i <- (0 until numWords)) yield v(reversePermutation(i))
+
+      /* Reverse mixing. */
+      val rot = rotations(d % 8)
+      val e = (for(i <- (0 until numWords by 2)) yield unmix(f(i), f(i + 1), rot(i / 2))).flatten
+
+      /* Substract round key every 4th round */
+      v = if(d % 4 == 0) {
+        val k = roundKeys(d / 4)
+        for(i <- (0 until numWords)) yield e(i) - k(i)
+      } else {
+        e
       }
     }
 
-    Success(words2block(unapplyCipher(block2words(block), numRounds)))
+    Success(words2block(v))
   }
 }
 
@@ -188,11 +186,9 @@ trait Threefish256 extends Threefish[SymmetricKey256] {
     Seq(32, 32)
   )
 
-  def permutate(b: Seq[Word]): Seq[Word] =
-    Seq(b(0), b(3), b(2), b(1))
+  val permutation: Seq[Int] = Seq(0, 3, 2, 1)
 
-  def reversePermutate(b: Seq[Word]): Seq[Word] =
-    Seq(b(0), b(3), b(2), b(1))
+  val reversePermutation: Seq[Int] = Seq(0, 3, 2, 1)
 }
 
 trait Threefish512 extends Threefish[SymmetricKey512] {
@@ -212,11 +208,9 @@ trait Threefish512 extends Threefish[SymmetricKey512] {
     Seq( 8, 35, 56, 22)
   )
 
-  def permutate(b: Seq[Word]): Seq[Word] =
-    Seq(b(2), b(1), b(4), b(7), b(6), b(5), b(0), b(3))
+  val permutation: Seq[Int] = Seq(2, 1, 4, 7, 6, 5, 0, 3)
 
-  def reversePermutate(b: Seq[Word]): Seq[Word] =
-    Seq(b(6), b(1), b(0), b(7), b(2), b(5), b(4), b(3))
+  val reversePermutation: Seq[Int] = Seq(6, 1, 0, 7, 2, 5, 4, 3)
 }
 
 trait Threefish1024 extends Threefish[SymmetricKey1024] {
@@ -235,10 +229,7 @@ trait Threefish1024 extends Threefish[SymmetricKey1024] {
     Seq(31, 44, 47, 46, 19, 42, 44, 25),
     Seq( 9, 48, 35, 52, 23, 31, 37, 20)
   )
+  val permutation: Seq[Int] = Seq(0, 9, 2, 13, 6, 11, 4, 15, 10, 7, 12, 3, 14, 5, 8, 1)
 
-  def permutate(b: Seq[Word]): Seq[Word] =
-    Seq(b(0), b(9), b(2), b(13), b(6), b(11), b(4), b(15), b(10), b(7), b(12), b(3), b(14), b(5), b(8), b(1))
-
-  def reversePermutate(b: Seq[Word]): Seq[Word] =
-    Seq(b(0), b(15), b(2), b(11), b(6), b(13), b(4), b(9), b(14), b(1), b(8), b(5), b(10), b(3), b(12), b(7))
+  val reversePermutation: Seq[Int] = Seq(0, 15, 2, 11, 6, 13, 4, 9, 14, 1, 8, 5, 10, 3, 12, 7)
 }
