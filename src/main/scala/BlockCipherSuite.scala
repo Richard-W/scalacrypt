@@ -18,13 +18,8 @@ import scala.util.{ Try, Success, Failure }
 
 /** Represents a combination of cryptographic primitives to implement
   * a block cipher that can be used on arbitrary iterators.
-  *
-  * This class is meant to be extended by the following traits:
-  * * BlockCipher
-  * * BlockCipherMode
-  * * BlockPadding
   */
-abstract class BlockCipherSuite[KeyType <: Key] extends BlockCipher[KeyType] with BlockCipherMode with BlockPadding {
+class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val padding: BlockPadding, val mode: BlockCipherMode) {
 
   private def tryIteratorToTry(it: Iterator[Try[Seq[Byte]]]) = it.foldLeft[Try[Seq[Byte]]](Success(Seq())) { (a, b) ⇒
     if(a.isFailure) a
@@ -32,13 +27,15 @@ abstract class BlockCipherSuite[KeyType <: Key] extends BlockCipher[KeyType] wit
     else Success(a.get ++ b.get)
   }
 
+  val blockSize = cipher.blockSize
+
   def encrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(encrypt(Iterator(input)))
 
   def decrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(decrypt(Iterator(input)))
 
   def encrypt(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
     // Pad the input and seperate it into blocks.
-    val blocks = pad(input)
+    val blocks = padding.pad(input, blockSize)
 
     // Saves the state between blocks.
     var interState: Option[Any] = None
@@ -50,17 +47,17 @@ abstract class BlockCipherSuite[KeyType <: Key] extends BlockCipher[KeyType] wit
 
     def next = {
       // Preprocess block.
-      val (pre, preState) = preEncryptBlock(blocks.next, interState)
+      val (pre, preState) = mode.preEncryptBlock(blocks.next, interState)
 
       // Encrypt block.
-      encryptBlock(pre) match {
+      cipher.encryptBlock(pre) match {
         case Failure(f) ⇒
         fail = true
         Failure(f)
 
         case Success(enc) ⇒
         // Postprocess block.
-        val (post, postState) = postEncryptBlock(enc, preState)
+        val (post, postState) = mode.postEncryptBlock(enc, preState)
         // Save state and return.
         interState = postState
         Success(post)
@@ -90,14 +87,14 @@ abstract class BlockCipherSuite[KeyType <: Key] extends BlockCipher[KeyType] wit
         buffer = buffer.slice(blockSize, buffer.length)
 
         // Preprocess block.
-        val (pre, preState) = preDecryptBlock(block, interState)
-        decryptBlock(pre) match {
+        val (pre, preState) = mode.preDecryptBlock(block, interState)
+        cipher.decryptBlock(pre) match {
           case Failure(f) ⇒
           fail = true
           Failure(f)
 
           case Success(dec) ⇒
-          val (post, postState) = postDecryptBlock(dec, preState)
+          val (post, postState) = mode.postDecryptBlock(dec, preState)
           interState = postState
           Success(post)
         }
@@ -126,7 +123,7 @@ abstract class BlockCipherSuite[KeyType <: Key] extends BlockCipher[KeyType] wit
       }
     }
 
-    val depadIterator = unpad(prepadFilter)
+    val depadIterator = padding.unpad(prepadFilter, blockSize)
 
     new Iterator[Try[Seq[Byte]]] {
 

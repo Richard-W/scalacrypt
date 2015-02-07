@@ -23,7 +23,7 @@ import scala.util.{ Try, Success, Failure }
   * leading zeroes will be lost. You should use a padding
   * scheme that fixes this case.
   */
-trait RSA extends BlockCipher[RSAKey] {
+sealed trait RSA extends BlockCipher[RSAKey] {
 
   lazy val blockSize = (key.n.bitLength.toFloat / 8.0).ceil.toInt
 

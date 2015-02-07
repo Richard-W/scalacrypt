@@ -15,8 +15,9 @@
 package xyz.wiedenhoeft.scalacrypt.modes
 
 import xyz.wiedenhoeft.scalacrypt._
+import scala.util.{ Try, Success, Failure }
 
-trait CBC extends BlockCipherMode {
+sealed trait CBC extends BlockCipherMode {
 
   import scala.language.implicitConversions
 
@@ -60,5 +61,17 @@ trait CBC extends BlockCipherMode {
     
     // Xor decrypted block with previous ciphertext block. Set state to current ciphertext.
     (block xor tuple._1, Some(tuple._2))
+  }
+}
+
+object CBC {
+
+  implicit val builder = new CanBuildBlockCipherMode[CBC] {
+    def build(params: Parameters) = {
+      Parameters.checkParam[Seq[Byte]](params, 'iv) match {
+        case Success(s) ⇒ Success(new CBC { val iv = s })
+        case Failure(f) ⇒ Failure(f)
+      }
+    }
   }
 }

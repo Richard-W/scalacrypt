@@ -14,6 +14,8 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
+import scala.util.{ Try, Success, Failure }
+
 /** Describes a block cipher mode of operation like ECB or CBC.
   *
   * Each of the methods below gets a state and returns a state. The
@@ -33,4 +35,15 @@ trait BlockCipherMode {
 
   /** Process the block after it was decrypted. */
   def postDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
+}
+
+abstract class CanBuildBlockCipherMode[A <: BlockCipherMode] {
+
+  def build(params: Parameters): Try[A]
+}
+
+object BlockCipherMode {
+
+  def apply[A <: BlockCipherMode : CanBuildBlockCipherMode](params: Parameters)(implicit builder: CanBuildBlockCipherMode[A]) =
+    builder.build(params)
 }

@@ -17,9 +17,9 @@ package xyz.wiedenhoeft.scalacrypt.paddings
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 
-trait NoPadding extends BlockPadding {
+sealed trait NoPadding extends BlockPadding {
 
-  def pad(input: Iterator[Seq[Byte]]): Iterator[Seq[Byte]] = new Iterator[Seq[Byte]] {
+  def pad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = new Iterator[Seq[Byte]] {
 
     var buffer = Seq[Byte]()
 
@@ -40,5 +40,12 @@ trait NoPadding extends BlockPadding {
     }
   }
 
-  def unpad(input: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = input map { Success(_) }
+  def unpad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = input map { Success(_) }
+}
+
+object NoPadding {
+
+  implicit val builder = new CanBuildBlockPadding[NoPadding] {
+    def build(params: Parameters) = Success(new NoPadding { })
+  }
 }

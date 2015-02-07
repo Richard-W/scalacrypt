@@ -15,8 +15,9 @@
 package xyz.wiedenhoeft.scalacrypt.modes
 
 import xyz.wiedenhoeft.scalacrypt._
+import scala.util.{ Try, Success, Failure }
 
-trait ECB extends BlockCipherMode {
+sealed trait ECB extends BlockCipherMode {
 
   def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any]) = {
     (block, None)
@@ -32,5 +33,12 @@ trait ECB extends BlockCipherMode {
 
   def postDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any]) = {
     (block, None)
+  }
+}
+
+object ECB {
+  
+  implicit val builder = new CanBuildBlockCipherMode[ECB] {
+    def build(params: Parameters) = Success(new ECB { })
   }
 }

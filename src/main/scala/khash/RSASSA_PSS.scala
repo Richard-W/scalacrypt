@@ -17,6 +17,7 @@ package xyz.wiedenhoeft.scalacrypt.khash
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
 import iteratees._
+import blockciphers.RSA
 
 object RSASSA_PSS {
 
@@ -57,8 +58,7 @@ object RSASSA_PSS {
 
         val em = (maskedDB ++ h) :+ 0xbc.toByte
 
-        val k = key
-        val cipher = new blockciphers.RSA { val key = k }
+        val cipher = BlockCipher[RSA](Parameters('rsaKey -> key)).get
         cipher.decryptBlock(em) match {
           case Success(s) ⇒ Iteratee.done(s)
           case Failure(f) ⇒ Iteratee.error(f)
@@ -67,8 +67,7 @@ object RSASSA_PSS {
     }
 
     def verify(hash: Seq[Byte], key: RSAKey): Try[Iteratee[Seq[Byte],Boolean]] = {
-      val k = key
-      val cipher = new blockciphers.RSA { val key = k }
+      val cipher = BlockCipher[RSA](Parameters('rsaKey -> key)).get
       val em = cipher.encryptBlock(hash) match {
         case Success(s) ⇒ s
         case Failure(f) ⇒ return Failure(f)

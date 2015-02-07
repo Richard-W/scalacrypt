@@ -16,72 +16,69 @@ package xyz.wiedenhoeft.scalacrypt.suites
 
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
+import blockciphers._
+import modes._
+import paddings._
 
 object AES128_CBC_PKCS7Padding {
 
-  def apply(key: SymmetricKey128, iv: Option[Seq[Byte]] = None): Try[BlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding] = {
-    val initVector = iv match {
-      case Some(s) ⇒
-      s
-
-      case _ ⇒
-      Random.nextBytes(16)
+  def apply(key: SymmetricKey128, iv: Option[Seq[Byte]] = None): Try[BlockCipherSuite[SymmetricKey128]] = {
+    val params = Parameters(
+      'symmetricKey128 -> key,
+      'iv -> (iv match {
+        case Some(s) ⇒ s
+        case _ ⇒ Random.nextBytes(16)
+      })
+    )
+    
+    BlockCipher[AES128](params) flatMap { cipher ⇒
+      BlockCipherMode[CBC](params) flatMap { mode ⇒
+        BlockPadding[PKCS7Padding](params) map { padding ⇒
+          new BlockCipherSuite(cipher, padding, mode)
+        }
+      }
     }
-    val k = key
-
-    if(initVector.length != 16) {
-      Failure(new IllegalArgumentException("IV must be 16 bytes long."))
-    }
-
-    Success(new BlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding {
-      lazy val key = k
-      lazy val iv = initVector
-    })
   }
 }
 
 object AES192_CBC_PKCS7Padding {
 
-  def apply(key: SymmetricKey192, iv: Option[Seq[Byte]] = None): Try[BlockCipherSuite[SymmetricKey192] with blockciphers.AES192 with modes.CBC with paddings.PKCS7Padding] = {
-    val initVector = iv match {
-      case Some(s) ⇒
-      s
-
-      case _ ⇒
-      Random.nextBytes(16)
+  def apply(key: SymmetricKey192, iv: Option[Seq[Byte]] = None): Try[BlockCipherSuite[SymmetricKey192]] = {
+    val params = Parameters(
+      'symmetricKey192 -> key,
+      'iv -> (iv match {
+        case Some(s) ⇒ s
+        case _ ⇒ Random.nextBytes(16)
+      })
+    )
+    
+    BlockCipher[AES192](params) flatMap { cipher ⇒
+      BlockCipherMode[CBC](params) flatMap { mode ⇒
+        BlockPadding[PKCS7Padding](params) map { padding ⇒
+          new BlockCipherSuite(cipher, padding, mode)
+        }
+      }
     }
-    val k = key
-
-    if(initVector.length != 16) {
-      Failure(new IllegalArgumentException("IV must be 16 bytes long."))
-    }
-
-    Success(new BlockCipherSuite[SymmetricKey192] with blockciphers.AES192 with modes.CBC with paddings.PKCS7Padding {
-      lazy val key = k
-      lazy val iv = initVector
-    })
   }
 }
 
 object AES256_CBC_PKCS7Padding {
 
-  def apply(key: SymmetricKey256, iv: Option[Seq[Byte]] = None): Try[BlockCipherSuite[SymmetricKey256] with blockciphers.AES256 with modes.CBC with paddings.PKCS7Padding] = {
-    val initVector = iv match {
-      case Some(s) ⇒
-      s
-
-      case _ ⇒
-      Random.nextBytes(16)
+  def apply(key: SymmetricKey256, iv: Option[Seq[Byte]] = None): Try[BlockCipherSuite[SymmetricKey256]] = {
+    val params = Parameters(
+      'symmetricKey256 -> key,
+      'iv -> (iv match {
+        case Some(s) ⇒ s
+        case _ ⇒ Random.nextBytes(16)
+      })
+    )
+    
+    BlockCipher[AES256](params) flatMap { cipher ⇒
+      BlockCipherMode[CBC](params) flatMap { mode ⇒
+        BlockPadding[PKCS7Padding](params) map { padding ⇒
+          new BlockCipherSuite(cipher, padding, mode)
+        }
+      }
     }
-    val k = key
-
-    if(initVector.length != 16) {
-      Failure(new IllegalArgumentException("IV must be 16 bytes long."))
-    }
-
-    Success(new BlockCipherSuite[SymmetricKey256] with blockciphers.AES256 with modes.CBC with paddings.PKCS7Padding {
-      lazy val key = k
-      lazy val iv = initVector
-    })
   }
 }

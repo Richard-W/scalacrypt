@@ -40,7 +40,7 @@ import scala.util.{ Try, Success, Failure }
   * h h h h h m m m m m  m
   */
 
-trait OAEP extends BlockPadding {
+sealed trait OAEP extends BlockPadding {
 
   /** Hash function. */
   def hashFunction: Hash
@@ -59,11 +59,9 @@ trait OAEP extends BlockPadding {
   /** Hash of the label. */
   lazy val labelHash = hashFunction(label)
 
-  /** Maximum length of a message */
-  lazy val maxMessageLength = blockSize - 2 * hashFunction.length - 2
-
-  def pad(data: Iterator[Seq[Byte]]): Iterator[Seq[Byte]] = new Iterator[Seq[Byte]] {
+  def pad(data: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = new Iterator[Seq[Byte]] {
     var buffer = Seq[Byte]()
+    val maxMessageLength = blockSize - 2 * hashFunction.length - 2
 
     def hasNext = data.hasNext || buffer.length > 0
 
@@ -93,7 +91,7 @@ trait OAEP extends BlockPadding {
     }
   }
 
-  def unpad(data: Iterator[Seq[Byte]]): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
+  def unpad(data: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
 
     def hasNext = data.hasNext
     
@@ -151,6 +149,27 @@ trait OAEP extends BlockPadding {
         case _ ⇒
         Success(message)
       }
+    }
+  }
+}
+
+object OAEP {
+
+  implicit val builder = new CanBuildBlockPadding[OAEP] {
+    def build(params: Parameters): Try[OAEP] = {
+      val h = Parameters.checkParam[Hash](params, 'hash) match {
+        case Success(hash) ⇒ hash
+        case Failure(f) ⇒ return Failure(f)
+      }
+      val lbl = Parameters.checkParam[Seq[Byte]](params, 'label) match {
+        case Success(label) ⇒ label
+        case Failure(f) ⇒ return Failure(f)
+      }
+      val gen = Parameters.checkParam[(Int) ⇒ Seq[Byte]](params, 'generator) match {
+        case Success(generator) ⇒ generator
+        case Failure(f) ⇒ return Failure(f)
+      }
+      Success(new OAEP { val hashFunction = h; override val label = lbl; val seedGenerator = gen })
     }
   }
 }

@@ -26,7 +26,7 @@ object Parameters {
       case Some(maybeParam) ⇒
       maybeParam match {
         case param: A ⇒ Success(param)
-        case _ ⇒ Failure(new ParameterException(symbol, "Symbol " + symbol.toString + " has unexpected type."))
+        case _ ⇒ Failure(new ParameterException(symbol, "Symbol " + symbol.toString + " has unexpected type: " + maybeParam.getClass.toString))
       }
       case _ ⇒ Failure(new ParameterException(symbol, "Parameter " + symbol.toString + " not found."))
     }

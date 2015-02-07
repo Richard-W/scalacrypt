@@ -17,16 +17,26 @@ package xyz.wiedenhoeft.scalacrypt.suites
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 import hash._
+import blockciphers._
+import modes._
+import paddings._
 
 object RSAES_OAEP {
 
-  def apply(k: RSAKey, label: Seq[Byte] = Seq[Byte](), hash: Hash = SHA256, genSeed: (Int) ⇒ Seq[Byte] = { length ⇒ Random.nextBytes(length) }): Try[BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB] = {
-    val l = label
-    Success(new BlockCipherSuite[RSAKey] with blockciphers.RSA with paddings.OAEP with modes.ECB {
-      val key = k
-      val hashFunction = hash
-      val seedGenerator = genSeed
-      override val label = l
-    })
+  def apply(k: RSAKey, label: Seq[Byte] = Seq[Byte](), hash: Hash = SHA256, genSeed: (Int) ⇒ Seq[Byte] = { length ⇒ Random.nextBytes(length) }): Try[BlockCipherSuite[RSAKey]] = {
+    val params = Parameters(
+      'rsaKey -> k,
+      'label -> label,
+      'hash -> hash,
+      'generator -> genSeed
+    )
+
+    BlockCipher[RSA](params) flatMap { cipher ⇒
+      BlockCipherMode[ECB](params) flatMap { mode ⇒
+        BlockPadding[OAEP](params) map { padding ⇒
+          new BlockCipherSuite(cipher, padding, mode)
+        }
+      }
+    }
   }
 }

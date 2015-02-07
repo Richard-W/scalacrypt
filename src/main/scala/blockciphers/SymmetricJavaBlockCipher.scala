@@ -20,7 +20,7 @@ import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
 /** Base class for symmetric block ciphers that are implemented in the java crypto API. */
-trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyType] {
+sealed trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyType] {
 
   protected def algo: String
 
@@ -51,9 +51,9 @@ trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyType] {
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = crypt(block, false)
 }
 
-trait AES128 extends SymmetricJavaBlockCipher[SymmetricKey128] { lazy val algo = "AES" }
-trait AES192 extends SymmetricJavaBlockCipher[SymmetricKey192] { lazy val algo = "AES" }
-trait AES256 extends SymmetricJavaBlockCipher[SymmetricKey256] { lazy val algo = "AES" }
+sealed trait AES128 extends SymmetricJavaBlockCipher[SymmetricKey128] { lazy val algo = "AES" }
+sealed trait AES192 extends SymmetricJavaBlockCipher[SymmetricKey192] { lazy val algo = "AES" }
+sealed trait AES256 extends SymmetricJavaBlockCipher[SymmetricKey256] { lazy val algo = "AES" }
 
 object AES128 {
   implicit val builder = new CanBuildBlockCipher[AES128] {
