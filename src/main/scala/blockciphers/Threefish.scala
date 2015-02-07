@@ -21,27 +21,25 @@ import java.nio.{ ByteBuffer, ByteOrder }
 
 object Threefish {
 
-  type Word = Long
-
-  def bytes2word(bytes: Seq[Byte]): Word =
+  def bytes2word(bytes: Seq[Byte]): Long =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).put(bytes.toArray).getLong(0)
 
-  def word2bytes(word: Word): Seq[Byte] =
+  def word2bytes(word: Long): Seq[Byte] =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(word).array
 
-  def block2words(block: Seq[Byte]): Seq[Word] =
+  def block2words(block: Seq[Byte]): Seq[Long] =
     for(byteWord <- block.grouped(8).toSeq) yield bytes2word(byteWord)
 
-  def words2block(words: Seq[Word]): Seq[Byte] =
+  def words2block(words: Seq[Long]): Seq[Byte] =
     (for(word <- words) yield word2bytes(word)).flatten
 
-  def mix(a: Word, b: Word, r: Int): Seq[Word] = {
+  def mix(a: Long, b: Long, r: Int): Seq[Long] = {
     val x = a + b
     val y = ((b << r) | (b >>> (64 - r))) ^ x
     Seq(x, y)
   }
 
-  def unmix(x: Word, y: Word, r: Int): Seq[Word] = {
+  def unmix(x: Long, y: Long, r: Int): Seq[Long] = {
     val z = y ^ x
     val b = ((z >>> r) | (z << (64 - r)))
     val a = x - b
@@ -53,8 +51,6 @@ object Threefish {
 trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
 
   import Threefish._
-
-  type Word = Long
 
   /** The tweak of this block cipher. */
   def tweak: Seq[Byte]
@@ -74,14 +70,14 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
   /** The number of words this cipher processes in one block. */
   lazy val numWords = blockSize / 8
 
-  lazy val tweakWords: Seq[Word] = {
+  lazy val tweakWords: Seq[Long] = {
     val words = block2words(tweak)
     words :+ (words(0) ^ words(1))
   }
 
-  lazy val keyWords: Seq[Word] = {
+  lazy val keyWords: Seq[Long] = {
     @tailrec
-    def xorSeq(result: Word, list: List[Word]): Word =
+    def xorSeq(result: Long, list: List[Long]): Long =
       if(list != Nil)
         xorSeq(result ^ list.head, list.tail)
       else
@@ -91,7 +87,7 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     words :+ xorSeq(0x1BD11BDAA9FC1A22L, words.toList)
   }
 
-  lazy val roundKeys: Seq[Seq[Word]] = {
+  lazy val roundKeys: Seq[Seq[Long]] = {
     def genRoundKey(s: Int) = {
       for(i <- (0 until numWords)) yield {
         if(i == numWords - 1)
