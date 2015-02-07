@@ -108,60 +108,70 @@ trait Threefish[KeyType <: Key] extends BlockCipher[KeyType] {
     if(block.length != blockSize)
       return Failure(new IllegalBlockSizeException("Expected size 32, got " + block.length))
 
-    var round = 0
-    var v = block2words(block)
+    val p = block2words(block)
 
-    for(d <- (0 until numRounds)) {
-      /* Add round key every 4th round */
-      val e = if(d % 4 == 0) {
-        val k = roundKeys(d / 4)
-        for(i <- (0 until numWords)) yield v(i) + k(i)
+    @tailrec
+    def encryptBlockHelper(v: Seq[Long], d: Int): Seq[Long] = {
+      if(d == numRounds) {
+        /* Apply last round key. */
+        (v zip roundKeys.last) map { t ⇒ t._1 + t._2 }
       } else {
-        v
+        /* Add round key every 4th round */
+        val e = if(d % 4 == 0) {
+          val k = roundKeys(d / 4)
+          for(i <- (0 until numWords)) yield v(i) + k(i)
+        } else {
+          v
+        }
+
+        /* Apply mix function */
+        val rot = rotations(d % 8)
+        val f = (for(i <- (0 until numWords by 2)) yield mix(e(i), e(i + 1), rot(i / 2))).flatten
+
+        /* Apply permutation */
+        val vPlus = for(i <- 0 until numWords) yield f(permutation(i))
+
+        encryptBlockHelper(vPlus, d + 1)
       }
-
-      /* Apply mix function */
-      val rot = rotations(d % 8)
-      val f = (for(i <- (0 until numWords by 2)) yield mix(e(i), e(i + 1), rot(i / 2))).flatten
-
-      /* Apply permutation */
-      v = for(i <- 0 until numWords) yield f(permutation(i))
     }
-    
-    /* Apply last round key. */
-    v = for(i <- (0 until numWords)) yield v(i) + roundKeys.last(i)
 
-    Success(words2block(v))
+    val c = encryptBlockHelper(p, 0)
+    Success(words2block(c))
   }
 
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
     if(block.length != blockSize)
       return Failure(new IllegalBlockSizeException("Expected size 32, got " + block.length))
 
-    var round = 0
-    var v = block2words(block)
-
-    /* Substract last round key. */
-    v = for(i <- (0 until numWords)) yield v(i) - roundKeys.last(i)
-
-    for(d <- ((numRounds - 1) to 0 by -1)) {
-      /* Reverse permutation. */
-      val f = for(i <- (0 until numWords)) yield v(reversePermutation(i))
-
-      /* Reverse mixing. */
-      val rot = rotations(d % 8)
-      val e = (for(i <- (0 until numWords by 2)) yield unmix(f(i), f(i + 1), rot(i / 2))).flatten
-
-      /* Substract round key every 4th round */
-      v = if(d % 4 == 0) {
-        val k = roundKeys(d / 4)
-        for(i <- (0 until numWords)) yield e(i) - k(i)
+    @tailrec
+    def decryptBlockHelper(v: Seq[Long], d: Int): Seq[Long] = {
+      if(d < 0) {
+        v
       } else {
-        e
+        /* Reverse permutation. */
+        val f = for(i <- (0 until numWords)) yield v(reversePermutation(i))
+
+        /* Reverse mixing. */
+        val rot = rotations(d % 8)
+        val e = (for(i <- (0 until numWords by 2)) yield unmix(f(i), f(i + 1), rot(i / 2))).flatten
+
+        /* Substract round key every 4th round */
+        val vMinus = if(d % 4 == 0) {
+          val k = roundKeys(d / 4)
+          for(i <- (0 until numWords)) yield e(i) - k(i)
+        } else {
+          e
+        }
+
+        decryptBlockHelper(vMinus, d - 1)
       }
     }
 
-    Success(words2block(v))
+    val c = block2words(block)
+    val v = (c zip roundKeys.last) map { t ⇒ t._1 - t._2 }
+    val p = decryptBlockHelper(v, numRounds - 1)
+
+    Success(words2block(p))
   }
 }
 
