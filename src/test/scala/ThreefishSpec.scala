@@ -302,4 +302,28 @@ class ThreefishSpec extends FlatSpec with Matchers {
     val tf = BlockCipher[Threefish256](test1Params).get
     testPermutation(tf.permutation, tf.reversePermutation)
   }
+
+  "Threefish_CBC_256" should "decrypt a previously encrypted message." in {
+    val message = (0 until 255) map { _.toByte }
+    val suite = suites.Threefish256_CBC_PKCS7Padding(Key.generate[SymmetricKey256]).get
+    val cipher = suite.encrypt(message).get
+
+    suite.decrypt(cipher).get should be (message)
+  }
+
+  "Threefish_CBC_512" should "decrypt a previously encrypted message." in {
+    val message = (0 until 255) map { _.toByte }
+    val suite = suites.Threefish512_CBC_PKCS7Padding(Key.generate[SymmetricKey512]).get
+    val cipher = suite.encrypt(message).get
+
+    suite.decrypt(cipher).get should be (message)
+  }
+
+  "Threefish_CBC_1024" should "decrypt a previously encrypted message." in {
+    val message = (0 until 255) map { _.toByte }
+    val suite = suites.Threefish1024_CBC_PKCS7Padding(Key.generate[SymmetricKey1024]).get
+    val cipher = suite.encrypt(message).get
+
+    suite.decrypt(cipher).get should be (message)
+  }
 }
