@@ -16,6 +16,7 @@ package xyz.wiedenhoeft.scalacrypt.khash
 
 import scala.util.{ Try, Success, Failure }
 import xyz.wiedenhoeft.scalacrypt._
+import scala.annotation.tailrec
 import iteratees._
 
 /* Factory for PBKDF2 KeyedHash instances. */
@@ -37,17 +38,24 @@ object PBKDF2 {
           /* Calculates a block */
           def calcBlock(blockNum: Int): Try[Seq[Byte]] = {
             val blockNumBytes = java.nio.ByteBuffer.allocate(4).putInt(blockNum).array
-            var block: Seq[Byte] = keyedHash.fold(Element(blockNumBytes)).run.get
-            var u: Seq[Byte] = block
+            val initial: Seq[Byte] = keyedHash.fold(Element(blockNumBytes)).run.get
 
-            for(iteration <- (2 to iterations)) {
-              u = algorithm(u, key) match {
-                case Success(newU) ⇒ newU
-                case Failure(f) ⇒ return Failure(f)
+            @tailrec
+            def calcBlockHelper(block: Seq[Byte], previousU: Seq[Byte], iteration: Int): Try[Seq[Byte]] = {
+              if(iteration > iterations) {
+                Success(block)
+              } else {
+                val uTry = algorithm(previousU, key)
+                if(uTry.isSuccess) {
+                  val u = uTry.get
+                  calcBlockHelper(block xor u, u, iteration + 1)
+                } else {
+                  Failure(uTry.failed.get)
+                }
               }
-              block = block xor u
             }
-            Success(block)
+
+            calcBlockHelper(initial, initial, 2)
           }
 
           val blocks = for(blockNum <- 1 to numBlocks) yield calcBlock(blockNum)
