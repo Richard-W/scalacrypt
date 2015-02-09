@@ -19,6 +19,9 @@ import scala.util.{ Try, Success, Failure }
 /** Base trait for symmetric block ciphers such as AES. */
 trait BlockCipher[KeyType <: Key] {
 
+  /** Parameters used to construct this cipher. */
+  def params: Parameters
+
   /** Block size in bytes. */
   def blockSize: Int
 

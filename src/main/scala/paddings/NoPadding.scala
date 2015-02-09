@@ -46,6 +46,6 @@ sealed trait NoPadding extends BlockPadding {
 object NoPadding {
 
   implicit val builder = new CanBuildBlockPadding[NoPadding] {
-    def build(params: Parameters) = Success(new NoPadding { })
+    def build(parameters: Parameters) = Success(new NoPadding { val params = parameters })
   }
 }

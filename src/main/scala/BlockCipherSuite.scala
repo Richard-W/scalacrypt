@@ -29,6 +29,15 @@ class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mod
 
   val blockSize = cipher.blockSize
 
+  /** The combined parameters of cipher, mode and padding.
+    *
+    * They are merged in the following order overwriting conflicting keys:
+    * 1. padding
+    * 2. mode
+    * 3. cipher
+    */
+  lazy val params: Parameters = padding.params ++ (mode.params ++ cipher.params)
+
   def encrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(encrypt(Iterator(input)))
 
   def decrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(decrypt(Iterator(input)))

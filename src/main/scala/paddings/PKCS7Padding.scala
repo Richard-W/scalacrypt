@@ -118,6 +118,6 @@ trait PKCS7Padding extends BlockPadding {
 object PKCS7Padding {
   
   implicit val builder = new CanBuildBlockPadding[PKCS7Padding] {
-    def build(params: Parameters) = Success(new PKCS7Padding { })
+    def build(parameters: Parameters) = Success(new PKCS7Padding { val params = parameters })
   }
 }

@@ -24,6 +24,9 @@ import scala.util.{ Try, Success, Failure }
   */
 trait BlockCipherMode {
 
+  /** Parameters used to construct this cipher. */
+  def params: Parameters
+
   /** Process the block before it is encrypted. */
   def preEncryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any])
 

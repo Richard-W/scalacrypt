@@ -57,9 +57,9 @@ sealed trait AES256 extends SymmetricJavaBlockCipher[SymmetricKey256] { lazy val
 
 object AES128 {
   implicit val builder = new CanBuildBlockCipher[AES128] {
-    def build(params: Parameters): Try[AES128] = {
-      Parameters.checkParam[SymmetricKey128](params, 'symmetricKey128) match {
-        case Success(k) ⇒ Success(new AES128 { lazy val key = k })
+    def build(parameters: Parameters): Try[AES128] = {
+      Parameters.checkParam[SymmetricKey128](parameters, 'symmetricKey128) match {
+        case Success(k) ⇒ Success(new AES128 { lazy val key = k; val params = parameters })
         case Failure(f) ⇒ Failure(f)
       }
     }
@@ -68,9 +68,9 @@ object AES128 {
 
 object AES192 {
   implicit val builder = new CanBuildBlockCipher[AES192] {
-    def build(params: Parameters): Try[AES192] = {
-      Parameters.checkParam[SymmetricKey192](params, 'symmetricKey192) match {
-        case Success(k) ⇒ Success(new AES192 { lazy val key = k })
+    def build(parameters: Parameters): Try[AES192] = {
+      Parameters.checkParam[SymmetricKey192](parameters, 'symmetricKey192) match {
+        case Success(k) ⇒ Success(new AES192 { lazy val key = k; val params = parameters })
         case Failure(f) ⇒ Failure(f)
       }
     }
@@ -79,9 +79,9 @@ object AES192 {
 
 object AES256 {
   implicit val builder = new CanBuildBlockCipher[AES256] {
-    def build(params: Parameters): Try[AES256] = {
-      Parameters.checkParam[SymmetricKey256](params, 'symmetricKey256) match {
-        case Success(k) ⇒ Success(new AES256 { lazy val key = k })
+    def build(parameters: Parameters): Try[AES256] = {
+      Parameters.checkParam[SymmetricKey256](parameters, 'symmetricKey256) match {
+        case Success(k) ⇒ Success(new AES256 { lazy val key = k; val params = parameters })
         case Failure(f) ⇒ Failure(f)
       }
     }

@@ -67,9 +67,9 @@ sealed trait RSA extends BlockCipher[RSAKey] {
 object RSA {
 
   implicit val builder = new CanBuildBlockCipher[RSA] {
-    def build(params: Parameters): Try[RSA] = {
-      Parameters.checkParam[RSAKey](params, 'rsaKey) match {
-        case Success(k) ⇒ Success(new RSA { val key = k })
+    def build(parameters: Parameters): Try[RSA] = {
+      Parameters.checkParam[RSAKey](parameters, 'rsaKey) match {
+        case Success(k) ⇒ Success(new RSA { val key = k; val params = parameters })
         case Failure(f) ⇒ Failure(f)
       }
     }

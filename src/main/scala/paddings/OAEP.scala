@@ -156,20 +156,25 @@ sealed trait OAEP extends BlockPadding {
 object OAEP {
 
   implicit val builder = new CanBuildBlockPadding[OAEP] {
-    def build(params: Parameters): Try[OAEP] = {
-      val h = Parameters.checkParam[Hash](params, 'hash) match {
+    def build(parameters: Parameters): Try[OAEP] = {
+      val h = Parameters.checkParam[Hash](parameters, 'hash) match {
         case Success(hash) ⇒ hash
         case Failure(f) ⇒ return Failure(f)
       }
-      val lbl = Parameters.checkParam[Seq[Byte]](params, 'label) match {
+      val lbl = Parameters.checkParam[Seq[Byte]](parameters, 'label) match {
         case Success(label) ⇒ label
         case Failure(f) ⇒ return Failure(f)
       }
-      val gen = Parameters.checkParam[(Int) ⇒ Seq[Byte]](params, 'generator) match {
+      val gen = Parameters.checkParam[(Int) ⇒ Seq[Byte]](parameters, 'generator) match {
         case Success(generator) ⇒ generator
         case Failure(f) ⇒ return Failure(f)
       }
-      Success(new OAEP { val hashFunction = h; override val label = lbl; val seedGenerator = gen })
+      Success(new OAEP {
+        val hashFunction = h
+        override val label = lbl
+        val seedGenerator = gen
+        val params = parameters
+      })
     }
   }
 }

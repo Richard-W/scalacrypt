@@ -19,6 +19,9 @@ import scala.util.{ Try, Success, Failure }
 /** Represents the padding used to extend the data to the block size of the block cipher. */
 trait BlockPadding {
 
+  /** Parameters used to construct this cipher. */
+  def params: Parameters
+
   /** Takes an iterator of byte sequences and outputs an iterator of blocks for encryption.
     *
     * Each Seq that the returned iterator returns MUST be exactly blockSize long.

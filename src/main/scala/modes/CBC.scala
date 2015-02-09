@@ -67,9 +67,9 @@ sealed trait CBC extends BlockCipherMode {
 object CBC {
 
   implicit val builder = new CanBuildBlockCipherMode[CBC] {
-    def build(params: Parameters) = {
-      Parameters.checkParam[Seq[Byte]](params, 'iv) match {
-        case Success(s) ⇒ Success(new CBC { val iv = s })
+    def build(parameters: Parameters) = {
+      Parameters.checkParam[Seq[Byte]](parameters, 'iv) match {
+        case Success(s) ⇒ Success(new CBC { val iv = s; val params = parameters })
         case Failure(f) ⇒ Failure(f)
       }
     }
