@@ -28,27 +28,36 @@ stabilize the API it might sometimes be a little off.
 Symmetric encryption
 --------------------
 
-Symmetric encryption in scalacrypt is achieved by combining a BlockCipher, a BlockPadding and a BlockCipherMode trait.
-These traits are applied to the BlockCipherSuite class. Different choices of these traits need different abstract methods
-defined in the derived class. For instance it is necessary to supply a certain Key to all traits deriving from
-BlockCipher and an IV to CBC mode.
+Symmetric encryption in scalacrypt is achieved by combining a BlockCipher, a BlockPadding and a BlockCipherMode.
+These objects can be combined inside a BlockCipherSuite object which drives the encryption and calls the appropriate
+methods on the primitives. It provides the encrypt and the decrypt methods.
 
 Example for constructing a BlockCipherSuite. You have to make sure yourself that the IV is valid.
 ```scala
-val outerKey = Key.generate[SymmetricKey128]
-val outerIV = Random.nextBytes(16)
-val suite = new BlockCipherSuite[SymmetricKey128] with blockciphers.AES128 with modes.CBC with paddings.PKCS7Padding {
-	def key = outerKey
-	def iv = outerIV
-}
+import blockciphers.AES128
+import modes.CBC
+import paddings.PKCS7Padding
+
+val params = Parameters(
+	'symmetricKey128 -> Key.generate[SymmetricKey128],
+	'iv -> Random.nextBytes(16)
+)
+
+// When you dynamically build the params object you might want to match the
+// Try objects for error handling
+val aes = BlockCipher[AES128](params).get
+val cbc = BlockCipherMode[CBC](params).get
+val pkcs7 = BlockPadding[PKCS7Padding](params).get
+
+val suite = new BlockCipherSuite(aes, cbc, pkcs7)
 ```
 
 There are certain helper functions in the 'suites' package. They automatically validate parameters and return a Try.
 
 ```scala
 val suite = suites.AES128_CBC_PKCS7Padding(Key.generate[SymmetricKey128], None).get
-val iv = suite.iv
-val key = suite.key
+val iv = suite.params('iv)
+val key = suite.params('symmetricKey128)
 ```
 
 KeyType is a specific child of Key. For AES256 it is SymmetricKey256 for example.
@@ -67,10 +76,6 @@ val randomKey = Key.generate[SymmetricKey128]
 
 When you define own subclasses of Key you should also define appropriate implicit implementations of CanGenerateKey
 and MightBuildKey.
-
-The function returned by encrypt and decrypt is able to encrypt a single block so in the case of AES exactly 16 bytes. If your input is not
-exactly divisible by the block size you need padding. The BlockPadding trait transforms an Iterator of byte sequences to an Iterator of
-properly padded blocks.
 
 When you have created a suite you can use the encrypt/decrypt method to encrypt/decrypt an Iterator[Seq[Byte]] to an Iterator[Try[Seq[Byte]]].
 If the resulting iterator contains a single Failure encryption or decryption must be aborted. There are helper methods for processing a single
@@ -95,6 +100,43 @@ sadly not compatible with anything. This will most likely change.
 There is exactly one cipher suite available for RSA encryption: RSAES\_OAEP which implements message encryption
 according to PKCS#1. Usage is equivalent to the symmetric cipher suites except decryption will return a Failure
 when the private key is unavailable.
+
+Message authentication
+----------------------
+
+The KeyedHash trait provides an interface for various methods for authenticating message.
+
+```scala
+import khash.HmacSHA256
+
+val message = "Hello world!".getBytes
+val falseMessage = "Bye world!".getBytes
+
+val hmacKey = "somepassword".getBytes.toSeq.toKey[SymmetricKeyArbitrary].get
+val mac = HmacSHA256(hmacKey, message).get
+
+println(HmacSHA256.verify(hmacKey, message, mac).get) //prints true
+println(HmacSHA256.verify(hmacKey, falseMessage, mac).get) //prints false
+```
+
+Also an RSASSA-PSS signing algorithm is implemented using the KeyedHash trait:
+
+```scala
+import khash.RSASSA_PSS
+import hash.SHA256
+
+val privateKey = Key.generate[RSAKey]
+val publicKey = privateKey.publicKey
+
+val message = "Hello World".getBytes
+val falseMessage = "Bye world!".getBytes
+
+val signer = RSASSA_PSS(SHA256, 32)
+val signature = signer(privateKey, message).get
+
+println(signer.verify(publicKey, message, signature).get) // Prints true
+println(signer.verify(publicKey, falseMessage, signature).get) // Prints true
+```
 
 Password hashing
 ----------------
