@@ -49,7 +49,7 @@ class PBKDF2Spec extends FlatSpec with Matchers {
     for(test <- tests) {
       val instance = PBKDF2(HmacSHA1, test._3, test._4.length)
       val key = test._1.getBytes.toSeq.toKey[SymmetricKeyArbitrary].get
-      instance(test._2.getBytes.toSeq, key).get should be (test._4)
+      instance(key, test._2.getBytes.toSeq).get should be (test._4)
     }
   }
 

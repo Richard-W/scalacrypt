@@ -45,7 +45,7 @@ object PBKDF2 {
               if(iteration > iterations) {
                 Success(block)
               } else {
-                val uTry = algorithm(previousU, key)
+                val uTry = algorithm(key, previousU)
                 if(uTry.isSuccess) {
                   val u = uTry.get
                   calcBlockHelper(block xor u, u, iteration + 1)
@@ -69,6 +69,6 @@ object PBKDF2 {
       }
     }
 
-    def verify(hash: Seq[Byte], key: Key): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
+    def verify(key: Key, hash: Seq[Byte]): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
   }
 }

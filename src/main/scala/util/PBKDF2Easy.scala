@@ -40,7 +40,7 @@ object PBKDF2Easy {
     val pbkdf2 = khash.PBKDF2(algoMap(defaultAlgorithm), iterations, defaultHashLength)
 
     val salt = Random.nextBytes(32).toList
-    pbkdf2(salt, key) map { _.toList } match {
+    pbkdf2(key, salt) map { _.toList } match {
       case Success(hash) ⇒
       Success(defaultAlgorithm :: iterationsBytes ::: defaultSaltLengthBytes ::: salt ::: defaultHashLengthBytes ::: hash)
 
@@ -71,6 +71,6 @@ object PBKDF2Easy {
     if(realHash.length != hashLength) return Success(false)
 
     val pbkdf2 = khash.PBKDF2(algorithm, iterations, hashLength)
-    pbkdf2(salt, key) map { _ == realHash }
+    pbkdf2(key, salt) map { _ == realHash }
   }
 }

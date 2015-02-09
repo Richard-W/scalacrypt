@@ -161,9 +161,9 @@ class RSASpec extends FlatSpec with Matchers {
   "RSASSA_PSS" should "be able to verify a created signature." in {
     val signer = khash.RSASSA_PSS()
     val message = (1 to 16) map { _.toByte }
-    val signature = signer(message, testKey).get
+    val signature = signer(testKey, message).get
 
-    signer.verify(signature, testKey.publicKey).get
+    signer.verify(testKey, message, signature).get should be (true)
   }
 
   it should "conform to the test vectors." in {
@@ -222,8 +222,8 @@ class RSASpec extends FlatSpec with Matchers {
     val key = (e, d, n).toKey[RSAKey].get
 
     val signer = khash.RSASSA_PSS(hash.SHA1, salt.length, _ ⇒ salt)
-    signer(m, key).get should be (signature)
-    signer.verify(m, signature, key).get should be (true)
+    signer(key, m).get should be (signature)
+    signer.verify(key, m, signature).get should be (true)
   }
 }
 

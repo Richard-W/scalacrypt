@@ -43,7 +43,7 @@ class JavaMac(algorithm: String) extends KeyedHash[Key] {
     })
   }
 
-  def verify(hash: Seq[Byte], key: Key): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
+  def verify(key: Key, hash: Seq[Byte]): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
 
   lazy val length: Int = javax.crypto.Mac.getInstance(algorithm).getMacLength
 }

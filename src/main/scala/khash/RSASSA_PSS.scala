@@ -66,7 +66,7 @@ object RSASSA_PSS {
       })
     }
 
-    def verify(hash: Seq[Byte], key: RSAKey): Try[Iteratee[Seq[Byte],Boolean]] = {
+    def verify(key: RSAKey, hash: Seq[Byte]): Try[Iteratee[Seq[Byte],Boolean]] = {
       val cipher = BlockCipher[RSA](Parameters('rsaKey -> key)).get
       val em = cipher.encryptBlock(hash) match {
         case Success(s) ⇒ s

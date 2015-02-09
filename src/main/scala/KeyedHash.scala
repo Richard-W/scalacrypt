@@ -24,13 +24,13 @@ trait KeyedHash[KeyType <: Key] {
   def apply(key: KeyType): Try[Iteratee[Seq[Byte],Seq[Byte]]]
 
   /** Calculates the MAC. */
-  def apply(data: Seq[Byte], key: KeyType): Try[Seq[Byte]] = apply(key) flatMap {
+  def apply(key: KeyType, data: Seq[Byte]): Try[Seq[Byte]] = apply(key) flatMap {
     _.fold(Element(data)).run
   }
 
   /** Takes an iterator of data and returns an iterator containing a
     * tuple of both the data chunk and an option finally containing the hash. */
-  def apply(data: Iterator[Seq[Byte]], key: KeyType): Try[Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])]] = {
+  def apply(key: KeyType, data: Iterator[Seq[Byte]]): Try[Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])]] = {
     apply(key) map { initialIteratee ⇒
       new Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])] {
         var lastIteratee = initialIteratee
@@ -45,9 +45,9 @@ trait KeyedHash[KeyType <: Key] {
     }
   }
 
-  def verify(hash: Seq[Byte], key: KeyType): Try[Iteratee[Seq[Byte], Boolean]]
+  def verify(key: KeyType, hash: Seq[Byte]): Try[Iteratee[Seq[Byte], Boolean]]
 
-  def verify(data: Seq[Byte], hash: Seq[Byte], key: KeyType): Try[Boolean] = verify(hash, key) flatMap {
+  def verify(key: KeyType, data: Seq[Byte], hash: Seq[Byte]): Try[Boolean] = verify(key, hash) flatMap {
     _.fold(Element(data)).run
   }
 
