@@ -34,7 +34,7 @@ object AES128_CBC_NoPadding {
     BlockCipher[AES128](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
         BlockPadding[NoPadding](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }
@@ -55,7 +55,7 @@ object AES192_CBC_NoPadding {
     BlockCipher[AES192](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
         BlockPadding[NoPadding](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }
@@ -76,7 +76,7 @@ object AES256_CBC_NoPadding {
     BlockCipher[AES256](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
         BlockPadding[NoPadding](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }

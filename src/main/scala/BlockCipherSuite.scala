@@ -19,7 +19,7 @@ import scala.util.{ Try, Success, Failure }
 /** Represents a combination of cryptographic primitives to implement
   * a block cipher that can be used on arbitrary iterators.
   */
-class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val padding: BlockPadding, val mode: BlockCipherMode) {
+class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mode: BlockCipherMode, val padding: BlockPadding) {
 
   private def tryIteratorToTry(it: Iterator[Try[Seq[Byte]]]) = it.foldLeft[Try[Seq[Byte]]](Success(Seq())) { (a, b) ⇒
     if(a.isFailure) a

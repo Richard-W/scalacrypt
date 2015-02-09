@@ -38,7 +38,7 @@ object Threefish256_CBC_PKCS7Padding {
     BlockCipher[Threefish256](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
         BlockPadding[PKCS7Padding](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }
@@ -63,7 +63,7 @@ object Threefish512_CBC_PKCS7Padding {
     BlockCipher[Threefish512](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
         BlockPadding[PKCS7Padding](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }
@@ -88,7 +88,7 @@ object Threefish1024_CBC_PKCS7Padding {
     BlockCipher[Threefish1024](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
         BlockPadding[PKCS7Padding](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }

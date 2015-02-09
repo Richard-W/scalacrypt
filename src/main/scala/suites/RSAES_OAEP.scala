@@ -34,7 +34,7 @@ object RSAES_OAEP {
     BlockCipher[RSA](params) flatMap { cipher ⇒
       BlockCipherMode[ECB](params) flatMap { mode ⇒
         BlockPadding[OAEP](params) map { padding ⇒
-          new BlockCipherSuite(cipher, padding, mode)
+          new BlockCipherSuite(cipher, mode, padding)
         }
       }
     }
