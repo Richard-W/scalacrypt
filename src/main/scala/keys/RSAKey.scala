@@ -2,11 +2,16 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
+sealed trait RSAPrivateKeyPart
+
 /** A private key that only holds the private exponent. */
-final class RSAPrivateKeyV1(val d: BigInt) { }
+final case class RSAPrivateExponentKeyPart(d: BigInt) extends RSAPrivateKeyPart
 
 /** A private key part that holds parameters for faster application of the private key. */
-final class RSAPrivateKeyV2(val p: BigInt, val q: BigInt, val dP: BigInt, val dQ: BigInt, val qInv: BigInt) { }
+final case class RSAPrivatePrimeKeyPart(p: BigInt, q: BigInt, dP: BigInt, dQ: BigInt, qInv: BigInt) extends RSAPrivateKeyPart
+
+/** A private key part that holds parameters for faster application of the private key. */
+final case class RSAPrivateCombinedKeyPart(d: BigInt, p: BigInt, q: BigInt, dP: BigInt, dQ: BigInt, qInv: BigInt) extends RSAPrivateKeyPart
 
 /** Asymmetric RSA key. */
 sealed abstract class RSAKey extends Key {
@@ -17,12 +22,11 @@ sealed abstract class RSAKey extends Key {
   /** Public exponent. */
   val e: BigInt
 
-  val privateKey1: Option[RSAPrivateKeyV1]
-
-  val privateKey2: Option[RSAPrivateKeyV2]
+  /** The private part of the key */
+  val privateKey: Option[RSAPrivateKeyPart]
 
   /** Whether this key should be kept secret. */
-  def isPrivateKey: Boolean = if(privateKey1.isDefined || privateKey2.isDefined) true else false
+  def isPrivateKey: Boolean = privateKey.isDefined
 
   /** Whether it is safe to publish this key. */
   def isPublicKey: Boolean = !isPrivateKey
@@ -33,8 +37,7 @@ sealed abstract class RSAKey extends Key {
     new RSAKey {
       val n = base.n
       val e = base.e
-      val privateKey1 = None
-      val privateKey2 = None
+      val privateKey = None
     }
   }
 
@@ -48,16 +51,16 @@ sealed abstract class RSAKey extends Key {
     }
 
     f(0, n) ::: f(1, e) :::
-      (if(privateKey1.isDefined) f(2, privateKey1.get.d) else Nil) :::
-      (if(privateKey2.isDefined) {
-        val k2 = privateKey2.get
-        f(3, k2.p) :::
-          f(4, k2.q) :::
-          f(5, k2.dP) :::
-          f(6, k2.dQ) :::
-          f(7, k2.qInv) :::
-          Nil
-      } else Nil)
+    (privateKey match {
+      case Some(RSAPrivateExponentKeyPart(d)) ⇒
+        f(2, d)
+      case Some(RSAPrivatePrimeKeyPart(p, q, dP, dQ, qInv)) ⇒
+        f(3, p) ::: f(4, q) ::: f(5, dP) ::: f(6, dQ) ::: f(7, qInv) ::: Nil
+      case Some(RSAPrivateCombinedKeyPart(d, p, q, dP, dQ, qInv)) ⇒
+        f(2, d) ::: f(3, p) ::: f(4, q) ::: f(5, dP) ::: f(6, dQ) ::: f(7, qInv) ::: Nil
+      case None ⇒
+        Nil
+    }) ::: Nil
   }
 }
 
@@ -67,8 +70,7 @@ object RSAKey {
     def tryBuild(keyTuple: (Seq[Byte], Seq[Byte])): Try[RSAKey] = Success(new RSAKey {
       val n = keyTuple._2.os2ip
       val e = keyTuple._1.os2ip
-      val privateKey1 = None
-      val privateKey2 = None
+      val privateKey = None
     })
   }
 
@@ -76,8 +78,7 @@ object RSAKey {
     def tryBuild(keyTuple: (Seq[Byte], Seq[Byte], Seq[Byte])): Try[RSAKey] = Success(new RSAKey {
       val n = keyTuple._3.os2ip
       val e = keyTuple._1.os2ip
-      val privateKey1 = Some(new RSAPrivateKeyV1(keyTuple._2.os2ip))
-      val privateKey2 = None
+      val privateKey = Some(new RSAPrivateExponentKeyPart(keyTuple._2.os2ip))
     })
   }
 
@@ -117,23 +118,22 @@ object RSAKey {
         return f.asInstanceOf[Try[RSAKey]]
       }
 
-      val key1: Option[RSAPrivateKeyV1] = if(map.contains(2))
-        Some(new RSAPrivateKeyV1(map(2)))
-      else
-        None
-
-      val key2: Option[RSAPrivateKeyV2] = if((3 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0)
-        Some(new RSAPrivateKeyV2(map(3), map(4), map(5), map(6), map(7)))
-      else
-        None
+      val key: Option[RSAPrivateKeyPart] =
+        if((2 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0) 
+          Some(new RSAPrivateCombinedKeyPart(map(2), map(3), map(4), map(5), map(6), map(7)))
+        else if((3 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0) 
+          Some(new RSAPrivatePrimeKeyPart(map(3), map(4), map(5), map(6), map(7)))
+        else if(map.contains(2))
+          Some(new RSAPrivateExponentKeyPart(map(2)))
+        else
+          None
 
       if(! map.contains(0) || !map.contains(1)) {
         Failure(new KeyException("Important parameters missing in RSAKey."))
       } else Success(new RSAKey {
         val n = map.get(0).get
         val e = map.get(1).get
-        val privateKey1 = key1
-        val privateKey2 = key2
+        val privateKey = key
       })
     }
   }
@@ -152,13 +152,10 @@ object RSAKey {
       // Private key variant 1
       val ϕ = (p - 1) * (q - 1)
       val d = e modInverse ϕ
-      val privateKey1 = Some(new RSAPrivateKeyV1(d))
-
-      // Private key variant 2
       val dP = d mod (p - 1)
       val dQ = d mod (q - 1)
       val qInv = q modInverse p
-      val privateKey2 = Some(new RSAPrivateKeyV2(p, q, dP, dQ, qInv))
+      val privateKey = Some(new RSAPrivateCombinedKeyPart(d, p, q, dP, dQ, qInv))
     }
   }
 }

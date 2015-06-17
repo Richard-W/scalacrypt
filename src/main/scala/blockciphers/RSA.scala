@@ -45,21 +45,23 @@ sealed trait RSA extends BlockCipher[RSAKey] {
     val c = block.os2ip
     if(c > key.n) return Failure(new DecryptionException("Invalid ciphertext"))
 
-    key.privateKey2 match {
-      case Some(privKey) ⇒
-      val c1 = c modPow (privKey.dP, privKey.p)
-      val c2 = c modPow (privKey.dQ, privKey.q)
-      (((privKey.qInv * (c1 - c2)) mod privKey.p) * privKey.q + c2).i2osp(blockSize)
+    key.privateKey match {
+      case Some(RSAPrivateCombinedKeyPart(_, p, q, dP, dQ, qInv)) ⇒
+        val c1 = c modPow (dP, p)
+        val c2 = c modPow (dQ, q)
+        (((qInv * (c1 - c2)) mod p) * q + c2).i2osp(blockSize)
 
-      case _ ⇒
-      key.privateKey1 match {
-        case Some(privKey) ⇒
-        val m = c modPow (privKey.d, key.n)
+      case Some(RSAPrivatePrimeKeyPart(p, q, dP, dQ, qInv)) ⇒
+        val c1 = c modPow (dP, p)
+        val c2 = c modPow (dQ, q)
+        (((qInv * (c1 - c2)) mod p) * q + c2).i2osp(blockSize)
+
+      case Some(RSAPrivateExponentKeyPart(d)) ⇒
+        val m = c modPow (d, key.n)
         m.i2osp(blockSize)
 
-        case _ ⇒
+      case None ⇒
         Failure(new DecryptionException("No private key."))
-      }
     }
   }
 }

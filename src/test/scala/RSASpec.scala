@@ -111,8 +111,7 @@ class RSASpec extends FlatSpec with Matchers {
     testKey.isPrivateKey should be (true)
     val pubKey = testKey.publicKey
     pubKey.isPrivateKey should be (false)
-    pubKey.privateKey1 should be (None)
-    pubKey.privateKey2 should be (None)
+    pubKey.privateKey should be (None)
   }
 
   "RSAES_OAEP encryption" should "correctly encrypt and decrypt data" in {
