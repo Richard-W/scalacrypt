@@ -28,9 +28,8 @@ object PBKDF2 {
     def length = len
 
     def apply(key: Key): Try[Iteratee[Seq[Byte], Seq[Byte]]] = {
-      algorithm(key) match {
-        case Success(initialIteratee) ⇒
-        Success(Iteratee.fold(initialIteratee) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
+      algorithm(key) map { initialIteratee ⇒
+        Iteratee.fold(initialIteratee) { (iteratee: Iteratee[Seq[Byte], Seq[Byte]], chunk: Seq[Byte]) ⇒
           Success(iteratee.fold(Element(chunk)))
         } flatMap { keyedHash ⇒
           val numBlocks = (length.toFloat / algorithm.length).ceil.toInt
@@ -62,10 +61,7 @@ object PBKDF2 {
           val failures = blocks filter { _.isFailure }
           if(failures.length == 0) Iteratee.done((blocks map { _.get }).flatten.slice(0, length))
           else Iteratee.error(failures(0).failed.get)
-        })
-
-        case Failure(f) ⇒
-        Failure(f)
+        }
       }
     }
 
