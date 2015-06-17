@@ -48,6 +48,6 @@ class KeySpec extends FlatSpec with Matchers {
     // After the map 0 until 16 is a IndexedSeq[Byte] and therefore a subclass of Seq[Byte]
     // Contravariance makes sure that MightBuildKey[Seq[Byte], SymmetricKey128] is
     // considered a subclass of MightBuildKey[IndexedSeq[Byte], SymmetricKey128].
-    (0 until 16).map({ _.toByte }).toKey[SymmetricKey128]()(MightBuildKey.symmetricKey128) shouldBe a [Success[_]]
+    (0 until 16).map({ _.toByte }).toKey[SymmetricKey128]()(SymmetricKey128.mightBuildKey) shouldBe a [Success[_]]
   }
 }
