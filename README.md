@@ -1,6 +1,8 @@
 Scalacrypt
 ==========
 
+[![Build Status](https://travis-ci.org/Richard-W/scalacrypt.svg?branch=master)](https://travis-ci.org/Richard-W/scalacrypt)
+
 Scalacrypt provides advanced cryptographic functions for scala projects. It wraps the
 javax.crypto API and provides a few things that are not implemented there in a way
 usable for this project.
