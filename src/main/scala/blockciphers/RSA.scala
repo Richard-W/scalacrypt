@@ -33,7 +33,7 @@ sealed trait RSA extends BlockCipher[RSAKey] {
       return Failure(new EncryptionException(s"Invalid block size. Expected length $blockSize, got $blocklen."))
 
     val m = block.os2ip
-    if(m > key.n) return Failure(new EncryptionException("Message representative out of range."))
+    if(m > key.n) return Failure(new EncryptionException("Message representation out of range."))
 
     val c = m modPow (key.e, key.n)
     c.i2osp(blockSize)
