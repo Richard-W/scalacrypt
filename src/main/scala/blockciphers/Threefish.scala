@@ -244,8 +244,9 @@ object Threefish256 {
   implicit val builder = new CanBuildBlockCipher[Threefish256] {
     def build(parameters: Parameters): Try[Threefish256] = {
       Parameters.checkParam[SymmetricKey256](parameters, 'symmetricKey256) flatMap { k ⇒
-        Parameters.checkParam[Seq[Byte]](parameters, 'tweak) map { t ⇒
-          new Threefish256 { val key = k; val tweak = t; val params = parameters }
+        Parameters.checkParam[Seq[Byte]](parameters, 'tweak) flatMap { t ⇒
+          if(t.length == 16) Success(new Threefish256 { val key = k; val tweak = t; val params = parameters })
+          else Failure(new Exception("Invalid tweak size."))
         }
       }
     }
@@ -256,8 +257,9 @@ object Threefish512 {
   implicit val builder = new CanBuildBlockCipher[Threefish512] {
     def build(parameters: Parameters): Try[Threefish512] = {
       Parameters.checkParam[SymmetricKey512](parameters, 'symmetricKey512) flatMap { k ⇒
-        Parameters.checkParam[Seq[Byte]](parameters, 'tweak) map { t ⇒
-          new Threefish512 { val key = k; val tweak = t; val params = parameters }
+        Parameters.checkParam[Seq[Byte]](parameters, 'tweak) flatMap { t ⇒
+          if(t.length == 16) Success(new Threefish512 { val key = k; val tweak = t; val params = parameters })
+          else Failure(new Exception("Invalid tweak size."))
         }
       }
     }
@@ -268,8 +270,9 @@ object Threefish1024 {
   implicit val builder = new CanBuildBlockCipher[Threefish1024] {
     def build(parameters: Parameters): Try[Threefish1024] = {
       Parameters.checkParam[SymmetricKey1024](parameters, 'symmetricKey1024) flatMap { k ⇒
-        Parameters.checkParam[Seq[Byte]](parameters, 'tweak) map { t ⇒
-          new Threefish1024 { val key = k; val tweak = t; val params = parameters }
+        Parameters.checkParam[Seq[Byte]](parameters, 'tweak) flatMap { t ⇒
+          if(t.length == 16) Success(new Threefish1024 { val key = k; val tweak = t; val params = parameters })
+          else Failure(new Exception("Invalid tweak size."))
         }
       }
     }
