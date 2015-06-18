@@ -147,10 +147,12 @@ class AES256Spec extends BlockCipherSpec[SymmetricKey256, AES256] {
 class Threefish256Spec extends BlockCipherSpec[SymmetricKey256, Threefish256] {
   val baseParameters = Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> (0 until 16 map { _.toByte }))
   val keySymbol = 'symmetricKey256
+  val tweak = (0 until 16) map { _.toByte }
 
   val parameterTestVectors = Seq(
-    (Parameters('symmetricKey128 -> Key.generate[SymmetricKey128]), false),
-    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey1024]), false)
+    (Parameters('symmetricKey128 -> Key.generate[SymmetricKey128], 'tweak -> tweak), false),
+    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey1024], 'tweak -> tweak), false),
+    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> (0 until 15 map { _.toByte })), false)
   )
 
   val testVectors = Seq()
@@ -159,10 +161,12 @@ class Threefish256Spec extends BlockCipherSpec[SymmetricKey256, Threefish256] {
 class Threefish512Spec extends BlockCipherSpec[SymmetricKey512, Threefish512] {
   val baseParameters = Parameters('symmetricKey512 -> Key.generate[SymmetricKey512], 'tweak -> (0 until 16 map { _.toByte }))
   val keySymbol = 'symmetricKey512
+  val tweak = (0 until 16) map { _.toByte }
 
   val parameterTestVectors = Seq(
-    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256]), false),
-    (Parameters('symmetricKey512 -> Key.generate[SymmetricKey1024]), false)
+    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> tweak), false),
+    (Parameters('symmetricKey512 -> Key.generate[SymmetricKey1024], 'tweak -> tweak), false),
+    (Parameters('symmetricKey512 -> Key.generate[SymmetricKey512], 'tweak -> (0 until 15 map { _.toByte })), false)
   )
 
   val testVectors = Seq()
@@ -171,10 +175,12 @@ class Threefish512Spec extends BlockCipherSpec[SymmetricKey512, Threefish512] {
 class Threefish1024Spec extends BlockCipherSpec[SymmetricKey1024, Threefish1024] {
   val baseParameters = Parameters('symmetricKey1024 -> Key.generate[SymmetricKey1024], 'tweak -> (0 until 16 map { _.toByte }))
   val keySymbol = 'symmetricKey1024
+  val tweak = (0 until 16) map { _.toByte }
 
   val parameterTestVectors = Seq(
-    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256]), false),
-    (Parameters('symmetricKey1024 -> Key.generate[SymmetricKey256]), false)
+    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> tweak), false),
+    (Parameters('symmetricKey1024 -> Key.generate[SymmetricKey256], 'tweak -> tweak), false),
+    (Parameters('symmetricKey512 -> Key.generate[SymmetricKey512], 'tweak -> (0 until 15 map { _.toByte })), false)
   )
 
   val testVectors = Seq()
