@@ -15,14 +15,37 @@
 package xyz.wiedenhoeft.scalacrypt
 
 import iteratees._
+import scala.concurrent.{ Future, Promise }
 
 trait Hash {
   
   /** Returns an iteratee that digests its input to a hash. */
-  def apply: Iteratee[Seq[Byte], Seq[Byte]]
+  def apply(): Iteratee[Seq[Byte], Seq[Byte]]
 
   /** Digests a given sequence of bytes. */
   def apply(data: Seq[Byte]): Seq[Byte] = apply.fold(Element(data)).run.get
+
+  /** Returns a promise of the hash value and an identical iterator. */
+  def apply(data: Iterator[Seq[Byte]]): (Iterator[Seq[Byte]], Future[Seq[Byte]]) = {
+    val promise = Promise[Seq[Byte]]
+    val iterator = new Iterator[Seq[Byte]] {
+
+      var iteratee: Iteratee[Seq[Byte], Seq[Byte]] = apply()
+
+      def hasNext: Boolean = data.hasNext
+
+      def next: Seq[Byte] = {
+        val chunk = data.next
+        iteratee = iteratee.fold(Element(chunk))
+        if(!data.hasNext) {
+          val hashTry = iteratee.run
+          promise.complete(hashTry)
+        }
+        chunk
+      }
+    }
+    (iterator, promise.future)
+  }
 
   /** Length of the resulting hash. */
   def length: Int

@@ -16,6 +16,7 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 import iteratees._
+import scala.concurrent.{ Promise, Future }
 
 /** Base class for Keyed hash (Message Authentication Code) implementations. */
 trait KeyedHash[KeyType <: Key] {
@@ -28,20 +29,28 @@ trait KeyedHash[KeyType <: Key] {
     _.fold(Element(data)).run
   }
 
-  /** Takes an iterator of data and returns an iterator containing a
-    * tuple of both the data chunk and an option finally containing the hash. */
-  def apply(key: KeyType, data: Iterator[Seq[Byte]]): Try[Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])]] = {
-    apply(key) map { initialIteratee ⇒
-      new Iterator[(Seq[Byte], Option[Try[Seq[Byte]]])] {
-        var lastIteratee = initialIteratee
+  /** Takes an iterator of data and returns a future containing the hash and an identical iterator */
+  def apply(key: KeyType, data: Iterator[Seq[Byte]]): Try[(Iterator[Seq[Byte]], Future[Seq[Byte]])] = {
+    val promise = Promise[Seq[Byte]]
+    val iteratorTry = apply(key) map { initIteratee ⇒
+      new Iterator[Seq[Byte]] {
+
+        var iteratee = initIteratee
 
         def hasNext = data.hasNext
+
         def next = {
           val chunk = data.next
-          lastIteratee = lastIteratee.fold(Element(chunk))
-          (chunk, if(!hasNext) Some(lastIteratee.fold(EOF).run) else None)
+          iteratee = iteratee.fold(Element(chunk))
+          if(!data.hasNext) {
+            promise.complete(iteratee.run)
+          }
+          chunk
         }
       }
+    }
+    iteratorTry map { iterator ⇒
+      (iterator, promise.future)
     }
   }
 

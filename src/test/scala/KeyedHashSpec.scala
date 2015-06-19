@@ -63,12 +63,9 @@ class KeyedHashSpec extends FlatSpec with Matchers {
     val mac = HmacSHA256(key, data).get
     var option: Option[Try[Seq[Byte]]] = None
 
-    (HmacSHA256(key, seq.toIterator).get map({ t ⇒
-      option = t._2
-      t._1
-    })).toSeq should be (seq)
-
-    option.get.get should be (mac)
+    val (iterator, future) = HmacSHA256(key, seq.toIterator).get
+    iterator.toSeq should be (seq)
+    future.value.get.get should be (mac)
   }
 
   "The iteratee of a KeyedHash" should "be branchable." in {
