@@ -38,6 +38,17 @@ abstract class BlockCipherSpec[KeyType <: Key: CanGenerateKey, Cipher <: BlockCi
   /** Encryption and decryption test vectors: (cleartext, key, ciphertext, additional params) */
   def testVectors: Seq[(Seq[Byte], KeyType, Seq[Byte], Option[Parameters])]
 
+  /** Block size this cipher should have */
+  def blockSize: Int
+
+  /**
+   * When encrypting and decrypting a random block this is prepended to the random block.
+   *
+   * It is needed for example by RSA where the numerical message representation must be less than
+   * the modulus of the key.
+   */
+  def firstBytesOfRandomBlock: Seq[Byte] = Seq()
+
   val cipherName = classTag[Cipher].runtimeClass.getName.split('.').last
 
   cipherName should "be buildable using type classes." in {
@@ -53,8 +64,8 @@ abstract class BlockCipherSpec[KeyType <: Key: CanGenerateKey, Cipher <: BlockCi
   }
 
   it should "be able to encrypt and decrypt a random bytestring." in {
-    val cipher = BlockCipher[Cipher](baseParameters ++ Parameters(keySymbol -> Key.generate[KeyType])).get
-    val m = Random.nextBytes(cipher.blockSize)
+    val cipher = BlockCipher[Cipher](baseParameters).get
+    val m = firstBytesOfRandomBlock ++ Random.nextBytes(cipher.blockSize - firstBytesOfRandomBlock.length)
     val c = cipher.encryptBlock(m).get
     cipher.decryptBlock(c).get should be(m)
   }
@@ -74,11 +85,16 @@ abstract class BlockCipherSpec[KeyType <: Key: CanGenerateKey, Cipher <: BlockCi
   }
 
   it should "fail on invalid block sizes." in {
-    val cipher = BlockCipher[Cipher](baseParameters ++ Parameters(keySymbol -> Key.generate[KeyType])).get
+    val cipher = BlockCipher[Cipher](baseParameters).get
     cipher.encryptBlock(Random.nextBytes(cipher.blockSize - 1)) shouldBe a[Failure[_]]
     cipher.decryptBlock(Random.nextBytes(cipher.blockSize - 1)) shouldBe a[Failure[_]]
     cipher.encryptBlock(Random.nextBytes(cipher.blockSize + 1)) shouldBe a[Failure[_]]
     cipher.decryptBlock(Random.nextBytes(cipher.blockSize + 1)) shouldBe a[Failure[_]]
+  }
+
+  it should "have the correct block size" in {
+    val cipher = BlockCipher[Cipher](baseParameters).get
+    cipher.blockSize should be(blockSize)
   }
 }
 
@@ -86,6 +102,8 @@ class AES128Spec extends BlockCipherSpec[SymmetricKey128, AES128] {
 
   val baseParameters = Parameters('symmetricKey128 -> Key.generate[SymmetricKey128])
   val keySymbol = 'symmetricKey128
+  val blockSize = 16
+
   val parameterTestVectors = Seq(
     (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256]), false),
     (Parameters('symmetricKey128 -> Key.generate[SymmetricKey192]), false)
@@ -124,6 +142,7 @@ class AES128Spec extends BlockCipherSpec[SymmetricKey128, AES128] {
 class AES192Spec extends BlockCipherSpec[SymmetricKey192, AES192] {
   val baseParameters = Parameters('symmetricKey192 -> Key.generate[SymmetricKey192])
   val keySymbol = 'symmetricKey192
+  val blockSize = 16
 
   val parameterTestVectors = Seq(
     (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256]), false),
@@ -136,6 +155,7 @@ class AES192Spec extends BlockCipherSpec[SymmetricKey192, AES192] {
 class AES256Spec extends BlockCipherSpec[SymmetricKey256, AES256] {
   val baseParameters = Parameters('symmetricKey256 -> Key.generate[SymmetricKey256])
   val keySymbol = 'symmetricKey256
+  val blockSize = 16
 
   val parameterTestVectors = Seq(
     (Parameters('symmetricKey128 -> Key.generate[SymmetricKey128]), false),
@@ -149,6 +169,7 @@ class Threefish256Spec extends BlockCipherSpec[SymmetricKey256, Threefish256] {
   val baseParameters = Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> (0 until 16 map { _.toByte }))
   val keySymbol = 'symmetricKey256
   val tweak = (0 until 16) map { _.toByte }
+  val blockSize = 32
 
   val parameterTestVectors = Seq(
     (Parameters('symmetricKey128 -> Key.generate[SymmetricKey128], 'tweak -> tweak), false),
@@ -163,6 +184,7 @@ class Threefish512Spec extends BlockCipherSpec[SymmetricKey512, Threefish512] {
   val baseParameters = Parameters('symmetricKey512 -> Key.generate[SymmetricKey512], 'tweak -> (0 until 16 map { _.toByte }))
   val keySymbol = 'symmetricKey512
   val tweak = (0 until 16) map { _.toByte }
+  val blockSize = 64
 
   val parameterTestVectors = Seq(
     (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> tweak), false),
@@ -177,11 +199,132 @@ class Threefish1024Spec extends BlockCipherSpec[SymmetricKey1024, Threefish1024]
   val baseParameters = Parameters('symmetricKey1024 -> Key.generate[SymmetricKey1024], 'tweak -> (0 until 16 map { _.toByte }))
   val keySymbol = 'symmetricKey1024
   val tweak = (0 until 16) map { _.toByte }
+  val blockSize = 128
 
   val parameterTestVectors = Seq(
     (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256], 'tweak -> tweak), false),
     (Parameters('symmetricKey1024 -> Key.generate[SymmetricKey256], 'tweak -> tweak), false),
     (Parameters('symmetricKey512 -> Key.generate[SymmetricKey512], 'tweak -> (0 until 15 map { _.toByte })), false)
+  )
+
+  val testVectors = Seq()
+}
+
+class RSACrtSpec extends BlockCipherSpec[RSAKey, RSA] {
+
+  val crtKey =
+    """ |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
+    |1KJvCOgIoxKqFtV+O7c=""".stripMargin.toBase64Bytes.toKey[RSAKey].get
+
+  val baseParameters = Parameters('rsaKey -> crtKey)
+  val keySymbol = 'rsaKey
+  val blockSize = 512
+  override val firstBytesOfRandomBlock = Seq(0, 0, 0, 0) map { _.toByte }
+
+  val parameterTestVectors = Seq(
+    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256]), false),
+    (Parameters('rsaKey -> Key.generate[SymmetricKey1024]), false)
+  )
+
+  val testVectors = Seq()
+}
+
+class RSAExpSpec extends BlockCipherSpec[RSAKey, RSA] {
+
+  val crtKey =
+    """ |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
+    |1KJvCOgIoxKqFtV+O7c=""".stripMargin.toBase64Bytes.toKey[RSAKey].get
+
+  val expKey = (crtKey.e.toByteArray.toSeq, crtKey.privateKey.get.asInstanceOf[RSAPrivateCombinedKeyPart].d.toByteArray.toSeq, crtKey.n.toByteArray.toSeq).toKey[RSAKey].get
+
+  val baseParameters = Parameters('rsaKey -> expKey)
+  val keySymbol = 'rsaKey
+  val blockSize = 512
+  override val firstBytesOfRandomBlock = Seq(0, 0, 0, 0) map { _.toByte }
+
+  val parameterTestVectors = Seq(
+    (Parameters('symmetricKey256 -> Key.generate[SymmetricKey256]), false),
+    (Parameters('rsaKey -> Key.generate[SymmetricKey1024]), false)
   )
 
   val testVectors = Seq()
