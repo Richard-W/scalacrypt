@@ -17,33 +17,34 @@ package xyz.wiedenhoeft.scalacrypt.blockciphers
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 
-/** BlockCipher that encrypts a byte sequence using RSA.
-  *
-  * Because of the internal representation of the data
-  * leading zeroes will be lost. You should use a padding
-  * scheme that fixes this case.
-  */
+/**
+ * BlockCipher that encrypts a byte sequence using RSA.
+ *
+ * Because of the internal representation of the data
+ * leading zeroes will be lost. You should use a padding
+ * scheme that fixes this case.
+ */
 sealed trait RSA extends BlockCipher[RSAKey] {
 
   lazy val blockSize = (key.n.bitLength.toFloat / 8.0).ceil.toInt
 
   def encryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
     val blocklen = block.length
-    if(blocklen != blockSize)
+    if (blocklen != blockSize)
       return Failure(new EncryptionException(s"Invalid block size. Expected length $blockSize, got $blocklen."))
 
     val m = block.os2ip
-    if(m > key.n) return Failure(new EncryptionException("Message representation out of range."))
+    if (m > key.n) return Failure(new EncryptionException("Message representation out of range."))
 
     val c = m modPow (key.e, key.n)
     c.i2osp(blockSize)
   }
 
   def decryptBlock(block: Seq[Byte]): Try[Seq[Byte]] = {
-    if(block.length != blockSize) return Failure(new DecryptionException("Invalid block size"))
+    if (block.length != blockSize) return Failure(new DecryptionException("Invalid block size"))
 
     val c = block.os2ip
-    if(c > key.n) return Failure(new DecryptionException("Invalid ciphertext"))
+    if (c > key.n) return Failure(new DecryptionException("Invalid ciphertext"))
 
     key.privateKey match {
       case Some(RSAPrivateCombinedKeyPart(_, p, q, dP, dQ, qInv)) ⇒

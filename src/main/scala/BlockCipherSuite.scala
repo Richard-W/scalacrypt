@@ -16,26 +16,28 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
-/** Represents a combination of cryptographic primitives to implement
-  * a block cipher that can be used on arbitrary iterators.
-  */
+/**
+ * Represents a combination of cryptographic primitives to implement
+ * a block cipher that can be used on arbitrary iterators.
+ */
 class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mode: BlockCipherMode, val padding: BlockPadding) {
 
   private def tryIteratorToTry(it: Iterator[Try[Seq[Byte]]]) = it.foldLeft[Try[Seq[Byte]]](Success(Seq())) { (a, b) ⇒
-    if(a.isFailure) a
-    else if(b.isFailure) b
+    if (a.isFailure) a
+    else if (b.isFailure) b
     else Success(a.get ++ b.get)
   }
 
   val blockSize = cipher.blockSize
 
-  /** The combined parameters of cipher, mode and padding.
-    *
-    * They are merged in the following order overwriting conflicting keys:
-    * 1. padding
-    * 2. mode
-    * 3. cipher
-    */
+  /**
+   * The combined parameters of cipher, mode and padding.
+   *
+   * They are merged in the following order overwriting conflicting keys:
+   * 1. padding
+   * 2. mode
+   * 3. cipher
+   */
   lazy val params: Parameters = padding.params ++ (mode.params ++ cipher.params)
 
   def encrypt(input: Seq[Byte]): Try[Seq[Byte]] = tryIteratorToTry(encrypt(Iterator(input)))
@@ -61,15 +63,15 @@ class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mod
       // Encrypt block.
       cipher.encryptBlock(pre) match {
         case Failure(f) ⇒
-        fail = true
-        Failure(f)
+          fail = true
+          Failure(f)
 
         case Success(enc) ⇒
-        // Postprocess block.
-        val (post, postState) = mode.postEncryptBlock(enc, preState)
-        // Save state and return.
-        interState = postState
-        Success(post)
+          // Postprocess block.
+          val (post, postState) = mode.postEncryptBlock(enc, preState)
+          // Save state and return.
+          interState = postState
+          Success(post)
       }
     }
   }
@@ -85,10 +87,10 @@ class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mod
 
       def next: Try[Seq[Byte]] = {
         // Fill buffer and extract single block.
-        while(buffer.length < blockSize && input.hasNext) {
+        while (buffer.length < blockSize && input.hasNext) {
           buffer = buffer ++ input.next
         }
-        if(buffer.length < blockSize) {
+        if (buffer.length < blockSize) {
           fail = true
           return Failure(new IllegalBlockSizeException("Illegal block size encountered."))
         }
@@ -99,13 +101,13 @@ class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mod
         val (pre, preState) = mode.preDecryptBlock(block, interState)
         cipher.decryptBlock(pre) match {
           case Failure(f) ⇒
-          fail = true
-          Failure(f)
+            fail = true
+            Failure(f)
 
           case Success(dec) ⇒
-          val (post, postState) = mode.postDecryptBlock(dec, preState)
-          interState = postState
-          Success(post)
+            val (post, postState) = mode.postDecryptBlock(dec, preState)
+            interState = postState
+            Success(post)
         }
       }
     }
@@ -123,11 +125,11 @@ class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mod
       def next: Seq[Byte] = {
         decryptIterator.next match {
           case Failure(f) ⇒
-          decryptionFailure = Some(f)
-          Seq()
+            decryptionFailure = Some(f)
+            Seq()
 
           case Success(s) ⇒
-          s
+            s
         }
       }
     }
@@ -145,11 +147,11 @@ class BlockCipherSuite[KeyType <: Key](val cipher: BlockCipher[KeyType], val mod
 
         decryptionFailure match {
           case Some(f) ⇒
-          fail = true
-          Failure(f)
+            fail = true
+            Failure(f)
 
           case _ ⇒
-          depadOutput
+            depadOutput
         }
       }
     }

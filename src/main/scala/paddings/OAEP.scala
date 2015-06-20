@@ -17,28 +17,29 @@ package xyz.wiedenhoeft.scalacrypt.paddings
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 
-/** Optimal asymmetric encryption padding as defined in PKCS#1 v2.1
-  *
-  * Block (length k)
-  * 0    1 2 3 4 ... hLen hlen+1 ... k
-  * -----------------------------
-  * 0x00 ------Seed------ ------DB----
-  *
-  * k=16
-  * hlen=5
-  * 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-  * 0 s s s s s d d d d  d  d  d  d  d  d
-  *
-  * DB (length k - hLen - 1)
-  * 0 1 2 ... hlen-1 hlen ... k-hLen-1
-  * ----------------------------------
-  * ------lHash----- ------mPart------
-  *
-  * k=16
-  * hlen=5
-  * 0 1 2 3 4 5 6 7 8 9 10 
-  * h h h h h m m m m m  m
-  */
+/**
+ * Optimal asymmetric encryption padding as defined in PKCS#1 v2.1
+ *
+ * Block (length k)
+ * 0    1 2 3 4 ... hLen hlen+1 ... k
+ * -----------------------------
+ * 0x00 ------Seed------ ------DB----
+ *
+ * k=16
+ * hlen=5
+ * 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+ * 0 s s s s s d d d d  d  d  d  d  d  d
+ *
+ * DB (length k - hLen - 1)
+ * 0 1 2 ... hlen-1 hlen ... k-hLen-1
+ * ----------------------------------
+ * ------lHash----- ------mPart------
+ *
+ * k=16
+ * hlen=5
+ * 0 1 2 3 4 5 6 7 8 9 10
+ * h h h h h m m m m m  m
+ */
 
 sealed trait OAEP extends BlockPadding {
 
@@ -47,7 +48,7 @@ sealed trait OAEP extends BlockPadding {
 
   private def mgf(seed: Seq[Byte], length: Int) = {
     val numBlocks = (length.toFloat / hashFunction.length.toFloat).ceil.toInt
-    (for(i <- (0 until numBlocks)) yield hashFunction(seed ++ BigInt(i).i2osp(4).get)).flatten.slice(0, length)
+    (for (i <- (0 until numBlocks)) yield hashFunction(seed ++ BigInt(i).i2osp(4).get)).flatten.slice(0, length)
   }
 
   /** Optional label that can be verified during decryption */
@@ -66,9 +67,9 @@ sealed trait OAEP extends BlockPadding {
     def hasNext = data.hasNext || buffer.length > 0
 
     def next: Seq[Byte] = {
-      while(buffer.length < maxMessageLength && data.hasNext) buffer = buffer ++ data.next
+      while (buffer.length < maxMessageLength && data.hasNext) buffer = buffer ++ data.next
 
-      val message = if(buffer.length > maxMessageLength) {
+      val message = if (buffer.length > maxMessageLength) {
         val rv = buffer
         buffer = buffer.slice(maxMessageLength, buffer.length)
         rv
@@ -94,17 +95,17 @@ sealed trait OAEP extends BlockPadding {
   def unpad(data: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
 
     def hasNext = data.hasNext
-    
+
     def next: Try[Seq[Byte]] = {
       val block = data.next
-      if(block.length != blockSize)
+      if (block.length != blockSize)
         return Failure(new IllegalBlockSizeException("Unpad needs blocks of correct length."))
 
       /* Never specify what went wrong exactly. */
       val standardError = Some(new BadPaddingException("Invalid OAEP"))
       var error: Option[Exception] = None
 
-      if(block(0) != 0.toByte) {
+      if (block(0) != 0.toByte) {
         error = standardError
       }
       val maskedSeed = block.slice(1, hashFunction.length + 1)
@@ -117,7 +118,7 @@ sealed trait OAEP extends BlockPadding {
       val db = maskedDB xor dbMask
 
       val dbLabel = db.slice(0, hashFunction.length)
-      if(dbLabel != labelHash) {
+      if (dbLabel != labelHash) {
         error = standardError
       }
 
@@ -129,10 +130,10 @@ sealed trait OAEP extends BlockPadding {
       // This is overly complicated, but continuing on error
       // makes side channel attacks to get the specific padding
       // error much harder and unreliable.
-      while(index < dbPaddedMessage.length && indexInPadding) {
+      while (index < dbPaddedMessage.length && indexInPadding) {
         val digit = dbPaddedMessage(index)
-        if(digit != 0.toByte) {
-          if(digit == 1.toByte) {
+        if (digit != 0.toByte) {
+          if (digit == 1.toByte) {
             indexInPadding = false
             message = dbPaddedMessage.slice(index + 1, dbPaddedMessage.length)
           } else {
@@ -144,10 +145,10 @@ sealed trait OAEP extends BlockPadding {
 
       error match {
         case Some(e) ⇒
-        Failure(e)
+          Failure(e)
 
         case _ ⇒
-        Success(message)
+          Success(message)
       }
     }
   }

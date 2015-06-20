@@ -21,25 +21,25 @@ trait PKCS7Padding extends BlockPadding {
 
   def pad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]] = {
     new Iterator[Seq[Byte]] {
-      
+
       var running = true
       var buffer: Seq[Byte] = Seq[Byte]()
 
       def hasNext: Boolean = running
 
       def next: Seq[Byte] = {
-        while(buffer.length < blockSize && input.hasNext) {
+        while (buffer.length < blockSize && input.hasNext) {
           buffer = buffer ++ input.next
         }
 
-        if(buffer.length >= blockSize) {
+        if (buffer.length >= blockSize) {
           val rv = buffer.slice(0, blockSize)
           buffer = buffer.slice(blockSize, buffer.length)
           rv
         } else {
           val missing = blockSize - buffer.length
           running = false
-          buffer ++ (for(_ <- 0 until missing) yield missing.toByte)
+          buffer ++ (for (_ <- 0 until missing) yield missing.toByte)
         }
       }
     }
@@ -50,13 +50,13 @@ trait PKCS7Padding extends BlockPadding {
 
     val rv: Iterator[Try[Seq[Byte]]] = new Iterator[Try[Seq[Byte]]] {
 
-      var buffer: Seq[Byte] = if(input.hasNext) {
+      var buffer: Seq[Byte] = if (input.hasNext) {
         input.next
       } else {
         error = Some(new BadPaddingException("Input is empty."))
         Seq()
       }
-      if(buffer.length != blockSize) {
+      if (buffer.length != blockSize) {
         error = Some(new IllegalBlockSizeException("BlockPadding.unwrap only accepts an iterator of correct blocks."))
         Seq()
       }
@@ -65,10 +65,10 @@ trait PKCS7Padding extends BlockPadding {
 
       def next: Try[Seq[Byte]] = {
         //Peek the next block.
-        val nextBlock: Seq[Byte] = if(input.hasNext) {
+        val nextBlock: Seq[Byte] = if (input.hasNext) {
           val next = input.next
           //Check the block size.
-          if(next.length != blockSize) {
+          if (next.length != blockSize) {
             return Failure(new IllegalBlockSizeException("BlockPadding.unwrap only accepts an iterator of correct blocks."))
           }
           next
@@ -76,7 +76,7 @@ trait PKCS7Padding extends BlockPadding {
           Seq()
         }
 
-        if(input.hasNext) {
+        if (input.hasNext) {
           //After peeking there is still input left so neither
           //buffer nor nextBlock contain the padding.
           val rv = buffer
@@ -89,15 +89,15 @@ trait PKCS7Padding extends BlockPadding {
 
           //Get the padding length
           val lastByte = block.last
-          val paddingLength = if(lastByte.toInt < 0) {
+          val paddingLength = if (lastByte.toInt < 0) {
             lastByte.toInt + 256
           } else {
             lastByte.toInt
           }
 
           //Check the padding and return
-          val padding: Seq[Byte] = for(_ <- 0 until paddingLength) yield lastByte
-          if(block.slice(block.length - paddingLength, block.length) == padding)
+          val padding: Seq[Byte] = for (_ <- 0 until paddingLength) yield lastByte
+          if (block.slice(block.length - paddingLength, block.length) == padding)
             Success(block.slice(0, block.length - paddingLength))
           else
             Failure(new BadPaddingException("Invalid padding"))
@@ -107,16 +107,16 @@ trait PKCS7Padding extends BlockPadding {
 
     error match {
       case Some(f) ⇒
-      Iterator(Failure(f))
+        Iterator(Failure(f))
 
       case _ ⇒
-      rv
+        rv
     }
   }
 }
 
 object PKCS7Padding {
-  
+
   implicit val builder = new CanBuildBlockPadding[PKCS7Padding] {
     def build(parameters: Parameters) = Success(new PKCS7Padding { val params = parameters })
   }

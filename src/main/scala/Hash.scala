@@ -18,7 +18,7 @@ import iteratees._
 import scala.concurrent.{ Future, Promise }
 
 trait Hash {
-  
+
   /** Returns an iteratee that digests its input to a hash. */
   def apply(): Iteratee[Seq[Byte], Seq[Byte]]
 
@@ -37,7 +37,7 @@ trait Hash {
       def next: Seq[Byte] = {
         val chunk = data.next
         iteratee = iteratee.fold(Element(chunk))
-        if(!data.hasNext) {
+        if (!data.hasNext) {
           val hashTry = iteratee.run
           promise.complete(hashTry)
         }

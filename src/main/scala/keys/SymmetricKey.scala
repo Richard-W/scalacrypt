@@ -10,7 +10,7 @@ object SymmetricKey128 {
   implicit val mightBuildKey = new MightBuildKey[Seq[Byte], SymmetricKey128] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey128] = {
-      if(keyBytes.length == 128 / 8) {
+      if (keyBytes.length == 128 / 8) {
         Success(new SymmetricKey128Impl(keyBytes))
       } else {
         Failure(new KeyException("Illegal key size. SymmetricKey128 must be 128 bits long."))
@@ -36,7 +36,7 @@ object SymmetricKey192 {
   implicit val mightBuildKey = new MightBuildKey[Seq[Byte], SymmetricKey192] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey192] = {
-      if(keyBytes.length == 192 / 8) {
+      if (keyBytes.length == 192 / 8) {
         Success(new SymmetricKey192Impl(keyBytes))
       } else {
         Failure(new KeyException("Illegal key size. SymmetricKey192 must be 192 bits long."))
@@ -62,7 +62,7 @@ object SymmetricKey256 {
   implicit val mightBuildKey = new MightBuildKey[Seq[Byte], SymmetricKey256] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey256] = {
-      if(keyBytes.length == 256 / 8) {
+      if (keyBytes.length == 256 / 8) {
         Success(new SymmetricKey256Impl(keyBytes))
       } else {
         Failure(new KeyException("Illegal key size. SymmetricKey256 must be 256 bits long."))
@@ -88,7 +88,7 @@ object SymmetricKey512 {
   implicit val mightBuildKey = new MightBuildKey[Seq[Byte], SymmetricKey512] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey512] = {
-      if(keyBytes.length == 512 / 8) {
+      if (keyBytes.length == 512 / 8) {
         Success(new SymmetricKey512Impl(keyBytes))
       } else {
         Failure(new KeyException("Illegal key size. SymmetricKey512 must be 512 bits long."))
@@ -114,7 +114,7 @@ object SymmetricKey1024 {
   implicit val mightBuildKey = new MightBuildKey[Seq[Byte], SymmetricKey1024] {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[SymmetricKey1024] = {
-      if(keyBytes.length ==  1024 / 8) {
+      if (keyBytes.length == 1024 / 8) {
         Success(new SymmetricKey1024Impl(keyBytes))
       } else {
         Failure(new KeyException("Illegal key size. SymmetricKey1024 must be 1024 bits long."))
@@ -122,7 +122,7 @@ object SymmetricKey1024 {
     }
 
     private class SymmetricKey1024Impl(val bytes: Seq[Byte]) extends SymmetricKey1024 {
-      
+
       def length: Int = 128
     }
   }

@@ -25,11 +25,11 @@ object RSASSA_PSS {
 
     private def mgf1(seed: Seq[Byte], length: Int) = {
       val numBlocks = (length.toFloat / hashFunction.length.toFloat).ceil.toInt
-      (for(i <- (0 until numBlocks)) yield hashFunction(seed ++ BigInt(i).i2osp(4).get)).flatten.slice(0, length)
+      (for (i <- (0 until numBlocks)) yield hashFunction(seed ++ BigInt(i).i2osp(4).get)).flatten.slice(0, length)
     }
 
     def apply(key: RSAKey): Try[Iteratee[Seq[Byte], Seq[Byte]]] = {
-      if(!key.isPrivateKey) return Failure(new KeyedHashException("No private key."))
+      if (!key.isPrivateKey) return Failure(new KeyedHashException("No private key."))
       Success(hashFunction.apply flatMap { mHash ⇒
         val emLen = key.length
         val emBits = key.n.bitLength - 1
@@ -39,17 +39,17 @@ object RSASSA_PSS {
         val psLen = dbLen - sLen - 1
 
         val salt = saltGenerator(saltLength)
-        val mTick = Seq.fill[Byte](8){0.toByte} ++ mHash ++ salt
+        val mTick = Seq.fill[Byte](8) { 0.toByte } ++ mHash ++ salt
         val h = hashFunction(mTick)
-        
-        val ps = Seq.fill[Byte](psLen){0.toByte}
+
+        val ps = Seq.fill[Byte](psLen) { 0.toByte }
         val db = (ps :+ 1.toByte) ++ salt
         val dbMask = mgf1(h, dbLen)
 
         val wipeBits = 8 * emLen - emBits
         val saveBits = 8 - wipeBits
         var wipeMask = 0.toByte
-        for(i <- (0 until saveBits)) {
+        for (i <- (0 until saveBits)) {
           wipeMask = (wipeMask | (1.toByte << i).toByte).toByte
         }
 
@@ -66,7 +66,7 @@ object RSASSA_PSS {
       })
     }
 
-    def verify(key: RSAKey, hash: Seq[Byte]): Try[Iteratee[Seq[Byte],Boolean]] = {
+    def verify(key: RSAKey, hash: Seq[Byte]): Try[Iteratee[Seq[Byte], Boolean]] = {
       val cipher = BlockCipher[RSA](Parameters('rsaKey -> key)).get
       val em = cipher.encryptBlock(hash) match {
         case Success(s) ⇒ s
@@ -81,7 +81,7 @@ object RSASSA_PSS {
       val psLen = dbLen - sLen - 1
       val standardError = new KeyedHashException("Inconsistent")
 
-      if(em.length != emLen || em(emLen - 1) != 0xbc.toByte) return Failure(standardError)
+      if (em.length != emLen || em(emLen - 1) != 0xbc.toByte) return Failure(standardError)
       val maskedDB = em.slice(0, dbLen)
       val h = em.slice(dbLen, dbLen + hLen)
       val dbMask = mgf1(h, dbLen)
@@ -89,19 +89,19 @@ object RSASSA_PSS {
       val wipeBits = 8 * emLen - emBits
       val saveBits = 8 - wipeBits
       var wipeMask = 0.toByte
-      for(i <- (0 until saveBits)) {
+      for (i <- (0 until saveBits)) {
         wipeMask = (wipeMask | (1.toByte << i).toByte).toByte
       }
 
       val db = (dbMask xor maskedDB).toArray
       db(0) = (db(0) & wipeMask).toByte
 
-      val ps = Seq.fill[Byte](psLen){0.toByte}
-      if(db.slice(0, psLen).toSeq != ps || db(psLen) != 1.toByte) return Failure(standardError)
+      val ps = Seq.fill[Byte](psLen) { 0.toByte }
+      if (db.slice(0, psLen).toSeq != ps || db(psLen) != 1.toByte) return Failure(standardError)
 
       val salt = db.slice(psLen + 1, dbLen).toSeq
       Success(hashFunction.apply map { mHash ⇒
-        val mTick = Seq.fill[Byte](8){0.toByte} ++ mHash ++ salt
+        val mTick = Seq.fill[Byte](8) { 0.toByte } ++ mHash ++ salt
         h == hashFunction(mTick)
       })
     }

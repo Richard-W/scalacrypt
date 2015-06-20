@@ -33,8 +33,8 @@ sealed trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyTyp
   decryptor.init(Cipher.DECRYPT_MODE, secretKey)
 
   private def crypt(block: Seq[Byte], encrypt: Boolean): Try[Seq[Byte]] = {
-    if(block.length == blockSize) {
-      if(encrypt) {
+    if (block.length == blockSize) {
+      if (encrypt) {
         Success(encryptor.doFinal(block.toArray))
       } else {
         Success(decryptor.doFinal(block.toArray))

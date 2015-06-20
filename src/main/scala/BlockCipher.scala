@@ -42,6 +42,6 @@ abstract class CanBuildBlockCipher[A <: BlockCipher[_]] {
 
 object BlockCipher {
 
-  def apply[A <: BlockCipher[_] : CanBuildBlockCipher](params: Parameters)(implicit builder: CanBuildBlockCipher[A]) =
+  def apply[A <: BlockCipher[_]: CanBuildBlockCipher](params: Parameters)(implicit builder: CanBuildBlockCipher[A]) =
     builder.build(params)
 }

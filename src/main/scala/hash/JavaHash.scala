@@ -21,10 +21,10 @@ import scala.util.{ Try, Success, Failure }
 /** Base class for hash algorithms implemented in javax.security.MessageDigest. */
 class JavaHash(algorithm: String) extends Hash {
 
-  def apply: Iteratee[Seq[Byte],Seq[Byte]] = {
+  def apply: Iteratee[Seq[Byte], Seq[Byte]] = {
     val digest = java.security.MessageDigest.getInstance(algorithm)
 
-    Iteratee.fold[Seq[Byte],java.security.MessageDigest](digest) { (digest, data) ⇒
+    Iteratee.fold[Seq[Byte], java.security.MessageDigest](digest) { (digest, data) ⇒
       val newDigest = digest.clone.asInstanceOf[java.security.MessageDigest]
       newDigest.update(data.toArray)
       Success(newDigest)

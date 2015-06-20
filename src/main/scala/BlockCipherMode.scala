@@ -16,12 +16,13 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
-/** Describes a block cipher mode of operation like ECB or CBC.
-  *
-  * Each of the methods below gets a state and returns a state. The
-  * state is propagated like this: pre* ⇒ post* ⇒ pre*. On the first
-  * block pre* receives the None object as the state.
-  */
+/**
+ * Describes a block cipher mode of operation like ECB or CBC.
+ *
+ * Each of the methods below gets a state and returns a state. The
+ * state is propagated like this: pre* ⇒ post* ⇒ pre*. On the first
+ * block pre* receives the None object as the state.
+ */
 trait BlockCipherMode {
 
   /** Parameters used to construct this cipher. */
@@ -47,6 +48,6 @@ abstract class CanBuildBlockCipherMode[A <: BlockCipherMode] {
 
 object BlockCipherMode {
 
-  def apply[A <: BlockCipherMode : CanBuildBlockCipherMode](params: Parameters)(implicit builder: CanBuildBlockCipherMode[A]) =
+  def apply[A <: BlockCipherMode: CanBuildBlockCipherMode](params: Parameters)(implicit builder: CanBuildBlockCipherMode[A]) =
     builder.build(params)
 }

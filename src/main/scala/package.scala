@@ -32,19 +32,19 @@ object `package` {
     def toBase64String: String = (new sun.misc.BASE64Encoder).encodeBuffer(value.toArray)
 
     def xor(other: Seq[Byte]): Seq[Byte] = {
-      def min(a: Int, b: Int): Int = if(a < b) a else b
-      for(i <- (0 until min(value.length, other.length))) yield (value(i) ^ other(i)).toByte
+      def min(a: Int, b: Int): Int = if (a < b) a else b
+      for (i <- (0 until min(value.length, other.length))) yield (value(i) ^ other(i)).toByte
     }
 
     def os2ip: BigInt = {
       def byteToInt(byte: Byte): Int = {
         val result = byte.toInt
-        if(result < 0) result + 256
+        if (result < 0) result + 256
         else result
       }
 
       var result = BigInt(0)
-      for(i <- (0 until value.length)) {
+      for (i <- (0 until value.length)) {
         val exponent = value.length - 1 - i
         result += (BigInt(256) pow exponent) * byteToInt(value(i))
       }
@@ -68,16 +68,16 @@ object `package` {
       val base = BigInt(256)
       var exponent = length
 
-      if(length <= 0) return Failure(new Exception("Invalid length"))
-      if(value < 0) return Failure(new Exception("Negative values can not be converted using I2OSP"))
+      if (length <= 0) return Failure(new Exception("Invalid length"))
+      if (value < 0) return Failure(new Exception("Negative values can not be converted using I2OSP"))
       val maxValue = (base pow exponent) - 1
-      if(value > maxValue) return Failure(new Exception(s"Value too large: $value (max. $maxValue when length is $length)"))
+      if (value > maxValue) return Failure(new Exception(s"Value too large: $value (max. $maxValue when length is $length)"))
 
       var remaining = value
       val result = new Array[Byte](length)
 
       /* Calculate the digits (base 256, big endian). */
-      while(exponent > 0) {
+      while (exponent > 0) {
         exponent -= 1
 
         val factor = base pow exponent

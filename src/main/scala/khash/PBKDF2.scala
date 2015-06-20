@@ -21,7 +21,7 @@ import iteratees._
 
 /* Factory for PBKDF2 KeyedHash instances. */
 object PBKDF2 {
-  
+
   /* Creates a Keyed hash that implements PBKDF2. The salt is passed in as the data. */
   def apply(algorithm: KeyedHash[Key], iterations: Int, len: Int): KeyedHash[Key] = new KeyedHash[Key] {
 
@@ -41,11 +41,11 @@ object PBKDF2 {
 
             @tailrec
             def calcBlockHelper(block: Seq[Byte], previousU: Seq[Byte], iteration: Int): Try[Seq[Byte]] = {
-              if(iteration > iterations) {
+              if (iteration > iterations) {
                 Success(block)
               } else {
                 val uTry = algorithm(key, previousU)
-                if(uTry.isSuccess) {
+                if (uTry.isSuccess) {
                   val u = uTry.get
                   calcBlockHelper(block xor u, u, iteration + 1)
                 } else {
@@ -57,9 +57,9 @@ object PBKDF2 {
             calcBlockHelper(initial, initial, 2)
           }
 
-          val blocks = for(blockNum <- 1 to numBlocks) yield calcBlock(blockNum)
+          val blocks = for (blockNum <- 1 to numBlocks) yield calcBlock(blockNum)
           val failures = blocks filter { _.isFailure }
-          if(failures.length == 0) Iteratee.done((blocks map { _.get }).flatten.slice(0, length))
+          if (failures.length == 0) Iteratee.done((blocks map { _.get }).flatten.slice(0, length))
           else Iteratee.error(failures(0).failed.get)
         }
       }

@@ -16,9 +16,10 @@ package xyz.wiedenhoeft.scalacrypt
 
 import scala.util.{ Try, Success, Failure }
 
-/** A wrapper for a sequence of bytes used
-  * as a key for encryption.
-  */
+/**
+ * A wrapper for a sequence of bytes used
+ * as a key for encryption.
+ */
 trait Key extends Equals {
 
   /** Length of the key in bytes. */
@@ -30,19 +31,19 @@ trait Key extends Equals {
   /** Inherited from Equals trait. */
   def canEqual(other: Any): Boolean = other match {
     case _: Key ⇒
-    true
+      true
 
     case _ ⇒
-    false
+      false
   }
 
   /** Equality test */
   override def equals(other: Any): Boolean = other match {
     case k: Key ⇒
-    this.bytes == k.bytes
+      this.bytes == k.bytes
 
     case _ ⇒
-    false
+      false
   }
 }
 
@@ -64,7 +65,7 @@ trait CanGenerateKey[KeyType <: Key] {
 object Key {
 
   /** Randomly generate a symmetric key. */
-  def generate[KeyType <: Key : CanGenerateKey]: KeyType = implicitly[CanGenerateKey[KeyType]].generate
+  def generate[KeyType <: Key: CanGenerateKey]: KeyType = implicitly[CanGenerateKey[KeyType]].generate
 }
 
 /** Adds the toKey method to Any. */

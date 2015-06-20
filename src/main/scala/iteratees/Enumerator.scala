@@ -22,9 +22,10 @@ trait Enumerator[E] {
   /** Apply enumerator to iteratee producing a new iteratee. */
   def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, A]
 
-  /** Every element creates a new Enumerator via f. On apply
-    * all these enumerators are applied to the iteratee.
-    */
+  /**
+   * Every element creates a new Enumerator via f. On apply
+   * all these enumerators are applied to the iteratee.
+   */
   def flatMap[B](f: (E) ⇒ Enumerator[B]): Enumerator[B] = {
     val base = this
 
@@ -55,7 +56,7 @@ object Enumerator {
 
     def apply[A](iteratee: Iteratee[E, A]): Iteratee[E, A] = {
       def applySeqToIteratee(s: Seq[E], i: Iteratee[E, A]): Iteratee[E, A] = {
-        if(s.isEmpty) i
+        if (s.isEmpty) i
         else applySeqToIteratee(s.tail, i.fold(Element(s.head)))
       }
 

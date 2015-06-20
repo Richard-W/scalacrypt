@@ -19,13 +19,14 @@ import blockciphers._
 import scala.util.{ Try, Success, Failure }
 import scala.reflect._
 
-abstract class BlockCipherSpec[KeyType <: Key : CanGenerateKey, Cipher <: BlockCipher[KeyType] : CanBuildBlockCipher : ClassTag] extends FlatSpec with Matchers {
+abstract class BlockCipherSpec[KeyType <: Key: CanGenerateKey, Cipher <: BlockCipher[KeyType]: CanBuildBlockCipher: ClassTag] extends FlatSpec with Matchers {
 
-  /** Basic parameters that are sufficient to construct the cipher.
-    *
-    * While processing test vectors these also provide a scaffolding
-    * to construct the instances.
-    */
+  /**
+   * Basic parameters that are sufficient to construct the cipher.
+   *
+   * While processing test vectors these also provide a scaffolding
+   * to construct the instances.
+   */
   def baseParameters: Parameters
 
   /** Symbol that is used to add the key to the baseParameters. */
@@ -44,10 +45,10 @@ abstract class BlockCipherSpec[KeyType <: Key : CanGenerateKey, Cipher <: BlockC
   }
 
   it should "pass the parameter test vectors." in {
-    for(vector <- parameterTestVectors) {
+    for (vector <- parameterTestVectors) {
       val opt = BlockCipher[Cipher](vector._1)
-      if(vector._2) opt shouldBe a [Success[_]]
-      else opt shouldBe a [Failure[_]]
+      if (vector._2) opt shouldBe a[Success[_]]
+      else opt shouldBe a[Failure[_]]
     }
   }
 
@@ -55,29 +56,29 @@ abstract class BlockCipherSpec[KeyType <: Key : CanGenerateKey, Cipher <: BlockC
     val cipher = BlockCipher[Cipher](baseParameters ++ Parameters(keySymbol -> Key.generate[KeyType])).get
     val m = Random.nextBytes(cipher.blockSize)
     val c = cipher.encryptBlock(m).get
-    cipher.decryptBlock(c).get should be (m)
+    cipher.decryptBlock(c).get should be(m)
   }
 
   it should "pass the encryption test vectors." in {
-    for(vector <- testVectors) {
+    for (vector <- testVectors) {
       val m = vector._1
       val k = vector._2
       val c = vector._3
       val pOpt = vector._4
 
-      val params = baseParameters ++ Parameters(keySymbol -> k) ++ (if(pOpt.isDefined) pOpt.get else Parameters())
+      val params = baseParameters ++ Parameters(keySymbol -> k) ++ (if (pOpt.isDefined) pOpt.get else Parameters())
       val cipher = BlockCipher[Cipher](params).get
-      cipher.encryptBlock(m).get should be (c)
-      cipher.decryptBlock(c).get should be (m)
+      cipher.encryptBlock(m).get should be(c)
+      cipher.decryptBlock(c).get should be(m)
     }
   }
 
   it should "fail on invalid block sizes." in {
     val cipher = BlockCipher[Cipher](baseParameters ++ Parameters(keySymbol -> Key.generate[KeyType])).get
-    cipher.encryptBlock(Random.nextBytes(cipher.blockSize - 1)) shouldBe a [Failure[_]]
-    cipher.decryptBlock(Random.nextBytes(cipher.blockSize - 1)) shouldBe a [Failure[_]]
-    cipher.encryptBlock(Random.nextBytes(cipher.blockSize + 1)) shouldBe a [Failure[_]]
-    cipher.decryptBlock(Random.nextBytes(cipher.blockSize + 1)) shouldBe a [Failure[_]]
+    cipher.encryptBlock(Random.nextBytes(cipher.blockSize - 1)) shouldBe a[Failure[_]]
+    cipher.decryptBlock(Random.nextBytes(cipher.blockSize - 1)) shouldBe a[Failure[_]]
+    cipher.encryptBlock(Random.nextBytes(cipher.blockSize + 1)) shouldBe a[Failure[_]]
+    cipher.decryptBlock(Random.nextBytes(cipher.blockSize + 1)) shouldBe a[Failure[_]]
   }
 }
 

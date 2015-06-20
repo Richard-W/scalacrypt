@@ -22,16 +22,18 @@ trait BlockPadding {
   /** Parameters used to construct this cipher. */
   def params: Parameters
 
-  /** Takes an iterator of byte sequences and outputs an iterator of blocks for encryption.
-    *
-    * Each Seq that the returned iterator returns MUST be exactly blockSize long.
-    */
+  /**
+   * Takes an iterator of byte sequences and outputs an iterator of blocks for encryption.
+   *
+   * Each Seq that the returned iterator returns MUST be exactly blockSize long.
+   */
   def pad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Seq[Byte]]
 
-  /** Takes an iterator of blocks and removes the padding.
-    *
-    * Each Seq that input contains must be exactly blockSize long.
-    */
+  /**
+   * Takes an iterator of blocks and removes the padding.
+   *
+   * Each Seq that input contains must be exactly blockSize long.
+   */
   def unpad(input: Iterator[Seq[Byte]], blockSize: Int): Iterator[Try[Seq[Byte]]]
 }
 
@@ -42,7 +44,7 @@ abstract class CanBuildBlockPadding[A <: BlockPadding] {
 
 object BlockPadding {
 
-  def apply[A <: BlockPadding : CanBuildBlockPadding](params: Parameters)(implicit builder: CanBuildBlockPadding[A]) = {
+  def apply[A <: BlockPadding: CanBuildBlockPadding](params: Parameters)(implicit builder: CanBuildBlockPadding[A]) = {
     builder.build(params)
   }
 }

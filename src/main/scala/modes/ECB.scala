@@ -37,7 +37,7 @@ sealed trait ECB extends BlockCipherMode {
 }
 
 object ECB {
-  
+
   implicit val builder = new CanBuildBlockCipherMode[ECB] {
     def build(parameters: Parameters) = Success(new ECB { val params = parameters })
   }

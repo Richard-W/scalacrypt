@@ -19,14 +19,15 @@ import javax.crypto.spec.SecretKeySpec
 import scala.util.{ Try, Success, Failure }
 import iteratees._
 
-/** Base class for MACs implemented in javax.crypto.Mac.
-  *
-  * Attention: If the key is empty it is substituted by a single zero-byte.
-  */
+/**
+ * Base class for MACs implemented in javax.crypto.Mac.
+ *
+ * Attention: If the key is empty it is substituted by a single zero-byte.
+ */
 class JavaMac(algorithm: String) extends KeyedHash[Key] {
 
-  def apply(key: Key): Try[Iteratee[Seq[Byte],Seq[Byte]]] = {
-    val k: SecretKeySpec = if(key.length != 0) {
+  def apply(key: Key): Try[Iteratee[Seq[Byte], Seq[Byte]]] = {
+    val k: SecretKeySpec = if (key.length != 0) {
       new SecretKeySpec(key.bytes.toArray, algorithm)
     } else {
       new SecretKeySpec(Array(0.toByte), algorithm)
@@ -34,7 +35,7 @@ class JavaMac(algorithm: String) extends KeyedHash[Key] {
     val mac = javax.crypto.Mac.getInstance(algorithm)
 
     mac.init(k)
-    Success(Iteratee.fold[Seq[Byte],javax.crypto.Mac](mac) { (mac, data) ⇒
+    Success(Iteratee.fold[Seq[Byte], javax.crypto.Mac](mac) { (mac, data) ⇒
       val newMac = mac.clone.asInstanceOf[javax.crypto.Mac]
       newMac.update(data.toArray)
       Success(newMac)

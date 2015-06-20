@@ -22,7 +22,7 @@ import scala.concurrent.{ Promise, Future }
 trait KeyedHash[KeyType <: Key] {
 
   /** Returns an iteratee calculating the MAC. */
-  def apply(key: KeyType): Try[Iteratee[Seq[Byte],Seq[Byte]]]
+  def apply(key: KeyType): Try[Iteratee[Seq[Byte], Seq[Byte]]]
 
   /** Calculates the MAC. */
   def apply(key: KeyType, data: Seq[Byte]): Try[Seq[Byte]] = apply(key) flatMap {
@@ -42,7 +42,7 @@ trait KeyedHash[KeyType <: Key] {
         def next = {
           val chunk = data.next
           iteratee = iteratee.fold(Element(chunk))
-          if(!data.hasNext) {
+          if (!data.hasNext) {
             promise.complete(iteratee.run)
           }
           chunk

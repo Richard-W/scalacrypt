@@ -26,10 +26,10 @@ sealed trait NoPadding extends BlockPadding {
     def hasNext = input.hasNext || buffer.length > 0
 
     def next = {
-      while(buffer.length < blockSize && input.hasNext) {
+      while (buffer.length < blockSize && input.hasNext) {
         buffer = buffer ++ input.next
       }
-      if(buffer.length < blockSize) {
+      if (buffer.length < blockSize) {
         //Most likely yields an error in the block cipher
         buffer
       } else {

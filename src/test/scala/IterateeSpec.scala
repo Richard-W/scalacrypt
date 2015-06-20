@@ -30,8 +30,8 @@ class IterateeSpec extends FlatSpec with Matchers {
     concat = concat.fold(Element("world"))
     val res = concat.run
 
-    res shouldBe a [Success[_]]
-    res.get should be ("Hello world")
+    res shouldBe a[Success[_]]
+    res.get should be("Hello world")
   }
 
   it should "have a working map method" in {
@@ -44,14 +44,14 @@ class IterateeSpec extends FlatSpec with Matchers {
     counter = counter.fold(Element("world"))
     val res = counter.run
 
-    res shouldBe a [Success[_]]
-    res.get should be (11)
+    res shouldBe a[Success[_]]
+    res.get should be(11)
   }
 
   val enumHello = Enumerator("Hello ", "world")
 
   "An Enumerator" should "be applicable to an iteratee." in {
-    enumHello.run(concatProto).get should be ("Hello world")
+    enumHello.run(concatProto).get should be("Hello world")
   }
 
   it should "have a working flatMap method." in {
@@ -63,12 +63,12 @@ class IterateeSpec extends FlatSpec with Matchers {
       }
     }
 
-    separators.run(concatProto).get should be ("Hello /world/")
+    separators.run(concatProto).get should be("Hello /world/")
   }
 
   it should "have a working map method." in {
     val counts = enumHello map { _.length.toString + " " }
-    counts.run(concatProto).get should be ("6 5 ")
+    counts.run(concatProto).get should be("6 5 ")
   }
 
   val sum = Iteratee.fold(0) { (a: Int, e: Int) ⇒ Success(a + e) }
@@ -84,19 +84,19 @@ class IterateeSpec extends FlatSpec with Matchers {
     val sum3 = stringEnum(sum2)
     val sum4 = sum3.run.get
     val sum5 = intEnum2(sum4)
-    sum5.run.get should be (30)
+    sum5.run.get should be(30)
   }
 
   it should "be able to transform an Iteratee" in {
     val sum1 = intEnum1(sum)
     val sum2 = toInt.transform(sum1)
     val sum3 = stringEnum(sum2)
-    sum3.run.get should be (23)
+    sum3.run.get should be(23)
   }
 
   "Iteratee.done" should "return an Iteratee which is Done." in {
     val iteratee = Iteratee.done[Any, Boolean](true)
-    iteratee.state shouldBe a [Done[_,_]]
-    iteratee.run.get should be (true)
+    iteratee.state shouldBe a[Done[_, _]]
+    iteratee.run.get should be(true)
   }
 }

@@ -27,11 +27,11 @@ sealed trait CBC extends BlockCipherMode {
     val prev: Seq[Byte] = state match {
       // Use the previous ciphertext block.
       case Some(s) ⇒
-      s.asInstanceOf[Seq[Byte]]
+        s.asInstanceOf[Seq[Byte]]
 
       // First block. Use the IV.
       case _ ⇒
-      iv
+        iv
     }
 
     // Xor the previous ciphertext block/IV to the cleartext block.
@@ -47,18 +47,18 @@ sealed trait CBC extends BlockCipherMode {
     state match {
       // Supply previous ciphertext for xoring and save ciphertext.
       case Some(s) ⇒
-      (block, Some((s.asInstanceOf[Seq[Byte]], block)))
+        (block, Some((s.asInstanceOf[Seq[Byte]], block)))
 
       // First Block. Supply IV for xoring and save ciphertext.
       case _ ⇒
-      (block, Some((iv, block)))
+        (block, Some((iv, block)))
     }
   }
 
   def postDecryptBlock(block: Seq[Byte], state: Option[Any]): (Seq[Byte], Option[Any]) = {
     // Tuple contains previous and current ciphertext block.
-    val tuple = state.get.asInstanceOf[(Seq[Byte],Seq[Byte])]
-    
+    val tuple = state.get.asInstanceOf[(Seq[Byte], Seq[Byte])]
+
     // Xor decrypted block with previous ciphertext block. Set state to current ciphertext.
     (block xor tuple._1, Some(tuple._2))
   }

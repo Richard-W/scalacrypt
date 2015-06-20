@@ -51,16 +51,16 @@ sealed abstract class RSAKey extends Key {
     }
 
     f(0, n) ::: f(1, e) :::
-    (privateKey match {
-      case Some(RSAPrivateExponentKeyPart(d)) ⇒
-        f(2, d)
-      case Some(RSAPrivatePrimeKeyPart(p, q, dP, dQ, qInv)) ⇒
-        f(3, p) ::: f(4, q) ::: f(5, dP) ::: f(6, dQ) ::: f(7, qInv) ::: Nil
-      case Some(RSAPrivateCombinedKeyPart(d, p, q, dP, dQ, qInv)) ⇒
-        f(2, d) ::: f(3, p) ::: f(4, q) ::: f(5, dP) ::: f(6, dQ) ::: f(7, qInv) ::: Nil
-      case None ⇒
-        Nil
-    }) ::: Nil
+      (privateKey match {
+        case Some(RSAPrivateExponentKeyPart(d)) ⇒
+          f(2, d)
+        case Some(RSAPrivatePrimeKeyPart(p, q, dP, dQ, qInv)) ⇒
+          f(3, p) ::: f(4, q) ::: f(5, dP) ::: f(6, dQ) ::: f(7, qInv) ::: Nil
+        case Some(RSAPrivateCombinedKeyPart(d, p, q, dP, dQ, qInv)) ⇒
+          f(2, d) ::: f(3, p) ::: f(4, q) ::: f(5, dP) ::: f(6, dQ) ::: f(7, qInv) ::: Nil
+        case None ⇒
+          Nil
+      }) ::: Nil
   }
 }
 
@@ -86,25 +86,25 @@ object RSAKey {
 
     def tryBuild(keyBytes: Seq[Byte]): Try[RSAKey] = {
       def createMap(map: Map[Int, BigInt], bytes: Seq[Byte]): Try[Map[Int, BigInt]] = {
-        if(bytes.length == 0) {
+        if (bytes.length == 0) {
           Success(Map[Int, BigInt]())
-        } else if(bytes.length < 5) {
+        } else if (bytes.length < 5) {
           Failure(new KeyException("Invalid length of RSA key."))
         } else {
           val identifier = bytes(0)
           val length = java.nio.ByteBuffer.allocate(4).put(bytes.slice(1, 5).toArray).getInt(0)
           val withoutHeader = bytes.slice(5, bytes.length)
-          if(withoutHeader.length < length) {
+          if (withoutHeader.length < length) {
             Failure(new KeyException("Invalid length of RSA key."))
           } else {
             val data = withoutHeader.slice(0, length)
             val newMap = map + ((identifier.toInt, BigInt(data.toArray)))
             createMap(newMap, withoutHeader.slice(length, withoutHeader.length)) match {
               case Success(rMap) ⇒
-              Success(newMap ++ rMap)
+                Success(newMap ++ rMap)
 
               case f: Failure[_] ⇒
-              f
+                f
             }
           }
         }
@@ -112,23 +112,23 @@ object RSAKey {
 
       val map: Map[Int, BigInt] = createMap(Map[Int, BigInt](), keyBytes) match {
         case Success(m) ⇒
-        m
+          m
 
         case f: Failure[_] ⇒
-        return f.asInstanceOf[Try[RSAKey]]
+          return f.asInstanceOf[Try[RSAKey]]
       }
 
       val key: Option[RSAPrivateKeyPart] =
-        if((2 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0) 
+        if ((2 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0)
           Some(new RSAPrivateCombinedKeyPart(map(2), map(3), map(4), map(5), map(6), map(7)))
-        else if((3 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0) 
+        else if ((3 to 7).map({ map.contains(_) }).filter({ !_ }).length == 0)
           Some(new RSAPrivatePrimeKeyPart(map(3), map(4), map(5), map(6), map(7)))
-        else if(map.contains(2))
+        else if (map.contains(2))
           Some(new RSAPrivateExponentKeyPart(map(2)))
         else
           None
 
-      if(! map.contains(0) || !map.contains(1)) {
+      if (!map.contains(0) || !map.contains(1)) {
         Failure(new KeyException("Important parameters missing in RSAKey."))
       } else Success(new RSAKey {
         val n = map.get(0).get

@@ -47,3 +47,5 @@ pomExtra := (
     <connection>scm:https://github.com/richard-w/scalacrypt.git</connection>
   </scm>
 )
+
+scalariformSettings

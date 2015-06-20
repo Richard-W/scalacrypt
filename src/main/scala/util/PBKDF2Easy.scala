@@ -17,10 +17,11 @@ package xyz.wiedenhoeft.scalacrypt.util
 import xyz.wiedenhoeft.scalacrypt._
 import scala.util.{ Try, Success, Failure }
 
-/** Implements an easy way to hash passwords using PBKDF2.
-  *
-  * The verification process is backwards compatible.
-  */
+/**
+ * Implements an easy way to hash passwords using PBKDF2.
+ *
+ * The verification process is backwards compatible.
+ */
 object PBKDF2Easy {
   lazy val algoMap = Map[Byte, KeyedHash[Key]](
     1.toByte -> khash.HmacSHA256
@@ -33,7 +34,6 @@ object PBKDF2Easy {
   lazy val defaultSaltLengthBytes = java.nio.ByteBuffer.allocate(4).putInt(defaultSaltLength).array.toList
   lazy val defaultHashLengthBytes = java.nio.ByteBuffer.allocate(4).putInt(defaultHashLength).array.toList
 
-
   def apply(password: Seq[Byte], iterations: Int = 20000): Try[Seq[Byte]] = {
     val key = password.toKey[SymmetricKeyArbitrary].get
     val iterationsBytes = java.nio.ByteBuffer.allocate(4).putInt(iterations).array.toList
@@ -42,15 +42,15 @@ object PBKDF2Easy {
     val salt = Random.nextBytes(32).toList
     pbkdf2(key, salt) map { _.toList } match {
       case Success(hash) ⇒
-      Success(defaultAlgorithm :: iterationsBytes ::: defaultSaltLengthBytes ::: salt ::: defaultHashLengthBytes ::: hash)
+        Success(defaultAlgorithm :: iterationsBytes ::: defaultSaltLengthBytes ::: salt ::: defaultHashLengthBytes ::: hash)
 
       case Failure(f) ⇒
-      Failure(f)
+        Failure(f)
     }
   }
 
   def verify(password: Seq[Byte], hash: Seq[Byte]): Try[Boolean] = {
-    if(hash.length < 9 || !algoMap.contains(hash(0))) return Success(false)
+    if (hash.length < 9 || !algoMap.contains(hash(0))) return Success(false)
 
     val key = password.toKey[SymmetricKeyArbitrary].get
     val algorithm = algoMap(hash(0))
@@ -58,17 +58,17 @@ object PBKDF2Easy {
     val saltLength = java.nio.ByteBuffer.allocate(4).put(hash.slice(5, 9).toArray).getInt(0)
 
     val slice1 = hash.slice(9, hash.length)
-    if(slice1.length < saltLength) return Success(false)
+    if (slice1.length < saltLength) return Success(false)
 
     val salt = slice1.slice(0, saltLength)
 
     val slice2 = slice1.slice(saltLength, slice1.length)
-    if(slice2.length < 4) return Success(false)
+    if (slice2.length < 4) return Success(false)
 
     val hashLength = java.nio.ByteBuffer.allocate(4).put(slice2.slice(0, 4).toArray).getInt(0)
 
     val realHash = slice2.slice(4, slice2.length)
-    if(realHash.length != hashLength) return Success(false)
+    if (realHash.length != hashLength) return Success(false)
 
     val pbkdf2 = khash.PBKDF2(algorithm, iterations, hashLength)
     pbkdf2(key, salt) map { _ == realHash }
