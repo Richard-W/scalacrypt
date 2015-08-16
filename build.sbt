@@ -14,7 +14,7 @@ scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation", "-optimise")
 
 libraryDependencies ++= {
   Seq(
-    "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+    "org.scalatest" %% "scalatest" % "3.0.0-M7" % "test"
   )
 }
 
