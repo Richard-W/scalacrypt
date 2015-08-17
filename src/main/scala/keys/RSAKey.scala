@@ -140,22 +140,21 @@ object RSAKey {
 
   implicit val canGenerateKey = new CanGenerateKey[RSAKey] {
     def generate = new RSAKey {
-      val javaKeyPairGenerator = java.security.KeyPairGenerator.getInstance("RSA")
-      javaKeyPairGenerator.initialize(4096)
-      val javaKeyPair = javaKeyPairGenerator.generateKeyPair
-      val javaPubKey = javaKeyPair.getPublic.asInstanceOf[java.security.interfaces.RSAPublicKey]
-      val javaPrivKey = javaKeyPair.getPrivate.asInstanceOf[java.security.interfaces.RSAPrivateCrtKey]
+      val random = new scala.util.Random(new java.security.SecureRandom)
 
-      val n = BigInt(javaPubKey.getModulus)
-      val e = BigInt(javaPubKey.getPublicExponent)
+      val p = BigInt.probablePrime(2048, random)
+      val q = BigInt.probablePrime(2048, random)
+
+      // Public Key
+      val n = p * q
+      val e = BigInt(65537)
 
       // Private key variant 1
-      val p = javaPrivKey.getPrimeP
-      val q = javaPrivKey.getPrimeQ
-      val d = javaPrivKey.getPrivateExponent
-      val dP = javaPrivKey.getPrimeExponentP
-      val dQ = javaPrivKey.getPrimeExponentQ
-      val qInv = javaPrivKey.getCrtCoefficient
+      val ϕ = (p - 1) * (q - 1)
+      val d = e modInverse ϕ
+      val dP = d mod (p - 1)
+      val dQ = d mod (q - 1)
+      val qInv = q modInverse p
       val privateKey = Some(new RSAPrivateCombinedKeyPart(d, p, q, dP, dQ, qInv))
     }
   }
