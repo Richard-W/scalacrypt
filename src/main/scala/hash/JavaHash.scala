@@ -19,7 +19,7 @@ import iteratees._
 import scala.util.{ Try, Success, Failure }
 
 /** Base class for hash algorithms implemented in javax.security.MessageDigest. */
-class JavaHash(algorithm: String) extends Hash {
+class JavaHash(algorithm: String, val blockSize: Int) extends Hash {
 
   def apply: Iteratee[Seq[Byte], Seq[Byte]] = {
     val digest = java.security.MessageDigest.getInstance(algorithm)
@@ -36,8 +36,8 @@ class JavaHash(algorithm: String) extends Hash {
   lazy val length: Int = java.security.MessageDigest.getInstance(algorithm).getDigestLength
 }
 
-object MD5 extends JavaHash("MD5")
+object MD5 extends JavaHash("MD5", 64)
 
-object SHA1 extends JavaHash("SHA-1")
+object SHA1 extends JavaHash("SHA-1", 64)
 
-object SHA256 extends JavaHash("SHA-256")
+object SHA256 extends JavaHash("SHA-256", 64)

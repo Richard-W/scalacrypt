@@ -49,4 +49,7 @@ trait Hash {
 
   /** Length of the resulting hash. */
   def length: Int
+
+  /** Block size of the hash algorithm */
+  def blockSize: Int
 }
