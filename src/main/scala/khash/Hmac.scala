@@ -15,42 +15,39 @@
 package xyz.wiedenhoeft.scalacrypt.khash
 
 import xyz.wiedenhoeft.scalacrypt._
-import javax.crypto.spec.SecretKeySpec
-import scala.util.{ Try, Success, Failure }
 import iteratees._
+import scala.util.{ Try, Success, Failure }
 
-/**
- * Base class for MACs implemented in javax.crypto.Mac.
- *
- * Attention: If the key is empty it is substituted by a single zero-byte.
- */
-class JavaMac(algorithm: String) extends KeyedHash[Key] {
+class Hmac(hash: Hash) extends KeyedHash[Key] {
 
   def apply(key: Key): Try[Iteratee[Seq[Byte], Seq[Byte]]] = {
-    val k: SecretKeySpec = if (key.length != 0) {
-      new SecretKeySpec(key.bytes.toArray, algorithm)
+    val key1 = if (key.length > hash.blockSize) {
+      hash(key.bytes)
     } else {
-      new SecretKeySpec(Array(0.toByte), algorithm)
+      key.bytes
     }
-    val mac = javax.crypto.Mac.getInstance(algorithm)
 
-    mac.init(k)
-    Success(Iteratee.fold[Seq[Byte], javax.crypto.Mac](mac) { (mac, data) ⇒
-      val newMac = mac.clone.asInstanceOf[javax.crypto.Mac]
-      newMac.update(data.toArray)
-      Success(newMac)
-    } map {
-      mac ⇒ mac.doFinal
-    })
+    val key2 = key1 ++ Seq.fill[Byte](hash.blockSize - key1.length) { 0.toByte }
+
+    val oKeyPad = Seq.fill[Byte](hash.blockSize)(0x5c.toByte) xor key2
+    val iKeyPad = Seq.fill[Byte](hash.blockSize)(0x36.toByte) xor key2
+
+    Success(
+      hash.apply.fold(Element(iKeyPad)) map { innerHash ⇒
+        hash(oKeyPad ++ innerHash)
+      }
+    )
   }
 
   def verify(key: Key, hash: Seq[Byte]): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
 
-  lazy val length: Int = javax.crypto.Mac.getInstance(algorithm).getMacLength
+  val length = hash.length
 }
 
+import hash._
+
 /** HMAC-SHA1 implementation of Mac. */
-object HmacSHA1 extends JavaMac("HmacSHA1")
+object HmacSHA1 extends Hmac(SHA1)
 
 /** HMAC-SHA256 implementation of Mac. */
-object HmacSHA256 extends JavaMac("HmacSHA256")
+object HmacSHA256 extends Hmac(SHA256)
