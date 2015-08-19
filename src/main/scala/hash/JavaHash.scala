@@ -37,5 +37,3 @@ class JavaHash(algorithm: String, val blockSize: Int) extends Hash {
 }
 
 object MD5 extends JavaHash("MD5", 64)
-
-object SHA256 extends JavaHash("SHA-256", 64)
