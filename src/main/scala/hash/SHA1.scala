@@ -54,21 +54,16 @@ object SHA1 extends MDConstruction[(Int, Int, Int, Int, Int)] {
       w(i) = rotLeft(w(i - 3) ^ w(i - 8) ^ w(i - 14) ^ w(i - 16), 1)
     }
 
-    var a: Int = state._1
-    var b: Int = state._2
-    var c: Int = state._3
-    var d: Int = state._4
-    var e: Int = state._5
-    var temp: Int = 0
-
-    for (t <- (0 until 80)) {
-      temp = rotLeft(a, 5) + f(t, b, c, d) + e + w(t) + k(t)
-      e = d
-      d = c
-      c = rotLeft(b, 30)
-      b = a
-      a = temp
+    @tailrec
+    def compressionHelper(state: (Int, Int, Int, Int, Int), t: Int): (Int, Int, Int, Int, Int) = {
+      if (t == 80) state
+      else state match {
+        case (a, b, c, d, e) ⇒
+          compressionHelper((rotLeft(a, 5) + f(t, b, c, d) + e + w(t) + k(t), a, rotLeft(b, 30), c, d), t + 1)
+      }
     }
+
+    val (a, b, c, d, e) = compressionHelper((state._1, state._2, state._3, state._4, state._5), 0)
     (state._1 + a, state._2 + b, state._3 + c, state._4 + d, state._5 + e)
   }
 
