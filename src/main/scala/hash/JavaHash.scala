@@ -35,5 +35,3 @@ class JavaHash(algorithm: String, val blockSize: Int) extends Hash {
 
   lazy val length: Int = java.security.MessageDigest.getInstance(algorithm).getDigestLength
 }
-
-object MD5 extends JavaHash("MD5", 64)
