@@ -76,21 +76,13 @@ object MD5 extends MDConstruction[(Int, Int, Int, Int)] {
   def compressionFunction(state: (Int, Int, Int, Int), block: Seq[Byte]): (Int, Int, Int, Int) = {
     val w = block.grouped(4).toSeq map { bytes2word(_) }
 
-    var a: Int = state._1
-    var b: Int = state._2
-    var c: Int = state._3
-    var d: Int = state._4
-    var temp: Int = 0
-
-    for (t <- (0 until 64)) {
-      val _f = f(t, b, c, d)
-      val _g = g(t)
-      temp = d
-      d = c
-      c = b
-      b = b + rotLeft(a + _f + k(t) + w(_g), s(t))
-      a = temp
+    @tailrec
+    def compressionHelper(state: (Int, Int, Int, Int), t: Int): (Int, Int, Int, Int) = {
+      if (t == 64) state
+      else state match { case (a, b, c, d) ⇒ compressionHelper((d, b + rotLeft(a + f(t, b, c, d) + k(t) + w(g(t)), s(t)), b, c), t + 1) }
     }
+
+    val (a, b, c, d) = compressionHelper((state._1, state._2, state._3, state._4), 0)
     (state._1 + a, state._2 + b, state._3 + c, state._4 + d)
   }
 
