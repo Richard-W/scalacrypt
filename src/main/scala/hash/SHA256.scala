@@ -52,33 +52,22 @@ object SHA256 extends MDConstruction[(Int, Int, Int, Int, Int, Int, Int, Int)] {
       w(i) = w(i - 16) + s0 + w(i - 7) + s1
     }
 
-    var a: Int = state._1
-    var b: Int = state._2
-    var c: Int = state._3
-    var d: Int = state._4
-    var e: Int = state._5
-    var f: Int = state._6
-    var g: Int = state._7
-    var h: Int = state._8
-    var temp: Int = 0
-
-    for (i <- (0 until 64)) {
-      val s1 = rotRight(e, 6) ^ rotRight(e, 11) ^ rotRight(e, 25)
-      val ch = (e & f) ^ ((~e) & g)
-      val temp1 = h + s1 + ch + k(i) + w(i)
-      val s0 = rotRight(a, 2) ^ rotRight(a, 13) ^ rotRight(a, 22)
-      val maj = (a & b) ^ (a & c) ^ (b & c)
-      val temp2 = s0 + maj
-
-      h = g
-      g = f
-      f = e
-      e = d + temp1
-      d = c
-      c = b
-      b = a
-      a = temp1 + temp2
+    @tailrec
+    def compressionHelper(state: (Int, Int, Int, Int, Int, Int, Int, Int), t: Int): (Int, Int, Int, Int, Int, Int, Int, Int) = {
+      if (t == 64) state
+      else state match {
+        case (a, b, c, d, e, f, g, h) ⇒
+          val s1 = rotRight(e, 6) ^ rotRight(e, 11) ^ rotRight(e, 25)
+          val ch = (e & f) ^ ((~e) & g)
+          val temp1 = h + s1 + ch + k(t) + w(t)
+          val s0 = rotRight(a, 2) ^ rotRight(a, 13) ^ rotRight(a, 22)
+          val maj = (a & b) ^ (a & c) ^ (b & c)
+          val temp2 = s0 + maj
+          compressionHelper((temp1 + temp2, a, b, c, d + temp1, e, f, g), t + 1)
+      }
     }
+
+    val (a, b, c, d, e, f, g, h) = compressionHelper((state._1, state._2, state._3, state._4, state._5, state._6, state._7, state._8), 0)
     (state._1 + a, state._2 + b, state._3 + c, state._4 + d, state._5 + e, state._6 + f, state._7 + g, state._8 + h)
   }
 
