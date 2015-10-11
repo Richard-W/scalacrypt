@@ -13,7 +13,7 @@ lazy val scalacrypt = project.in(file("."))
     version := "0.5-SNAPSHOT",
     licenses := Seq("Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/richard-w/scalacrypt")),
-    scalaVersion := "2.11.6",
+    scalaVersion := "2.11.7",
     scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation", "-optimise"),
     libraryDependencies ++= {
       Seq(
