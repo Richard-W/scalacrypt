@@ -21,25 +21,25 @@ import java.nio.{ ByteBuffer, ByteOrder }
 
 object Threefish {
 
-  def bytes2word(bytes: Seq[Byte]): Long =
+  private[scalacrypt] def bytes2word(bytes: Seq[Byte]): Long =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).put(bytes.toArray).getLong(0)
 
-  def word2bytes(word: Long): Seq[Byte] =
+  private[scalacrypt] def word2bytes(word: Long): Seq[Byte] =
     ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(word).array
 
-  def block2words(block: Seq[Byte]): Seq[Long] =
+  private[scalacrypt] def block2words(block: Seq[Byte]): Seq[Long] =
     for (byteWord <- block.grouped(8).toSeq) yield bytes2word(byteWord)
 
-  def words2block(words: Seq[Long]): Seq[Byte] =
+  private[scalacrypt] def words2block(words: Seq[Long]): Seq[Byte] =
     (for (word <- words) yield word2bytes(word)).flatten
 
-  def mix(a: Long, b: Long, r: Int): Seq[Long] = {
+  private[scalacrypt] def mix(a: Long, b: Long, r: Int): Seq[Long] = {
     val x = a + b
     val y = ((b << r) | (b >>> (64 - r))) ^ x
     Seq(x, y)
   }
 
-  def unmix(x: Long, y: Long, r: Int): Seq[Long] = {
+  private[scalacrypt] def unmix(x: Long, y: Long, r: Int): Seq[Long] = {
     val z = y ^ x
     val b = ((z >>> r) | (z << (64 - r)))
     val a = x - b
