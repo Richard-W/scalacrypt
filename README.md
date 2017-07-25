@@ -138,7 +138,7 @@ val signer = RSASSA_PSS(SHA256, 32)
 val signature = signer(privateKey, message).get
 
 println(signer.verify(publicKey, message, signature).get) // Prints true
-println(signer.verify(publicKey, falseMessage, signature).get) // Prints true
+println(signer.verify(publicKey, falseMessage, signature).get) // Prints false
 ```
 
 Password hashing
