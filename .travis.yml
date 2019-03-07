@@ -3,6 +3,6 @@ scala:
     - 2.12.2
 dist: trusty
 jdk:
-  - openjdk8
+  - openjdk10
 script: "sbt clean coverage test"
 after_success: "sbt coverageReport coveralls"
