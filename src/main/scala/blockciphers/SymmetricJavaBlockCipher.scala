@@ -41,8 +41,7 @@ sealed trait SymmetricJavaBlockCipher[KeyType <: Key] extends BlockCipher[KeyTyp
       }
     } else {
       Failure(
-        new IllegalBlockSizeException("Expected block of length " + blockSize + ", got " + block.length + " bytes.")
-      )
+        new IllegalBlockSizeException("Expected block of length " + blockSize + ", got " + block.length + " bytes."))
     }
   }
 

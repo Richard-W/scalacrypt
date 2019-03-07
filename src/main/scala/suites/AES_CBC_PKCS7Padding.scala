@@ -28,8 +28,7 @@ object AES128_CBC_PKCS7Padding {
       'iv -> (iv match {
         case Some(s) ⇒ s
         case _ ⇒ Random.nextBytes(16)
-      })
-    )
+      }))
 
     BlockCipher[AES128](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
@@ -49,8 +48,7 @@ object AES192_CBC_PKCS7Padding {
       'iv -> (iv match {
         case Some(s) ⇒ s
         case _ ⇒ Random.nextBytes(16)
-      })
-    )
+      }))
 
     BlockCipher[AES192](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
@@ -70,8 +68,7 @@ object AES256_CBC_PKCS7Padding {
       'iv -> (iv match {
         case Some(s) ⇒ s
         case _ ⇒ Random.nextBytes(16)
-      })
-    )
+      }))
 
     BlockCipher[AES256](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒

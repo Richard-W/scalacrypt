@@ -28,8 +28,7 @@ object RSAES_OAEP {
       'rsaKey -> k,
       'label -> label,
       'hash -> hash,
-      'generator -> genSeed
-    )
+      'generator -> genSeed)
 
     BlockCipher[RSA](params) flatMap { cipher ⇒
       BlockCipherMode[ECB](params) flatMap { mode ⇒

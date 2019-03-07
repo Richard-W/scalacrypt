@@ -24,8 +24,7 @@ import scala.util.{ Try, Success, Failure }
  */
 object PBKDF2Easy {
   lazy val algoMap = Map[Byte, KeyedHash[Key]](
-    1.toByte -> khash.HmacSHA256
-  )
+    1.toByte -> khash.HmacSHA256)
 
   lazy val defaultAlgorithm = 1.toByte
   val defaultSaltLength = 32

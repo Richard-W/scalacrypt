@@ -13,11 +13,11 @@ lazy val scalacrypt = project.in(file("."))
     version := "0.5-SNAPSHOT",
     licenses := Seq("Apache" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     homepage := Some(url("https://github.com/richard-w/scalacrypt")),
-    scalaVersion := "2.12.2",
+    scalaVersion := "2.12.8",
     scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation", "-opt:_"),
     libraryDependencies ++= {
       Seq(
-        "org.scalatest" %% "scalatest" % "3.0.1"
+        "org.scalatest" %% "scalatest" % "3.0.5"
       )
     },
     publishMavenStyle := true,
@@ -45,4 +45,3 @@ lazy val scalacrypt = project.in(file("."))
       </scm>
     )
   )
-  .settings(scalariformSettings: _*)

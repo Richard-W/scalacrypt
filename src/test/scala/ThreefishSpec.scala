@@ -23,8 +23,7 @@ class ThreefishSpec extends FlatSpec with Matchers {
     'symmetricKey256 -> Key.generate[SymmetricKey256],
     'symmetricKey512 -> Key.generate[SymmetricKey512],
     'symmetricKey1024 -> Key.generate[SymmetricKey1024],
-    'tweak -> ((1 to 16) map { _.toByte })
-  )
+    'tweak -> ((1 to 16) map { _.toByte }))
 
   val tf256 = BlockCipher[Threefish256](params).get
   val tf512 = BlockCipher[Threefish512](params).get
@@ -36,14 +35,11 @@ class ThreefishSpec extends FlatSpec with Matchers {
       Seq(0, 0, 0, 0),
       Seq(0, 0),
       Seq(0, 0, 0, 0),
-      Seq(0x94EEEA8B1F2ADA84L, 0xADF103313EAE6670L, 0x952419A1F4B16D53L, 0xD83F13E63C9F6B11L)
-    ), (
+      Seq(0x94EEEA8B1F2ADA84L, 0xADF103313EAE6670L, 0x952419A1F4B16D53L, 0xD83F13E63C9F6B11L)), (
       Seq(0x1716151413121110L, 0x1F1E1D1C1B1A1918L, 0x2726252423222120L, 0x2F2E2D2C2B2A2928L),
       Seq(0x0706050403020100L, 0x0F0E0D0C0B0A0908L),
       Seq(0xF8F9FAFBFCFDFEFFL, 0xF0F1F2F3F4F5F6F7L, 0xE8E9EAEBECEDEEEFL, 0xE0E1E2E3E4E5E6E7L),
-      Seq(0x277610F5036C2E1FL, 0x25FB2ADD1267773EL, 0x9E1D67B3E4B06872L, 0x3F76BC7651B39682L)
-    )
-  )
+      Seq(0x277610F5036C2E1FL, 0x25FB2ADD1267773EL, 0x9E1D67B3E4B06872L, 0x3F76BC7651B39682L)))
 
   val tests512 = Seq[(Seq[Long], Seq[Long], Seq[Long], Seq[Long])](
     (
@@ -51,17 +47,14 @@ class ThreefishSpec extends FlatSpec with Matchers {
       Seq(0, 0),
       Seq(0, 0, 0, 0, 0, 0, 0, 0),
       Seq(0xBC2560EFC6BBA2B1L, 0xE3361F162238EB40L, 0xFB8631EE0ABBD175L, 0x7B9479D4C5479ED1L,
-        0xCFF0356E58F8C27BL, 0xB1B7B08430F0E7F7L, 0xE9A380A56139ABF1L, 0xBE7B6D4AA11EB47EL)
-    ), (
+        0xCFF0356E58F8C27BL, 0xB1B7B08430F0E7F7L, 0xE9A380A56139ABF1L, 0xBE7B6D4AA11EB47EL)), (
       Seq(0x1716151413121110L, 0x1F1E1D1C1B1A1918L, 0x2726252423222120L, 0x2F2E2D2C2B2A2928L,
         0x3736353433323130L, 0x3F3E3D3C3B3A3938L, 0x4746454443424140L, 0x4F4E4D4C4B4A4948L),
         Seq(0x0706050403020100L, 0x0F0E0D0C0B0A0908L),
         Seq(0xF8F9FAFBFCFDFEFFL, 0xF0F1F2F3F4F5F6F7L, 0xE8E9EAEBECEDEEEFL, 0xE0E1E2E3E4E5E6E7L,
           0xD8D9DADBDCDDDEDFL, 0xD0D1D2D3D4D5D6D7L, 0xC8C9CACBCCCDCECFL, 0xC0C1C2C3C4C5C6C7L),
           Seq(0xD4A32EDD6ABEFA1CL, 0x6AD5C4252C3FF743L, 0x35AC875BE2DED68CL, 0x99A6C774EA5CD06CL,
-            0xDCEC9C4251D7F4F8L, 0xF5761BCB3EF592AFL, 0xFCABCB6A3212DF60L, 0xFD6EDE9FF9A2E14EL)
-    )
-  )
+            0xDCEC9C4251D7F4F8L, 0xF5761BCB3EF592AFL, 0xFCABCB6A3212DF60L, 0xFD6EDE9FF9A2E14EL)))
 
   val tests1024 = Seq[(Seq[Long], Seq[Long], Seq[Long], Seq[Long])](
     (
@@ -71,8 +64,7 @@ class ThreefishSpec extends FlatSpec with Matchers {
       Seq(0x04B3053D0A3D5CF0L, 0x0136E0D1C7DD85F7L, 0x067B212F6EA78A5CL, 0x0DA9C10B4C54E1C6L,
         0x0F4EC27394CBACF0L, 0x32437F0568EA4FD5L, 0xCFF56D1D7654B49CL, 0xA2D5FB14369B2E7BL,
         0x540306B460472E0BL, 0x71C18254BCEA820DL, 0xC36B4068BEAF32C8L, 0xFA4329597A360095L,
-        0xC4A36C28434A5B9AL, 0xD54331444B1046CFL, 0xDF11834830B2A460L, 0x1E39E8DFE1F7EE4FL)
-    ), (
+        0xC4A36C28434A5B9AL, 0xD54331444B1046CFL, 0xDF11834830B2A460L, 0x1E39E8DFE1F7EE4FL)), (
       Seq(0x1716151413121110L, 0x1F1E1D1C1B1A1918L, 0x2726252423222120L, 0x2F2E2D2C2B2A2928L,
         0x3736353433323130L, 0x3F3E3D3C3B3A3938L, 0x4746454443424140L, 0x4F4E4D4C4B4A4948L,
         0x5756555453525150L, 0x5F5E5D5C5B5A5958L, 0x6766656463626160L, 0x6F6E6D6C6B6A6968L,
@@ -85,31 +77,26 @@ class ThreefishSpec extends FlatSpec with Matchers {
           Seq(0x483AC62C27B09B59L, 0x4CB85AA9E48221AAL, 0x80BC1644069F7D0BL, 0xFCB26748FF92B235L,
             0xE83D70243B5D294BL, 0x316A3CA3587A0E02L, 0x5461FD7C8EF6C1B9L, 0x7DD5C1A4C98CA574L,
             0xFDA694875AA31A35L, 0x03D1319C26C2624CL, 0xA2066D0DF2BF7827L, 0x6831CCDAA5C8A370L,
-            0x2B8FCD9189698DACL, 0xE47818BBFD604399L, 0xDF47E519CBCEA541L, 0x5EFD5FF4A5D4C259L)
-    )
-  )
+            0x2B8FCD9189698DACL, 0xE47818BBFD604399L, 0xDF47E519CBCEA541L, 0x5EFD5FF4A5D4C259L)))
 
   val test0Params = Parameters(
     'symmetricKey256 -> Threefish.words2block(tests256(0)._1).toKey[SymmetricKey256].get,
     'symmetricKey512 -> Threefish.words2block(tests512(0)._1).toKey[SymmetricKey512].get,
     'symmetricKey1024 -> Threefish.words2block(tests1024(0)._1).toKey[SymmetricKey1024].get,
-    'tweak -> Threefish.words2block(tests256(0)._2)
-  )
+    'tweak -> Threefish.words2block(tests256(0)._2))
 
   val test1Params = Parameters(
     'symmetricKey256 -> Threefish.words2block(tests256(1)._1).toKey[SymmetricKey256].get,
     'symmetricKey512 -> Threefish.words2block(tests512(1)._1).toKey[SymmetricKey512].get,
     'symmetricKey1024 -> Threefish.words2block(tests1024(1)._1).toKey[SymmetricKey1024].get,
-    'tweak -> Threefish.words2block(tests256(1)._2)
-  )
+    'tweak -> Threefish.words2block(tests256(1)._2))
 
   "The Threefish mix function" should "be reversible." in {
     val tests = Seq[(Long, Long, Int)](
       (5122421, 2141242, 53),
       (12, Long.MaxValue, 5),
       (Long.MaxValue, 5152124, 5),
-      (Long.MaxValue, Long.MaxValue, 34)
-    )
+      (Long.MaxValue, Long.MaxValue, 34))
     for (test <- tests) {
       val mix = Threefish.mix(test._1, test._2, test._3)
       val unmix = Threefish.unmix(mix(0), mix(1), test._3)
@@ -125,33 +112,27 @@ class ThreefishSpec extends FlatSpec with Matchers {
         Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
         0,
         Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
-        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }
-      ), (
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }), (
         Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
         Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
         0,
         Seq(2, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
-        Seq(3, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }
-      ), (
+        Seq(3, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }), (
         Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
         Seq(1, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
         1,
         Seq(2, 0, 0, 0, 0, 0, 0, 0) map { _.toByte },
-        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }
-      ), (
+        Seq(0, 0, 0, 0, 0, 0, 0, 0) map { _.toByte }), (
         Seq(232, 3, 0, 0, 0, 0, 0, 0) map { _.toByte },
         Seq(208, 7, 0, 0, 0, 0, 0, 0) map { _.toByte },
         5,
         Seq(184, 11, 0, 0, 0, 0, 0, 0) map { _.toByte },
-        Seq(184, 241, 0, 0, 0, 0, 0, 0) map { _.toByte }
-      ), (
+        Seq(184, 241, 0, 0, 0, 0, 0, 0) map { _.toByte }), (
         Seq(232, 3, 0, 0, 0, 0, 0, 0) map { _.toByte },
         Seq(208, 7, 0, 0, 0, 0, 0, 0) map { _.toByte },
         62,
         Seq(184, 11, 0, 0, 0, 0, 0, 0) map { _.toByte },
-        Seq(76, 10, 0, 0, 0, 0, 0, 0) map { _.toByte }
-      )
-    )
+        Seq(76, 10, 0, 0, 0, 0, 0, 0) map { _.toByte }))
 
     for (test <- tests) {
       val a = Threefish.bytes2word(test._1)

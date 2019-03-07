@@ -23,24 +23,17 @@ class RichBigIntSpec extends FlatSpec with Matchers {
     val tests = Seq[(Int, Seq[Int])](
       (
         0,
-        Seq(0, 0, 0)
-      ), (
+        Seq(0, 0, 0)), (
         1,
-        Seq(0, 0, 1)
-      ), (
+        Seq(0, 0, 1)), (
         255,
-        Seq(0, 0, 255)
-      ), (
+        Seq(0, 0, 255)), (
         256,
-        Seq(0, 1, 0)
-      ), (
+        Seq(0, 1, 0)), (
         257,
-        Seq(0, 1, 1)
-      ), (
+        Seq(0, 1, 1)), (
         511,
-        Seq(0, 1, 255)
-      )
-    )
+        Seq(0, 1, 255)))
 
     for (test <- tests) {
       val int = BigInt(test._1)

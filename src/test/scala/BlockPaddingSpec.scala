@@ -25,33 +25,25 @@ class BlockPaddingSpec extends FlatSpec with Matchers {
       (
         16,
         Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
-        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 6, 6, 6, 6, 6))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 6, 6, 6, 6, 6))), (
         16,
         Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)),
-        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16), Seq(16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16), Seq(16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16))), (
         16,
         Seq(Seq()),
-        Seq(Seq(16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16))
-      ), (
+        Seq(Seq(16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16))), (
         8,
         Seq(Seq(1, 2, 3, 4, 5, 6)),
-        Seq(Seq(1, 2, 3, 4, 5, 6, 2, 2))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 2, 2))), (
         8,
         Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8)),
-        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8), Seq(8, 8, 8, 8, 8, 8, 8, 8))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8), Seq(8, 8, 8, 8, 8, 8, 8, 8))), (
         8,
         Seq(Seq()),
-        Seq(Seq(8, 8, 8, 8, 8, 8, 8, 8))
-      ), (
+        Seq(Seq(8, 8, 8, 8, 8, 8, 8, 8))), (
         16,
         Seq(Seq(1, 2, 3), Seq(4, 5, 6), Seq(7, 8, 9), Seq(10)),
-        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 6, 6, 6, 6, 6))
-      )
-    )
+        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6, 6, 6, 6, 6, 6))))
 
     for (testvector <- testvectors) {
       val padding = BlockPadding[PKCS7Padding](Parameters()).get
@@ -65,25 +57,19 @@ class BlockPaddingSpec extends FlatSpec with Matchers {
       (
         // Does not contain padding block
         8,
-        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8), Seq(1, 2, 3, 4, 5, 6, 7, 8))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 7, 8), Seq(1, 2, 3, 4, 5, 6, 7, 8))), (
         // Wrong padding byte
         8,
-        Seq(Seq(1, 2, 3, 4, 5, 6, 3, 3))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 3, 3))), (
         // Illegal block size
         8,
-        Seq(Seq(1, 2, 3, 4, 5, 6, 7), Seq(1))
-      ), (
+        Seq(Seq(1, 2, 3, 4, 5, 6, 7), Seq(1))), (
         // Illegal block size
         8,
-        Seq(Seq(1, 2, 3), Seq(8, 8, 8, 8, 8, 8, 8, 8))
-      ), (
+        Seq(Seq(1, 2, 3), Seq(8, 8, 8, 8, 8, 8, 8, 8))), (
         // Wrong byte inside padding
         8,
-        Seq(Seq(1, 2, 6, 6, 6, 7, 6, 6))
-      )
-    )
+        Seq(Seq(1, 2, 6, 6, 6, 7, 6, 6))))
 
     for (test <- tests) {
       val padding = BlockPadding[PKCS7Padding](Parameters()).get

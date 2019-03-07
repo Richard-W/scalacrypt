@@ -189,8 +189,7 @@ trait Threefish256 extends Threefish[SymmetricKey256] {
     Seq(25, 33),
     Seq(46, 12),
     Seq(58, 22),
-    Seq(32, 32)
-  )
+    Seq(32, 32))
 
   val permutation: Seq[Int] = Seq(0, 3, 2, 1)
 
@@ -211,8 +210,7 @@ trait Threefish512 extends Threefish[SymmetricKey512] {
     Seq(39, 30, 34, 24),
     Seq(13, 50, 10, 17),
     Seq(25, 29, 39, 43),
-    Seq(8, 35, 56, 22)
-  )
+    Seq(8, 35, 56, 22))
 
   val permutation: Seq[Int] = Seq(2, 1, 4, 7, 6, 5, 0, 3)
 
@@ -233,8 +231,7 @@ trait Threefish1024 extends Threefish[SymmetricKey1024] {
     Seq(41, 9, 37, 31, 12, 47, 44, 30),
     Seq(16, 34, 56, 51, 4, 53, 42, 41),
     Seq(31, 44, 47, 46, 19, 42, 44, 25),
-    Seq(9, 48, 35, 52, 23, 31, 37, 20)
-  )
+    Seq(9, 48, 35, 52, 23, 31, 37, 20))
   val permutation: Seq[Int] = Seq(0, 9, 2, 13, 6, 11, 4, 15, 10, 7, 12, 3, 14, 5, 8, 1)
 
   val reversePermutation: Seq[Int] = Seq(0, 15, 2, 11, 6, 13, 4, 9, 14, 1, 8, 5, 10, 3, 12, 7)

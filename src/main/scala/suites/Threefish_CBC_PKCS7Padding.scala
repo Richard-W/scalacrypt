@@ -32,8 +32,7 @@ object Threefish256_CBC_PKCS7Padding {
       'tweak -> (tweak match {
         case Some(s) ⇒ s
         case _ ⇒ Random.nextBytes(16)
-      })
-    )
+      }))
 
     BlockCipher[Threefish256](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
@@ -57,8 +56,7 @@ object Threefish512_CBC_PKCS7Padding {
       'tweak -> (tweak match {
         case Some(s) ⇒ s
         case _ ⇒ Random.nextBytes(16)
-      })
-    )
+      }))
 
     BlockCipher[Threefish512](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒
@@ -82,8 +80,7 @@ object Threefish1024_CBC_PKCS7Padding {
       'tweak -> (tweak match {
         case Some(s) ⇒ s
         case _ ⇒ Random.nextBytes(16)
-      })
-    )
+      }))
 
     BlockCipher[Threefish1024](params) flatMap { cipher ⇒
       BlockCipherMode[CBC](params) flatMap { mode ⇒

@@ -35,8 +35,7 @@ class Hmac(hash: Hash) extends KeyedHash[Key] {
     Success(
       hash.apply.fold(Element(iKeyPad)) map { innerHash ⇒
         hash(oKeyPad ++ innerHash)
-      }
-    )
+      })
   }
 
   def verify(key: Key, hash: Seq[Byte]): Try[Iteratee[Seq[Byte], Boolean]] = apply(key) map { _ map { _ == hash } }
