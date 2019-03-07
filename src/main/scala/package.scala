@@ -14,6 +14,8 @@
  */
 package xyz.wiedenhoeft.scalacrypt
 
+import java.util.Base64
+
 import scala.util.{ Try, Success, Failure }
 
 object `package` {
@@ -29,7 +31,7 @@ object `package` {
   /** Adds methods to Seq[Byte]. */
   class RichByteSeq(value: Seq[Byte]) {
 
-    def toBase64String: String = (new sun.misc.BASE64Encoder).encodeBuffer(value.toArray)
+    def toBase64String: String = Base64.getEncoder.encodeToString(value.toArray)
 
     def xor(other: Seq[Byte]): Seq[Byte] = {
       def min(a: Int, b: Int): Int = if (a < b) a else b
@@ -56,7 +58,7 @@ object `package` {
   /** Adds methods to String. */
   class RichString(value: String) {
 
-    def toBase64Bytes: Seq[Byte] = (new sun.misc.BASE64Decoder).decodeBuffer(value)
+    def toBase64Bytes: Seq[Byte] = Base64.getDecoder.decode(value.filter(!_.isWhitespace))
   }
 
   implicit def toRichBigInt(value: BigInt): RichBigInt = new RichBigInt(value)
